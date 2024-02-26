@@ -10,7 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -50,7 +53,8 @@ fun Bongatextfield(
     readOnly: Boolean = false,
     onDone: () -> Unit = {},
     keyboardOptions: KeyboardOptions= KeyboardOptions(keyboardType = KeyboardType.Text),
-    keyboardActions: KeyboardActions? = null
+    keyboardActions: KeyboardActions? = null,
+    trailingIcon: @Composable (() -> Unit)? = null
 
 ){
     val current = LocalFocusManager.current
@@ -78,6 +82,7 @@ fun Bongatextfield(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            trailingIcon?.let { icon ->
             OutlinedTextField(
                 visualTransformation = if (isPassword) PasswordVisualTransformation()
                 else VisualTransformation.None,
@@ -100,8 +105,8 @@ fun Bongatextfield(
                     unfocusedBorderColor = Color.Gray,
                     containerColor = Color.Transparent,
                     unfocusedLabelColor = Color.Black,
-                    focusedTextColor= Color.Black,
-                    unfocusedTextColor= Color.Blue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Blue,
                     disabledTextColor = Color.Red,
                     errorTextColor = Color.Red,
                     errorContainerColor = Color.Red,
@@ -152,8 +157,10 @@ fun Bongatextfield(
                         softwareKeyboard?.hide()
                         onDone()
                     }
-                )
+                ),
+                trailingIcon = icon,
             )
+        }
         }
     }
 }
