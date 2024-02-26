@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -20,7 +19,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -31,7 +29,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.korryr.bongesha.ui.theme.orange100
-import dev.korryr.bongesha.ui.theme.red100
+
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +48,8 @@ fun Bongatextfield(
     readOnly: Boolean = false,
     onDone: () -> Unit = {},
     keyboardOptions: KeyboardOptions= KeyboardOptions(keyboardType = KeyboardType.Text),
-    keyboardActions: KeyboardActions? = null
+    keyboardActions: KeyboardActions? = null,
+    trailingIcon: @Composable (() -> Unit)? = null
 
 ){
     val current = LocalFocusManager.current
@@ -78,6 +77,7 @@ fun Bongatextfield(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            trailingIcon?.let { icon ->
             OutlinedTextField(
                 visualTransformation = if (isPassword) PasswordVisualTransformation()
                 else VisualTransformation.None,
@@ -100,8 +100,8 @@ fun Bongatextfield(
                     unfocusedBorderColor = Color.Gray,
                     containerColor = Color.Transparent,
                     unfocusedLabelColor = Color.Black,
-                    focusedTextColor= Color.Black,
-                    unfocusedTextColor= Color.Blue,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Blue,
                     disabledTextColor = Color.Red,
                     errorTextColor = Color.Red,
                     errorContainerColor = Color.Red,
@@ -152,8 +152,10 @@ fun Bongatextfield(
                         softwareKeyboard?.hide()
                         onDone()
                     }
-                )
+                ),
+                trailingIcon = icon,
             )
+        }
         }
     }
 }
