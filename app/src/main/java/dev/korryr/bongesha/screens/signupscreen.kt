@@ -86,6 +86,7 @@ fun BongaSignUp(
             textAlign = TextAlign.Center,
             color = orange100
         )
+        //name textfield
         Bongatextfield(
             isPassword = false,
             label = "Your name",
@@ -136,7 +137,7 @@ fun BongaSignUp(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-
+//password textfield
         Bongatextfield(
             isPassword = true,
             label = "Password",
