@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MailOutline
@@ -47,10 +48,14 @@ import dev.korryr.bongesha.commons.Bongatextfield
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.GoogleSignInButton
+import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.commons.SignInText
+import dev.korryr.bongesha.commons.bongabutton
 import dev.korryr.bongesha.ui.theme.orange100
 
 @Composable
 fun BongaSignUp(
+   // onClick: () -> Unit,
     navController: NavController
 ){
 
@@ -201,9 +206,17 @@ fun BongaSignUp(
                 GoogleSignInButton {
                 }
             }
-
         }
-
-
+        bongabutton(
+            label = "Create an account",
+        ) {
+            navController.navigate(Route.Home.SignUp)
+        }
+        Row {
+            Text(text = "Already have an account?")
+            SignInText(
+                onClick ={}
+            )
+        }
     }
 }
