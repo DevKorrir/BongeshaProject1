@@ -210,7 +210,7 @@ fun BongaSignUp(
         bongabutton(
             label = "Create an account",
         ) {
-            navController.navigate(Route.Home.SignUp)
+            navController.navigate(Route.Home.Welcome)
         }
         Row {
             Text(text = "Already have an account?")
