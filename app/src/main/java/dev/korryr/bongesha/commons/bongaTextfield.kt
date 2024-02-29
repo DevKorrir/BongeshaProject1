@@ -1,11 +1,15 @@
 package dev.korryr.bongesha.commons
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,6 +23,9 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -35,12 +42,16 @@ import dev.korryr.bongesha.ui.theme.orange100
 @Composable
 fun Bongatextfield(
     label: String,
-    isPassword: Boolean,
+    isPassword: Boolean = false,
+    showpassword:Boolean = false,
     boldlabel: Boolean = true,
     fieldDescription: String,
     isValid: Boolean = true,
     isLongText:Boolean = false,
     input: String,
+    trailing: Painter? = null,
+    leading: Painter? = null,
+    onTrailingIconClicked: (() -> Unit)? = null,
     hint: String,
     onChange: (String) -> Unit,
     errorMessage: String = "Error occur",
@@ -49,7 +60,7 @@ fun Bongatextfield(
     onDone: () -> Unit = {},
     keyboardOptions: KeyboardOptions= KeyboardOptions(keyboardType = KeyboardType.Text),
     keyboardActions: KeyboardActions? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    //trailingIcon: @Composable (() -> Unit)? = null
 
 ){
     val current = LocalFocusManager.current
@@ -77,7 +88,6 @@ fun Bongatextfield(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            trailingIcon?.let { icon ->
             OutlinedTextField(
                 visualTransformation = if (isPassword) PasswordVisualTransformation()
                 else VisualTransformation.None,
@@ -153,9 +163,38 @@ fun Bongatextfield(
                         onDone()
                     }
                 ),
-                trailingIcon = icon,
+                trailingIcon =
+                   if (trailing == null) null else {
+                       val trailing: @Composable () -> Unit = {
+                           Image(
+                               painter = trailing,
+                               contentDescription = "",
+                               modifier = Modifier.clickable {
+                                   onTrailingIconClicked?.invoke()
+                               },
+                               colorFilter = ColorFilter.tint(orange100)
+                           )
+                       }
+                       trailing
+                },
+
+                leadingIcon =
+                    if (leading == null) null else {
+                        val leading: @Composable () -> Unit = {
+                            Image(
+                                painter = leading,
+                                contentDescription = "",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clickable {
+                                    onTrailingIconClicked?.invoke()
+                                },
+                                colorFilter = ColorFilter.tint(orange100),
+                            )
+                        }
+                        leading
+                }
             )
-        }
         }
     }
 }

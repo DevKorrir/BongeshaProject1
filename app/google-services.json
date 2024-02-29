@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "863305767590",
+    "project_id": "bongesha-36512",
+    "storage_bucket": "bongesha-36512.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863305767590:android:42376022364c7a3015f267",
+        "android_client_info": {
+          "package_name": "dev.korryr.bongesha"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxAqOGF4wt4fGFcHUIKHqNYsPzjORuCYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
