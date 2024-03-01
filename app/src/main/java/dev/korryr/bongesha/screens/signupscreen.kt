@@ -1,9 +1,12 @@
 package dev.korryr.bongesha.screens
 
 import android.text.style.ClickableSpan
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.Companion.End
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +17,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
@@ -23,7 +28,9 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MailOutline
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults.color
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SnackbarDefaults.color
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.InspectableModifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import dev.korryr.bongesha.commons.Bongatextfield
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
+import dev.korryr.bongesha.commons.BongaBox
 import dev.korryr.bongesha.commons.GoogleSignInButton
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.SignInText
@@ -86,8 +95,8 @@ fun BongaSignUp(
         Image(
             modifier = Modifier
                 //.clip(CircleShape)
-                .background(Color.Transparent),
-                //.size(250.dp),
+                .background(Color.Transparent)
+                .size(250.dp),
             painter = painterResource(id = R.drawable.problem_solved),
             contentDescription = "",
 
@@ -178,37 +187,67 @@ fun BongaSignUp(
         ) {
             Divider(
                 modifier = Modifier
-                    //.padding(1.dp)
+                    .padding(8.dp)
                     .weight(1f),
                 thickness = 1.dp,
                 color = Color.LightGray
             )
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(text = "or")
+            Spacer(modifier = Modifier.height(8.dp))
 
             Divider(
                 modifier = Modifier
-                    //.padding(8.dp)
+                    .padding(8.dp)
                     .weight(1f),
                 thickness = 1.dp,
                 color = Color.LightGray
             )
 
         }
+        Spacer(modifier = Modifier.height(36.dp))
         Row(
             modifier = Modifier
-                .padding(8.dp)
                 .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Box(
-                modifier = Modifier.size(36.dp)
-            ) {
-                GoogleSignInButton {
-                }
-            }
+            BongaBox(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, color = orange100)
+                    .background(
+                        color = Color.Transparent,
+                        shape = RoundedCornerShape(24.dp))
+                    .size(54.dp),
+                    painter = painterResource(id = R.drawable.google_icons),
+            )
+            //Spacer(modifier = Modifier.width(24.dp))
+            BongaBox(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, color = orange100)
+                    .background(color = Color.Transparent)
+                    .size(54.dp),
+                painter = painterResource(id = R.drawable.facebook_icon),
+            )
+            //Spacer(modifier = Modifier.width(8.dp))
+            BongaBox(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .border(1.dp, color = orange100)
+                    .background(color = Color.LightGray)
+                    .size(54.dp),
+                painter = painterResource(id = R.drawable.apple_icon),
+            )
         }
+
+        Spacer(modifier = Modifier.weight(1f))
         bongabutton(
             label = "Create an account",
+            modifier = Modifier.fillMaxWidth(),
+            buttonColor = Color.Black
         ) {
             navController.navigate(Route.Home.Welcome)
         }
