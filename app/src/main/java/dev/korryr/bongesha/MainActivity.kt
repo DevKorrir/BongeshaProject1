@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.BongaSignUp
+import dev.korryr.bongesha.screens.BongaWelcome
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.red100
 
@@ -61,6 +62,10 @@ class MainActivity : ComponentActivity() {
                     ){
                         composable(Route.Home.SignUp){
                             BongaSignUp(navController = navController)
+                        }
+
+                        composable(Route.Home.Welcome){
+                            BongaWelcome(navController = navController)
                         }
                     }
                    /* val firebaseDatabase = FirebaseDatabase.getInstance();
