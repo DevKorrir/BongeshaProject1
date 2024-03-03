@@ -30,6 +30,7 @@ import dev.korryr.bongesha.ui.theme.orange100
 fun bongabutton(
     modifier: Modifier = Modifier,
     label: String,
+    color: Color? = null,
     buttonColor: Color,
     showArrow: Boolean = true,
     onClick: () -> Unit
@@ -50,12 +51,14 @@ fun bongabutton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = label,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            if (color != null) {
+                Text(
+                    text = label,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
+                )
+            }
             Spacer(modifier = Modifier.width(8.dp))
             if (showArrow){
                 Icon(

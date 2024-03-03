@@ -72,7 +72,7 @@ fun BongaWelcome(
                 modifier = Modifier
                     .background(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color.Black)
+                        color = Color.Gray)
                     .fillMaxWidth()
                     //.align(Alignment.BottomCenter)
                     .height(288.dp),
@@ -92,22 +92,23 @@ fun BongaWelcome(
 
                     Row (
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.SpaceEvenly,
                         verticalAlignment = Alignment.CenterVertically
                     ){
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             bongabutton(
 
                                 showArrow = false,
                                 label = "Skip",
+                                color = Color.White,
                                 buttonColor = Color.Gray,
                                 modifier = Modifier
-                                    .wrapContentWidth()
-                                    //.weight(1f)
+                                    .width(176.dp)
+                                    //.wrapContentWidth()
                             ) {
                             }
 
@@ -115,11 +116,12 @@ fun BongaWelcome(
 
                             bongabutton(
                                 showArrow = false,
-                                label = "next",
+                                label = "Next",
+                                color = Color.Black,
                                 buttonColor = Color.LightGray,
                                 modifier = Modifier
-
-                                    .wrapContentWidth()
+                                    .width(176.dp)
+                                    //.wrapContentWidth()
                             ) {
 
                             }

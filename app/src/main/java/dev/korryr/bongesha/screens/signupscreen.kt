@@ -214,31 +214,17 @@ fun BongaSignUp(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             BongaBox(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, color = orange100)
-                    .background(
-                        color = Color.Transparent,
-                        shape = RoundedCornerShape(24.dp))
-                    .size(54.dp),
+                modifier = Modifier,
                     painter = painterResource(id = R.drawable.google_icons),
             )
             //Spacer(modifier = Modifier.width(24.dp))
             BongaBox(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, color = orange100)
-                    .background(color = Color.Transparent)
-                    .size(54.dp),
+                modifier = Modifier,
                 painter = painterResource(id = R.drawable.facebook_icon),
             )
             //Spacer(modifier = Modifier.width(8.dp))
             BongaBox(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .border(1.dp, color = orange100)
-                    .background(color = Color.LightGray)
-                    .size(54.dp),
+                modifier = Modifier,
                 painter = painterResource(id = R.drawable.apple_icon),
             )
         }
@@ -246,6 +232,7 @@ fun BongaSignUp(
         Spacer(modifier = Modifier.weight(1f))
         bongabutton(
             label = "Create an account",
+            color = Color.White,
             modifier = Modifier.fillMaxWidth(),
             buttonColor = Color.Black
         ) {
