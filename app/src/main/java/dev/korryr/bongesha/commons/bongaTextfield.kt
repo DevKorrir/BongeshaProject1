@@ -73,7 +73,7 @@ fun Bongatextfield(
 
         Text(
             text = label,
-            color = Color.Transparent,
+            color = Color.DarkGray,
             fontWeight = if (boldlabel) FontWeight.Bold else FontWeight.Normal,
         )
         if (fieldDescription.isNotEmpty()){
