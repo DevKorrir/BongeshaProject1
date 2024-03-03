@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
+import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.bongabutton
 
 @Composable
@@ -110,6 +111,7 @@ fun BongaWelcome(
                                     .width(176.dp)
                                     //.wrapContentWidth()
                             ) {
+                                navController.navigate(Route.Home.SignIn)
                             }
 
                             Spacer(modifier = Modifier.width(8.dp))
