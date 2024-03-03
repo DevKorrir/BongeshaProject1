@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,8 @@ import dev.korryr.bongesha.ui.theme.orange100
 fun bongabutton(
     modifier: Modifier = Modifier,
     label: String,
+    color: Color? = null,
+    buttonColor: Color,
     showArrow: Boolean = true,
     onClick: () -> Unit
 ){
@@ -37,10 +40,10 @@ fun bongabutton(
         shape = MaterialTheme.shapes.large.copy(all = CornerSize(16.dp)),
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Black,
+            containerColor = buttonColor
         ),
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            //.fillMaxWidth()
             .testTag(label)
             .height(56.dp)
         ){
@@ -48,12 +51,14 @@ fun bongabutton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = label,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            if (color != null) {
+                Text(
+                    text = label,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 24.sp
+                )
+            }
             Spacer(modifier = Modifier.width(8.dp))
             if (showArrow){
                 Icon(
