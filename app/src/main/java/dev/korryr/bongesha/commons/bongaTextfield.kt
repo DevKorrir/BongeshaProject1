@@ -169,7 +169,9 @@ fun Bongatextfield(
                            Image(
                                painter = trailing,
                                contentDescription = "",
-                               modifier = Modifier.clickable {
+                               modifier = Modifier
+                                   .size(24.dp)
+                                   .clickable {
                                    onTrailingIconClicked?.invoke()
                                },
                                colorFilter = ColorFilter.tint(orange100)
