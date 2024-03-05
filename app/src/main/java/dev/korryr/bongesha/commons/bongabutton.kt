@@ -32,7 +32,7 @@ fun bongabutton(
     label: String,
     color: Color? = null,
     buttonColor: Color,
-    showArrow: Boolean = true,
+    showArrow: Boolean = false,
     onClick: () -> Unit
 ){
     Button(

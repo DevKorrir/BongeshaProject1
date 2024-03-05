@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.sp
 import java.lang.reflect.Modifier
 
 @Composable
-fun SignInText(
+fun eSignInText(
     onClick: () -> Unit,
 ) {
     Text(

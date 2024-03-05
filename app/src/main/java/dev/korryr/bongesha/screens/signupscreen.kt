@@ -58,7 +58,6 @@ import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaBox
 import dev.korryr.bongesha.commons.GoogleSignInButton
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.commons.SignInText
 import dev.korryr.bongesha.commons.bongabutton
 import dev.korryr.bongesha.ui.theme.orange100
 
@@ -181,32 +180,29 @@ fun BongaSignUp(
 
         Row(
             modifier = Modifier
-                .padding(8.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Divider(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(end = 8.dp)
                     .weight(1f),
                 thickness = 1.dp,
                 color = Color.LightGray
             )
-            Spacer(modifier = Modifier.height(8.dp))
 
             Text(text = "or")
-            Spacer(modifier = Modifier.height(8.dp))
 
             Divider(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(start = 8.dp)
                     .weight(1f),
                 thickness = 1.dp,
                 color = Color.LightGray
             )
 
         }
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.weight(1f))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -217,12 +213,12 @@ fun BongaSignUp(
                 modifier = Modifier,
                     painter = painterResource(id = R.drawable.google_icons),
             )
-            //Spacer(modifier = Modifier.width(24.dp))
+
             BongaBox(
                 modifier = Modifier,
                 painter = painterResource(id = R.drawable.facebook_icon),
             )
-            //Spacer(modifier = Modifier.width(8.dp))
+
             BongaBox(
                 modifier = Modifier,
                 painter = painterResource(id = R.drawable.apple_icon),
@@ -239,9 +235,8 @@ fun BongaSignUp(
             navController.navigate(Route.Home.Welcome)
         }
         Row {
-            Text(text = "Already have an account?")
-            SignInText(
-                onClick ={}
+            Text(
+                text = "Already have an account?"
             )
         }
     }
