@@ -4,28 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
+import dev.korryr.bongesha.screens.BongaFirebase
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
-import dev.korryr.bongesha.ui.theme.red100
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,6 +62,10 @@ class MainActivity : ComponentActivity() {
 
                         composable(Route.Home.SignIn){
                             BongaSignIn(navController = navController)
+                        }
+
+                        composable(Route.Home.Firebase){
+                            BongaFirebase(navController = navController)
                         }
                     }
                    /* val firebaseDatabase = FirebaseDatabase.getInstance();

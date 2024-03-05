@@ -7,7 +7,7 @@ class Route {
         const val SignUp = "/signup/"
         const val Welcome = "/welcome/"
         const val SignIn = "/signin/"
-        const val List = "/list/"
+        const val Firebase = "/list/"
         const val Product = "/Product/"
         const val Category = "/category/"
 
