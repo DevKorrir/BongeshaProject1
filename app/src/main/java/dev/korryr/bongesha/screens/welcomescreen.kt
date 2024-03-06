@@ -22,7 +22,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.internal.composableLambdaInstance
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
+import dev.korryr.bongesha.commons.BongaSlideText
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.bongabutton
 import dev.korryr.bongesha.ui.theme.orange100
@@ -118,11 +123,25 @@ fun BongaWelcome(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ){
+
+                    val slides = listOf(
+                        "slide 1: This is the content of slide 1",
+                        "slide 2: This is the content of slide 2",
+                        "slide 3: This is the content of slide 3"
+                    )
+
+                    var currentSlideIndex by remember {
+                        mutableStateOf(0) }
+
+                    BongaSlideText(
+                        text = slides[currentSlideIndex]
+                    )
+                        /*
                     Text(
                         text = "sit back and never worry about sharing \n bills with your housemates again!",
                         color = Color.White,
                         fontSize = 24.sp
-                        )
+                        )*/
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -136,6 +155,8 @@ fun BongaWelcome(
                             horizontalArrangement = Arrangement.SpaceEvenly,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+
+
                             bongabutton(
 
                                 showArrow = false,
@@ -144,7 +165,6 @@ fun BongaWelcome(
                                 buttonColor = Color.Gray,
                                 modifier = Modifier
                                     .width(176.dp)
-                                    //.wrapContentWidth()
                             ) {
                                 navController.navigate(Route.Home.SignIn)
                             }
@@ -157,10 +177,9 @@ fun BongaWelcome(
                                 color = Color.Black,
                                 buttonColor = Color.LightGray,
                                 modifier = Modifier
-                                    .width(176.dp)
-                                    //.wrapContentWidth()
+                                    .width(176.dp),
                             ) {
-
+                                currentSlideIndex = (currentSlideIndex + 1) % slides.size
                             }
                         }
                     }
