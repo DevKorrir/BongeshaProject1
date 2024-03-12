@@ -11,6 +11,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaSignUp
@@ -19,8 +22,11 @@ import dev.korryr.bongesha.screens.BongaFirebase
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 
 class MainActivity : ComponentActivity() {
+    private lateinit var auth: FirebaseAuth
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        auth = Firebase.auth
         setContent {
 
             val navController = rememberNavController()
