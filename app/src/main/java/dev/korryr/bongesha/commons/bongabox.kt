@@ -23,7 +23,8 @@ import dev.korryr.bongesha.ui.theme.orange100
 @Composable
 fun BongaBox(
     modifier: Modifier,
-    painter: Painter
+    painter: Painter,
+    onClick: (() -> Unit)? = null
 ){
     //Spacer(modifier = Modifier.height(8.dp))
     Box(
