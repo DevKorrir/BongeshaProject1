@@ -37,6 +37,7 @@ import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
 import dev.korryr.bongesha.screens.BongaFirebase
+import dev.korryr.bongesha.screens.category.BongaCategory
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import kotlinx.coroutines.launch
 
@@ -107,7 +108,6 @@ class MainActivity : ComponentActivity() {
                         startDestination = Route.Home.SignUp
                     ){
                         composable(Route.Home.SignUp){
-
                             BongaSignUp(navController = navController){
                                 lifecycleScope.launch {
                                     val signInIntentSender = googleAuthUiClient.signIn()
@@ -133,16 +133,40 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                       // composable(Route.Home.Welcome){
-                         //   BongaWelcome(navController = navController)
-                       // }
-
-                        composable(Route.Home.SignIn){
-                            BongaSignIn(navController = navController)
+                        composable(Route.Home.Welcome){
+                            BongaWelcome(navController = navController)
                         }
 
-                        composable(Route.Home.Firebase){
-                            BongaFirebase(navController = navController)
+                        composable(Route.Home.SignIn){
+                            BongaSignIn(navController = navController){
+                                lifecycleScope.launch {
+                                    val signInIntentSender = googleAuthUiClient.signIn()
+                                    launcher.launch(
+                                        IntentSenderRequest.Builder(
+                                            signInIntentSender ?: return@launch
+                                        ).build()
+                                    )
+                                }
+                            }
+
+                            LaunchedEffect(key1 = state.isSignInSuccessful) {
+                                if(state.isSignInSuccessful) {
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Sign in successful",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+
+                                    navController.navigate(Route.Home.Category)
+                                    viewModel.resetState()
+                                }
+                            }
+                        }
+
+                        composable(Route.Home.Category){
+                            BongaCategory(navController = navController) {
+
+                            }
                         }
                     }
                    /* val firebaseDatabase = FirebaseDatabase.getInstance();

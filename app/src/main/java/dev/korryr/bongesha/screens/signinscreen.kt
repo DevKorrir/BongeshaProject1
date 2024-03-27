@@ -61,7 +61,8 @@ import java.net.URI
 
 @Composable
 fun BongaSignIn(
-    navController: NavController
+    navController: NavController,
+    onClick: () -> Unit,
 ){
     var email by remember {
         mutableStateOf("")
@@ -226,7 +227,10 @@ fun BongaSignIn(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             BongaBox(
-                modifier = Modifier,
+                modifier = Modifier
+                    .clickable {
+                        onClick()
+                    },
                 painter = painterResource(id = R.drawable.google_icons),
             )
 
@@ -252,7 +256,7 @@ fun BongaSignIn(
                 color = Color.White,
                 buttonColor = Color.DarkGray
             ) {
-                navController.navigate(Route.Home.Firebase)
+                navController.navigate(Route.Home.Category)
             }
 
             Row(
