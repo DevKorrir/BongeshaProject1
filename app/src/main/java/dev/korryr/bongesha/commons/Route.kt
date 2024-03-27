@@ -8,8 +8,8 @@ class Route {
         const val Welcome = "/welcome/"
         const val SignIn = "/signin/"
         const val Firebase = "/list/"
-        const val Product = "/Product/"
         const val Category = "/category/"
+        const val Product = "/Product/"
 
     }
 }

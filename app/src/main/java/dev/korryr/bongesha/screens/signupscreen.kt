@@ -216,7 +216,7 @@ fun BongaSignUp(
             modifier = Modifier.fillMaxWidth(),
             buttonColor = Color.Black
         ) {
-            //navController.navigate(Route.Home.Welcome)
+            navController.navigate(Route.Home.SignIn)
         }
         Row {
             Text(
