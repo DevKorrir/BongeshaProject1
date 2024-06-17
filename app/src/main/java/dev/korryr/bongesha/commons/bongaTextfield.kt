@@ -1,7 +1,6 @@
 package dev.korryr.bongesha.commons
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -25,7 +24,6 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -35,7 +33,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.korryr.bongesha.ui.theme.orange100
+import dev.korryr.bongesha.ui.theme.orange28
 
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
@@ -106,9 +104,9 @@ fun Bongatextfield(
                     .testTag(label + "1"),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     disabledPlaceholderColor = Color.Red,
-                    focusedBorderColor = orange100,
-                    unfocusedBorderColor = Color.Gray,
-                    containerColor = Color.Transparent,
+                    focusedBorderColor = orange28,
+                    unfocusedBorderColor = Color.Transparent,
+                    containerColor = Color.White,
                     unfocusedLabelColor = Color.Black,
                     focusedTextColor = Color.Black,
                     unfocusedTextColor = Color.Blue,
@@ -174,7 +172,7 @@ fun Bongatextfield(
                                    .clickable {
                                    onTrailingIconClicked?.invoke()
                                },
-                               colorFilter = ColorFilter.tint(orange100)
+                               colorFilter = ColorFilter.tint(orange28)
                            )
                        }
                        trailing
@@ -191,7 +189,7 @@ fun Bongatextfield(
                                     .clickable {
                                     onTrailingIconClicked?.invoke()
                                 },
-                                colorFilter = ColorFilter.tint(orange100),
+                                colorFilter = ColorFilter.tint(orange28),
                             )
                         }
                         leading

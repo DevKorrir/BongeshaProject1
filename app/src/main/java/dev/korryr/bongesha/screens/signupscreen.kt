@@ -1,6 +1,5 @@
 package dev.korryr.bongesha.screens
 
-import androidx.activity.result.IntentSenderRequest
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,15 +30,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.lifecycleScope
+//import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaBox
 import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.bongabutton
-import dev.korryr.bongesha.ui.theme.orange100
-import kotlinx.coroutines.launch
+import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
 fun BongaSignUp(
@@ -84,12 +82,12 @@ fun BongaSignUp(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text ="Become a member!",
+            text ="Register",
             fontWeight = FontWeight.ExtraBold,
             fontStyle = FontStyle.Normal,
             fontSize = 56.sp,
             textAlign = TextAlign.Center,
-            color = orange100
+            color = orange28
         )
         //name textfield
         Bongatextfield(
@@ -171,7 +169,7 @@ fun BongaSignUp(
                 color = Color.LightGray
             )
 
-            Text(text = "or")
+            Text(text = "or sign up with")
 
             Divider(
                 modifier = Modifier
@@ -189,20 +187,23 @@ fun BongaSignUp(
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            BongaBox(
-                modifier = Modifier
-                    .clickable {
-                        onClick()
-                    },
+            //google button
+
+                BongaBox(
+                    modifier = Modifier
+                        .clickable {
+                            onClick()
+                        },
                     painter = painterResource(id = R.drawable.google_icons),
 
-            )
+                    )
 
+            //facebook button
             BongaBox(
                 modifier = Modifier,
                 painter = painterResource(id = R.drawable.facebook_icon),
             )
-
+            //apple button
             BongaBox(
                 modifier = Modifier,
                 painter = painterResource(id = R.drawable.apple_icon),
@@ -214,7 +215,7 @@ fun BongaSignUp(
             label = "Create an account",
             color = Color.White,
             modifier = Modifier.fillMaxWidth(),
-            buttonColor = Color.Black
+            buttonColor = orange28
         ) {
             navController.navigate(Route.Home.SignIn)
         }

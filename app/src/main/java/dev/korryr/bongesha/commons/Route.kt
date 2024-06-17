@@ -10,6 +10,9 @@ class Route {
         const val Firebase = "/list/"
         const val Category = "/category/"
         const val Product = "/Product/"
+        const val Beverage = "/beverage/"
+        const val Cart = "/cart/"
+        const val ItemDetails = "itemDetails/{itemId}"
 
     }
 }

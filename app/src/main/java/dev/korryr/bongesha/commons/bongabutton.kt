@@ -4,14 +4,12 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,7 +22,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.korryr.bongesha.ui.theme.orange100
+import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
 fun bongabutton(
@@ -36,7 +34,7 @@ fun bongabutton(
     onClick: () -> Unit
 ){
     Button(
-        border = BorderStroke(1.dp, color = orange100),
+        border = BorderStroke(1.dp, color = orange28),
         shape = MaterialTheme.shapes.large.copy(all = CornerSize(16.dp)),
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
