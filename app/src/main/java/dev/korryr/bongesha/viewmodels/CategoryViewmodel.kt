@@ -18,7 +18,7 @@ class BongaCategoryViewModel : ViewModel() {
                 name = "Beverages",
                 items = listOf(
                     Item(
-                        id = "1",
+                        id = "a1",
                         name = "Cocacola",
                         description = "500ml pet",
                         image = R.drawable.coke,
@@ -26,14 +26,14 @@ class BongaCategoryViewModel : ViewModel() {
                         //quantity = 10
                     ),
                     Item(
-                        id = "2",
+                        id = "a2",
                         name = "Fanta Orange",
                         description = "500ml pet",
                         image = R.drawable.fanta_orange_pet,
                         price = 70.00,
                         ),
                     Item(
-                        id = "3",
+                        id = "a3",
                         name = "Fanta Blackcurrant",
                         description = "500ml pet",
                         image = R.drawable.fanta_blackcurrant_pet,
@@ -41,35 +41,35 @@ class BongaCategoryViewModel : ViewModel() {
                         ),
 
                     Item(
-                        id = "4",
+                        id = "a4",
                         name = "Fanta Blackcurrant",
                         description = "350ml pet",
                         image = R.drawable.fanta_blackcurrant_pet,
                         price = 50.00,
                         ),
                     Item(
-                        id = "5",
+                        id = "a5",
                         name = "Sprite Pet",
                         description = "500ml pet",
                         image = R.drawable.sprite_pet,
                         price = 70.00,
                         ),
                     Item(
-                        id = "6",
+                        id = "a6",
                         name = "Stoney Class",
                         description = "300ml pet",
                         image = R.drawable.stoney_class,
                         price = 40.00,
                         ),
                     Item(
-                        id = "7",
+                        id = "a7",
                         name = "Minute Maid Tropical juice",
                         description = "400ml pet",
                         image = R.drawable.minute_maid_tropical,
                         price = 75.00,
                         ),
                     Item(
-                        id = "8",
+                        id = "a8",
                         name = "Minute Maid Apple Juice",
                         description = "400ml pet",
                         image = R.drawable.minute_maid_apple,
@@ -85,21 +85,21 @@ class BongaCategoryViewModel : ViewModel() {
                 name = "Home Care",
                 items = listOf(
                     Item(
-                        id = "1",
+                        id = "b1",
                         name = "Dettol Original",
                         description = "Antibacterial handwash 60g",
                         image = R.drawable.dettol_original,
                         price = 90.00,
                         ),
                     Item(
-                        id = "2",
+                        id = "b2",
                         name = "Geisha ",
                         description = "Soothing Aloe Vera & Honey Soap 60g",
                         image = R.drawable.geisha_green,
                         price = 50.00,
                         ),
                     Item(
-                        id = "3",
+                        id = "b3",
                         name = "Geisha ",
                         description = "Fragrant Rose & Honey Soap 60g",
                         image = R.drawable.geisha_pink,
@@ -113,28 +113,28 @@ class BongaCategoryViewModel : ViewModel() {
                 name = "Personal Care",
                 items = listOf(
                     Item(
-                        id = "1",
+                        id = "c1",
                         name = "Vaseline Lotion",
                         description = "Cocoa Radiant 100ml",
                         image = R.drawable.vaseline_coco,
                         price = 130.00,
                         ),
                     Item(
-                        id = "2",
+                        id = "c2",
                         name = "Vaseline Jelly",
                         description = "Perfumed 95ml",
                         image = R.drawable.vaseline_jelly_perfumed,
                         price = 85.00,
                         ),
                     Item(
-                        id = "3",
+                        id = "c3",
                         name = "Vaseline Jelly",
                         description = "Cocoa Butter Perfumed 95ml",
                         image = R.drawable.vaseline_jelly_coco,
                         price = 85.00,
                     ),
                     Item(
-                        id = "4",
+                        id = "c4",
                         name = "Vaseline Lotion",
                         description = "Perfumed 100ml",
                         image = R.drawable.vaseline_pink,
@@ -148,21 +148,21 @@ class BongaCategoryViewModel : ViewModel() {
                 name = "Home & Kitchen",
                 items = listOf(
                     Item(
-                        id = "1",
+                        id = "d1",
                         name = "Steel wool",
                         description = "Sokoni wool",
                         image = R.drawable.steel_wool,
                         price = 10.00,
                     ),
                     Item(
-                        id = "2",
+                        id = "d2",
                         name = "Steel wire",
                         description = "Strong With Rust resistance",
                         image = R.drawable.stell_wired,
                         price = 20.00,
                     ),
                     Item(
-                        id = "3",
+                        id = "d3",
                         name = "Sugura Sponge",
                         description = "Scouring power",
                         image = R.drawable.sugura_green,
@@ -176,14 +176,14 @@ class BongaCategoryViewModel : ViewModel() {
                 name = "Spread & Bread",
                 items = listOf(
                     Item(
-                        id = "1",
+                        id = "e1",
                         name = "Blue Band",
                         description = "Original 250g",
                         image = R.drawable.blue_band,
                         price = 150.00,
                     ),
                     Item(
-                        id = "2",
+                        id = "e2",
                         name = "Prestige",
                         description = "Original 500g",
                         image = R.drawable.prestige_spread,
@@ -193,7 +193,7 @@ class BongaCategoryViewModel : ViewModel() {
                 icon = R.drawable.bread_spread
             ),
             Category(
-                id = "6",
+                id = "f6",
                 name = "Rice&Pasta",
                 items = listOf(
                     Item(
@@ -204,14 +204,14 @@ class BongaCategoryViewModel : ViewModel() {
                         price = 180.00,
                     ),
                     Item(
-                        id = "3",
+                        id = "f3",
                         name = "Pazani Spaghetti",
                         description = "nutritional 400g",
                         image = R.drawable.spaghetti_pazani,
                         price = 80.00,
                     ),
                     Item(
-                        id = "3",
+                        id = "f3",
                         name = "Noodles",
                         description = "Kuku Flavour 12g",
                         image = R.drawable.indomie_noodles,
@@ -225,14 +225,14 @@ class BongaCategoryViewModel : ViewModel() {
                 name = "Snacks",
                 items = listOf(
                     Item(
-                        id = "1",
+                        id = "g1",
                         name = "Kit Kat",
                         description = "Milk Chocolate 20g",
                         image = R.drawable.kit_kat_biscuit,
                         price = 20.00,
                     ),
                     Item(
-                        id = "2",
+                        id = "g2",
                         name = "Choco",
                         description = "Creame chocolate 20g",
                         image = R.drawable.choco_biscuit,

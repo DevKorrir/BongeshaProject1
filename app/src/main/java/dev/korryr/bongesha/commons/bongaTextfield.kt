@@ -13,10 +13,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -27,55 +33,57 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import dev.korryr.bongesha.R
 import dev.korryr.bongesha.ui.theme.orange28
 
-
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Bongatextfield(
     label: String,
     isPassword: Boolean = false,
-    showpassword:Boolean = false,
-    boldlabel: Boolean = true,
+    showPassword: Boolean = false,
+    boldLabel: Boolean = true,
     fieldDescription: String,
     isValid: Boolean = true,
-    isLongText:Boolean = false,
+    isLongText: Boolean = false,
     input: String,
     trailing: Painter? = null,
     leading: Painter? = null,
     onTrailingIconClicked: (() -> Unit)? = null,
     hint: String,
     onChange: (String) -> Unit,
-    errorMessage: String = "Error occur",
+    errorMessage: String = "Error occurred",
     enabled: Boolean = true,
     readOnly: Boolean = false,
     onDone: () -> Unit = {},
-    keyboardOptions: KeyboardOptions= KeyboardOptions(keyboardType = KeyboardType.Text),
-    keyboardActions: KeyboardActions? = null,
-    //trailingIcon: @Composable (() -> Unit)? = null
-
-){
+    keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+    keyboardActions: KeyboardActions? = null
+) {
     val current = LocalFocusManager.current
     val softwareKeyboard = LocalSoftwareKeyboardController.current
+    var passwordVisible by rememberSaveable { mutableStateOf(showPassword) }
+    var passwordField by rememberSaveable { mutableStateOf(input) }
+
     Column(
         modifier = Modifier,
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center,
     ) {
-
         Text(
             text = label,
             color = Color.DarkGray,
-            fontWeight = if (boldlabel) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (boldLabel) FontWeight.Bold else FontWeight.Normal,
         )
-        if (fieldDescription.isNotEmpty()){
-            Text(text = fieldDescription,
+        if (fieldDescription.isNotEmpty()) {
+            Text(
+                text = fieldDescription,
                 color = if (isValid) Color.Green else Color.Red
             )
         }
@@ -87,8 +95,6 @@ fun Bongatextfield(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             OutlinedTextField(
-                visualTransformation = if (isPassword) PasswordVisualTransformation()
-                else VisualTransformation.None,
                 singleLine = !isLongText,
                 value = input,
                 enabled = enabled,
@@ -145,7 +151,18 @@ fun Bongatextfield(
                     errorSuffixColor = Color.Red
                 ),
                 shape = RoundedCornerShape(12.dp),
-                keyboardOptions = keyboardOptions,
+                keyboardOptions = if (isPassword && passwordVisible) {
+                    keyboardOptions.copy(keyboardType = KeyboardType.Text)
+                } else if (isPassword) {
+                    keyboardOptions.copy(keyboardType = KeyboardType.Password)
+                } else {
+                    keyboardOptions
+                },
+                visualTransformation = if (isPassword && !passwordVisible) {
+                    PasswordVisualTransformation()
+                } else {
+                    VisualTransformation.None
+                },
                 placeholder = {
                     Text(
                         text = hint,
@@ -161,38 +178,42 @@ fun Bongatextfield(
                         onDone()
                     }
                 ),
-                trailingIcon =
-                   if (trailing == null) null else {
-                       val trailing: @Composable () -> Unit = {
-                           Image(
-                               painter = trailing,
-                               contentDescription = "",
-                               modifier = Modifier
-                                   .size(24.dp)
-                                   .clickable {
-                                   onTrailingIconClicked?.invoke()
-                               },
-                               colorFilter = ColorFilter.tint(orange28)
-                           )
-                       }
-                       trailing
-                },
-
-                leadingIcon =
-                    if (leading == null) null else {
-                        val leading: @Composable () -> Unit = {
-                            Image(
-                                painter = leading,
-                                contentDescription = "",
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .clickable {
-                                    onTrailingIconClicked?.invoke()
+                trailingIcon = if (isPassword) {
+                    {
+                        IconButton(
+                            onClick = {
+                                passwordVisible = !passwordVisible
+                            }
+                        ) {
+                            Icon(
+                                painter = if (passwordVisible) {
+                                    painterResource(id = R.drawable.hide_icon)
+                                } else {
+                                    trailing!!
                                 },
-                                colorFilter = ColorFilter.tint(orange28),
+                                contentDescription = if (passwordVisible) {
+                                    "Hide password"
+                                } else {
+                                    "Show password"
+                                }
                             )
                         }
-                        leading
+                    }
+                } else null,
+                leadingIcon =
+                if (leading == null) null else {
+                    {
+                        Image(
+                            painter = leading,
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable {
+                                    onTrailingIconClicked?.invoke()
+                                },
+                            colorFilter = ColorFilter.tint(orange28),
+                        )
+                    }
                 }
             )
         }

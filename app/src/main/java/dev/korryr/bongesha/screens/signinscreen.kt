@@ -140,7 +140,7 @@ fun BongaSignIn(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             ),
-            trailing = painterResource(id = R.drawable.hide_password)
+            trailing = painterResource(id = R.drawable.ic_show_password)
         )
         Row(
             modifier = Modifier

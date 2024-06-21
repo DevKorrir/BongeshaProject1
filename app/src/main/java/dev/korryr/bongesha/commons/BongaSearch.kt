@@ -40,47 +40,6 @@ import dev.korryr.bongesha.R
 import dev.korryr.bongesha.ui.theme.gray01
 
 @Composable
-fun BongaSearch(
-    //query: String,
-    onChange:(String) -> Unit,
-    onSearchClick: @Composable () -> Unit,
-){
-
-    val viewModel = viewModel<MainViewModel>()
-    val searchText by viewModel.searchText.collectAsState()
-    val persons by viewModel.products.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
-
-    var query by remember {
-        mutableStateOf("")
-    }
-    val current = LocalFocusManager.current
-    val softwareKeyboard = LocalSoftwareKeyboardController.current
-    Bongatextfield(
-        label = "",
-        fieldDescription = "",
-        input = query,
-        hint = "What are you looking for",
-        onChange = viewModel::onSearchTextChange,
-        leading = painterResource(id = R.drawable.search_icon),
-       /* keyboardActions = KeyboardActions(
-            onSearch = {
-                onSearchClick()
-            }
-        )
-        ,
-        */
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Search
-        )
-
-    )
-}
-
-
-
-@Composable
 fun SearchyBar(
     query: String,
     onQueryChange: (String) -> Unit,

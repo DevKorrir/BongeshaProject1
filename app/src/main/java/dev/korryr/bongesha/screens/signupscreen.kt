@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +46,7 @@ fun BongaSignUp(
     onClick: () -> Unit,
 ){
 
-    var yourname by remember {
+    var yourname by rememberSaveable {
         mutableStateOf("")
     }
 
@@ -57,7 +58,7 @@ fun BongaSignUp(
         mutableStateOf("")
     }
 
-    val showpassword by remember {
+    var confirmPassword by remember {
         mutableStateOf("")
     }
 
@@ -89,9 +90,15 @@ fun BongaSignUp(
             textAlign = TextAlign.Center,
             color = orange28
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         //name textfield
         Bongatextfield(
-           // isPassword = false,
+            isPassword = false,
+            isValid = true,
+            trailing = null,
+            errorMessage = "Please enter your name",
             label = "Your name",
             fieldDescription = "",
             input = yourname,
@@ -104,22 +111,16 @@ fun BongaSignUp(
                 imeAction = ImeAction.Next
             ),
             leading = painterResource(id = R.drawable.user_person)
-            /*
-            leading = {
-                Icons(
-                    Icons.Default.Email
-                            conte
-                )
-            }
-
-             */
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-            //textfield for emaill
+
+        //email textfield
+
         Bongatextfield(
             isPassword = false,
             isValid = true,
+            trailing = null,
             errorMessage = "Please enter valid email",
             label = "E-mail address",
             fieldDescription = "",
@@ -139,21 +140,32 @@ fun BongaSignUp(
         Spacer(modifier = Modifier.height(8.dp))
 //password textfield
         Bongatextfield(
-            isPassword = true,
-            showpassword = true,
-            trailing = painterResource(id = R.drawable.ic_show_password),
             label = "Password",
+            isPassword = true,
+            trailing = painterResource(id = R.drawable.ic_show_password),
             fieldDescription = "",
             input = password,
             hint = "Enter your password",
             onChange = {
                 password = it
-            },
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
+                       },
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next)
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Bongatextfield(
+            label = "Confirm Password",
+            isPassword = true,
+            trailing = painterResource(id = R.drawable.ic_show_password),
+            fieldDescription = "",
+            input = confirmPassword,
+            hint = "Confirm your password",
+            onChange = { confirmPassword = it },
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
+        )
+
+
         Spacer(modifier = Modifier.height(8.dp))
 
         Row(
