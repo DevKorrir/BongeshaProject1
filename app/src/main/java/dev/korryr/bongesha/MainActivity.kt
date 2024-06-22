@@ -38,6 +38,7 @@ import dev.korryr.bongesha.screens.category.BongaCategory
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.CartItemViewModel
 import kotlinx.coroutines.launch
 
@@ -119,7 +120,11 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.SignIn) {
-                            BongaSignIn(navController = navController) {
+                            //val authViewModel: AuthViewModel<Any?> = viewModel()
+
+                            BongaSignIn(
+                                navController = navController,
+                            ) {
                                 lifecycleScope.launch {
                                     val signInIntentSender = googleAuthUiClient.signIn()
                                     launcher.launch(
@@ -150,7 +155,7 @@ class MainActivity : ComponentActivity() {
 
 
                         composable(Route.Home.Beverage) {
-                            Beverages(navController = navController)
+                            Beverages()
                         }
 
                         composable(Route.Home.Cart) {

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Divider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -59,6 +60,14 @@ fun BongaSignUp(
     }
 
     var confirmPassword by remember {
+        mutableStateOf("")
+    }
+
+    var showPasswordError by remember {
+        mutableStateOf(false)
+    }
+
+    var errorMessage by remember {
         mutableStateOf("")
     }
 
@@ -146,8 +155,10 @@ fun BongaSignUp(
             fieldDescription = "",
             input = password,
             hint = "Enter your password",
+            //isError = showPasswordError,
             onChange = {
                 password = it
+                showPasswordError = false
                        },
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next)
         )
@@ -161,7 +172,11 @@ fun BongaSignUp(
             fieldDescription = "",
             input = confirmPassword,
             hint = "Confirm your password",
-            onChange = { confirmPassword = it },
+            onChange = {
+                confirmPassword = it
+                showPasswordError = false
+                       },
+            //isError = showPasswordError,
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
         )
 
@@ -223,13 +238,30 @@ fun BongaSignUp(
         }
 
         Spacer(modifier = Modifier.weight(1f))
+        if (showPasswordError) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
         bongabutton(
             label = "Create an account",
             color = Color.White,
             modifier = Modifier.fillMaxWidth(),
-            buttonColor = orange28
+            buttonColor = orange28,
         ) {
-            navController.navigate(Route.Home.SignIn)
+            //validation
+            if (!isValidPassword(password)) {
+                showPasswordError = true
+                errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
+            } else if (password != confirmPassword) {
+                showPasswordError = true
+                errorMessage = "Password does not match."
+            } else {
+                navController.navigate(Route.Home.SignIn)
+            }
+           // navController.navigate(Route.Home.SignIn)
         }
         Row {
             Text(

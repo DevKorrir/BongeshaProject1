@@ -26,6 +26,8 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -41,19 +44,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaBox
 import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.bongabutton
-import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 
 @Composable
 fun BongaSignIn(
     navController: NavController,
     onClick: () -> Unit,
+    //authViewModel: AuthViewModel = viewModel()
 ){
     var email by remember {
         mutableStateOf("")
@@ -62,6 +67,11 @@ fun BongaSignIn(
     var password by remember {
         mutableStateOf("")
     }
+
+    val context = LocalContext.current
+
+   // val authState by authViewModel.authState.collectAsState()
+
 
     Column(
         modifier = Modifier

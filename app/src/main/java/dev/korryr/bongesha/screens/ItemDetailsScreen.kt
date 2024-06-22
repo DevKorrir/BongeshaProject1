@@ -28,7 +28,7 @@ fun ItemDetailsScreen(
     cartItemViewModel: CartItemViewModel = viewModel()
 ) {
     val selectedItem by cartItemViewModel.selectedItem.collectAsState()
-    var quantity by remember { mutableStateOf(1) }
+    var quantity by remember { mutableIntStateOf(1) }
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
 

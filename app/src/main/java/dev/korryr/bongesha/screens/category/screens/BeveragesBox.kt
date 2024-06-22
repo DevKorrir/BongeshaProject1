@@ -16,11 +16,7 @@ import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.CategoryField
 
 @Composable
-fun Beverages(
-    navController: NavController
-){
-    val categories = listOf<ULocale.Category>(/* Populate your categories here */)
-    var selectedCategory by remember { mutableStateOf<ULocale.Category?>(null) }
+fun Beverages(){
 
     Column (
         modifier = Modifier.padding(8.dp)
