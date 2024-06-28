@@ -1,16 +1,14 @@
 package dev.korryr.bongesha
 
+//import dev.korryr.bongesha.screens.category.BongaCategory
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,17 +26,13 @@ import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.presentation.sign_in.GoogleAuthUiClient
 import dev.korryr.bongesha.commons.presentation.sign_in.SignInViewModel
-import dev.korryr.bongesha.screens.BongaSignIn
-import dev.korryr.bongesha.screens.BongaSignUp
-import dev.korryr.bongesha.screens.BongaWelcome
 import dev.korryr.bongesha.screens.CartScreen
+import dev.korryr.bongesha.screens.ChatScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.category.BongaCategory
-//import dev.korryr.bongesha.screens.category.BongaCategory
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
-import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.CartItemViewModel
 import kotlinx.coroutines.launch
 
@@ -88,8 +82,8 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Route.Home.SignUp
-                    ) {
+                        startDestination = Route.Home.Category
+                    ) {/*
                         composable(Route.Home.SignUp) {
                             BongaSignUp(navController = navController) {
                                 lifecycleScope.launch {
@@ -147,6 +141,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+                        */
 
                         composable(Route.Home.Category) {
                             BongaCategory(navController = navController){}
@@ -168,9 +163,12 @@ class MainActivity : ComponentActivity() {
 
                         composable(Route.Home.ItemDetails) {
                             ItemDetailsScreen(
-                                itemId = String.toString(),
-                                navController = navController,
+                                itemIds = emptyList(),
                             )
+                        }
+
+                        composable(Route.Home.Inbox) {
+                            ChatScreen()
                         }
                     }
                 }

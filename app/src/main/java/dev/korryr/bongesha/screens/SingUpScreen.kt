@@ -83,7 +83,7 @@ fun BongaSignUp(
             modifier = Modifier
                 //.clip(CircleShape)
                 .background(Color.Transparent)
-                .size(250.dp),
+                .size(10.dp),
             painter = painterResource(id = R.drawable.problem_solved),
             contentDescription = "",
 
@@ -111,7 +111,7 @@ fun BongaSignUp(
             label = "Your name",
             fieldDescription = "",
             input = yourname,
-            hint = "Amos",
+            hint = "Username",
             onChange = {
                 yourname = it
             },
@@ -160,6 +160,7 @@ fun BongaSignUp(
                 password = it
                 showPasswordError = false
                        },
+            leading = painterResource(id = R.drawable.padlock),
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next)
         )
 
@@ -176,6 +177,7 @@ fun BongaSignUp(
                 confirmPassword = it
                 showPasswordError = false
                        },
+            leading = painterResource(id = R.drawable.padlock),
             //isError = showPasswordError,
             keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
         )

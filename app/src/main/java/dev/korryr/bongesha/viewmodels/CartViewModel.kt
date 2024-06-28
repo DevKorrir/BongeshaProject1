@@ -24,6 +24,14 @@ class CartItemViewModel : ViewModel() {
         _selectedItem.value = getItemById(itemId)
     }
 
+    // In your CartItemViewModel
+    val selectedItems = MutableStateFlow<List<Item>>(emptyList())
+
+    fun selectItems(itemIds: List<String>) {
+        // Fetch and update selectedItems based on itemIds
+    }
+
+
     fun addToCart(item: Item, quantity: Int = 1) {
         val currentCart = _cart.value.toMutableList()
         val existingItem = currentCart.find { it.item.id == item.id }

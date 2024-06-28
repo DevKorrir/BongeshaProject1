@@ -3,7 +3,6 @@ package dev.korryr.bongesha.screens
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,21 +12,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,18 +41,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaBox
+import dev.korryr.bongesha.commons.BongaCheckbox
 import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.bongabutton
 import dev.korryr.bongesha.ui.theme.orange28
-import dev.korryr.bongesha.viewmodels.AuthViewModel
 
 @Composable
-fun BongaSignIn(
+fun BongaSwignIn(
     navController: NavController,
     onClick: () -> Unit,
     //authViewModel: AuthViewModel = viewModel()
@@ -68,7 +64,7 @@ fun BongaSignIn(
         mutableStateOf("")
     }
 
-    val context = LocalContext.current
+    LocalContext.current
 
    // val authState by authViewModel.authState.collectAsState()
 
@@ -107,9 +103,10 @@ fun BongaSignIn(
         //horizontalAlignment = Alignment.CenterHorizontally,
 
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.growth_sticker),
-            contentDescription = "")
+        //Image(
+//painter = painterResource(id = R.drawable.growth_sticker),
+           // contentDescription = ""
+        //)
 
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -121,7 +118,15 @@ fun BongaSignIn(
                 fontSize = 36.sp,
                 fontWeight = FontWeight.ExtraBold
             )
+            Text(
+                text = "Sign in to continue",
+                color = Color.LightGray,
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Normal
+            )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Bongatextfield(
             label = "E-mail address",
@@ -137,6 +142,9 @@ fun BongaSignIn(
             ),
             leading = painterResource(id = R.drawable.image_sec_icon)
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         Bongatextfield(
             label = "Password",
             isPassword = true,
@@ -150,58 +158,56 @@ fun BongaSignIn(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             ),
+            leading = painterResource(id = R.drawable.padlock),
             trailing = painterResource(id = R.drawable.ic_show_password)
         )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Text(
-                text = "Forgot password?",
-                style = TextStyle(textDecoration = TextDecoration.Underline)
-            )
-        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Row (
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
-            var ischecked by remember {
+            var isChecked by remember {
                 mutableStateOf(false)
             }
 
-            val checkedColor: Color = Color.Green
-            val uncheckedColor: Color = Color.Transparent
-
-            Checkbox(
-                checked = ischecked,
-               // colors = if (ischecked),
-                onCheckedChange = {
-                    ischecked = it
-                },
-                modifier = Modifier
-                    .background(
-                        color = if (ischecked) checkedColor else uncheckedColor,
-                        shape = CircleShape
-                    )
+            BongaCheckbox(
+                checked = isChecked,
+                onCheckedChange = { isChecked = it },
+                shape = RoundedCornerShape(8.dp), // You can change the shape here
+                checkedColor = orange28,
+                uncheckedColor = Color.Transparent,
+                size = 30.dp
             )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             Text(
                 text = "Remember me",
                 fontSize = 16.sp,
                 color = Color.Black,
-                style = if (ischecked) androidx.compose.ui.text.TextStyle(textDecoration = TextDecoration.LineThrough) else
-                    androidx.compose.ui.text.TextStyle(textDecoration = TextDecoration.None)
+                style = if (isChecked) TextStyle(textDecoration = TextDecoration.LineThrough) else
+                    TextStyle(textDecoration = TextDecoration.None)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "Forgot password?",
+                fontSize = 16.sp,
+                color = Color.Black,
+                style = TextStyle(textDecoration = TextDecoration.Underline)
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .weight(1f),
@@ -211,7 +217,7 @@ fun BongaSignIn(
 
             Text(text = "or sign in with")
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .weight(1f),
@@ -271,7 +277,7 @@ fun BongaSignIn(
         }
     }
 }
-
+/*
 @Composable
 fun RAldoImagepicker(onImageSelected: (List<Uri>) -> Unit) {
     val launcher = rememberLauncherForActivityResult(
@@ -287,3 +293,5 @@ fun RAldoImagepicker(onImageSelected: (List<Uri>) -> Unit) {
         Text("Select Image")
     }
 }
+*/
+ */

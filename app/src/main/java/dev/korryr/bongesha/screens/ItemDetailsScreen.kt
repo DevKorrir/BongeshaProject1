@@ -18,33 +18,34 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import dev.korryr.bongesha.viewmodels.CartItemViewModel
 
 @Composable
 fun ItemDetailsScreen(
-    itemId: String,
-    navController: NavController,
+    itemIds: List<String>,
     cartItemViewModel: CartItemViewModel = viewModel()
 ) {
-    val selectedItem by cartItemViewModel.selectedItem.collectAsState()
-    var quantity by remember { mutableIntStateOf(1) }
-    var isFavorite by remember { mutableStateOf(false) }
+    val selectedItems by cartItemViewModel.selectedItems.collectAsState()
     val context = LocalContext.current
 
-    LaunchedEffect(itemId) {
-        cartItemViewModel.selectItem(itemId)
+    LaunchedEffect(itemIds) {
+        cartItemViewModel.selectItems(itemIds)
     }
 
-    selectedItem?.let { item ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        selectedItems.forEach { item ->
+            var quantity by remember { mutableIntStateOf(1) }
+            var isFavorite by remember { mutableStateOf(false) }
+
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Box(
@@ -120,8 +121,9 @@ fun ItemDetailsScreen(
                 )
             }
         }
-    } /*?: run {
-        // Show a loading or error message if selectedItem is null
+    }
+
+    if (selectedItems.isEmpty()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,6 +134,4 @@ fun ItemDetailsScreen(
             Text("Loading item details...", style = MaterialTheme.typography.bodyLarge)
         }
     }
-}
-}*/
 }

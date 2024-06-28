@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -53,6 +54,7 @@ import dev.korryr.bongesha.commons.BongaSearchBar
 import dev.korryr.bongesha.commons.Category
 import dev.korryr.bongesha.commons.ItemRow
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.CartItemViewModel
 
@@ -106,7 +108,7 @@ fun BongaCategory(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             var active by remember { mutableStateOf(false) }
             var query by remember { mutableStateOf("") }
@@ -120,7 +122,7 @@ fun BongaCategory(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
                 text = "Category",
@@ -128,7 +130,7 @@ fun BongaCategory(
                 fontWeight = FontWeight.W700
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Column {
                 Row(
@@ -165,16 +167,16 @@ fun BongaCategory(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Divider()
+            HorizontalDivider()
 
             Spacer(modifier = Modifier.height(12.dp))
 
             selectedCategory?.let { category ->
                 Column(
                     modifier = Modifier
-                        .padding(bottom = 24.dp)
+                        .padding(bottom = 60.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
@@ -182,7 +184,7 @@ fun BongaCategory(
                         fontSize = 24.sp,
                         fontWeight = FontWeight.W700
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     category.items.forEach { item ->
                         ItemRow(
                             item = item,
@@ -201,19 +203,18 @@ fun BongaCategory(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .background(
-                    Color.White,
+                    Color.Transparent,
                     shape = RoundedCornerShape(12.dp)
-                )
-                .padding(12.dp),
+                ),
             //contentAlignment = Alignment.BottomCenter
         ) {
             Row(
                 modifier = Modifier
                     .background(
-                        color = Color.White,
+                        color = gray01,
                         shape = RoundedCornerShape(12.dp)
                     )
-                    .padding(12.dp)
+                    //.padding(12.dp)
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom
@@ -289,7 +290,9 @@ fun BongaCategory(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     IconButton(
-                        onClick = { isChatsClicked = !isChatsClicked }
+                        onClick = {
+                            navController.navigate(Route.Home.Inbox)
+                            isChatsClicked = !isChatsClicked }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Email,

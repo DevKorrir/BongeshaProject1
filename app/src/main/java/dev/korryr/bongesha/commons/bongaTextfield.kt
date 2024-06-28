@@ -41,6 +41,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.korryr.bongesha.R
+import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange28
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,6 +168,7 @@ fun Bongatextfield(
                     Text(
                         text = hint,
                         textAlign = TextAlign.Center,
+                        color = Color.LightGray
                     )
                 },
                 keyboardActions = keyboardActions ?: KeyboardActions(

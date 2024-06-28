@@ -13,6 +13,7 @@ class Route {
         const val Beverage = "/beverage/"
         const val Cart = "/cart/"
         const val ItemDetails = "itemDetails/{itemId}"
+        const val Inbox = "/inbox/"
 
     }
 }
