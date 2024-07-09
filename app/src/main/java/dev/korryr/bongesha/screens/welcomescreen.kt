@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
+import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.commons.bongabutton
 
 @Composable
 fun BongaWelcome(
@@ -161,7 +161,7 @@ fun BongaWelcome(
                         ) {
 
 
-                            bongabutton(
+                            BongaButton(
 
                                 showArrow = false,
                                 label = "Skip",
@@ -175,7 +175,7 @@ fun BongaWelcome(
 
                             Spacer(modifier = Modifier.width(8.dp))
 
-                            bongabutton(
+                            BongaButton(
                                 showArrow = false,
                                 label = "Next",
                                 color = Color.Black,

@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
-fun bongabutton(
+fun BongaButton(
     modifier: Modifier = Modifier,
     label: String,
     color: Color? = null,

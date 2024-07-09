@@ -1,6 +1,9 @@
 package dev.korryr.bongesha
 
+import BongaSignUp
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -28,17 +31,12 @@ import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.commons.presentation.sign_in.GoogleAuthUiClient
 import dev.korryr.bongesha.commons.presentation.sign_in.SignInViewModel
-import dev.korryr.bongesha.screens.BongaSignIn
-import dev.korryr.bongesha.screens.BongaSignUp
-import dev.korryr.bongesha.screens.BongaWelcome
-import dev.korryr.bongesha.screens.CartScreen
-import dev.korryr.bongesha.screens.ItemDetailsScreen
+import dev.korryr.bongesha.screens.*
 import dev.korryr.bongesha.screens.category.BongaCategory
-//import dev.korryr.bongesha.screens.category.BongaCategory
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
-import dev.korryr.bongesha.viewmodels.CartItemViewModel
+import dev.korryr.bongesha.viewmodels.AuthViewModelMail
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -49,14 +47,15 @@ class MainActivity : ComponentActivity() {
         )
     }
     private lateinit var auth: FirebaseAuth
+    private lateinit var sharedPreferences: SharedPreferences
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = Firebase.auth
+        sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
         setContent {
-
             val navController = rememberNavController()
             val viewModel = viewModel<SignInViewModel>()
             val context = LocalContext.current
@@ -65,12 +64,10 @@ class MainActivity : ComponentActivity() {
             window?.statusBarColor = Color.Black.toArgb()
 
             BongeshaTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = gray01
                 ) {
-
                     val launcher = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.StartIntentSenderForResult(),
                         onResult = { result ->
@@ -87,10 +84,13 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = Route.Home.SignUp
+                        startDestination = if (isUserSignedIn()) Route.Home.Category else Route.Home.SignUp
                     ) {
                         composable(Route.Home.SignUp) {
-                            BongaSignUp(navController = navController) {
+                            BongaSignUp(
+                                navController = navController,
+                                authViewModel = AuthViewModelMail()
+                            ) {
                                 lifecycleScope.launch {
                                     val signInIntentSender = googleAuthUiClient.signIn()
                                     launcher.launch(
@@ -103,73 +103,117 @@ class MainActivity : ComponentActivity() {
                             LaunchedEffect(key1 = currentSignInState.value) {
                                 if (currentSignInState.value) {
                                     Toast.makeText(
-                                        context,
-                                        "Sign in successful",
+                                        this@MainActivity,
+                                        "Account Created successful",
                                         Toast.LENGTH_LONG
                                     ).show()
-
-                                    navController.navigate(Route.Home.SignIn)
-                                    viewModel.resetState()
-                                }
-                            }
-                        }
-
-                        composable(Route.Home.Welcome) {
-                            BongaWelcome(navController = navController)
-                        }
-
-                        composable(Route.Home.SignIn) {
-                            BongaSignIn(navController = navController) {
-                                lifecycleScope.launch {
-                                    val signInIntentSender = googleAuthUiClient.signIn()
-                                    launcher.launch(
-                                        IntentSenderRequest.Builder(
-                                            signInIntentSender ?: return@launch
-                                        ).build()
-                                    )
-                                }
-                            }
-                            LaunchedEffect(key1 = currentSignInState.value) {
-                                if (currentSignInState.value) {
-                                    Toast.makeText(
-                                        context,
-                                        "Sign in successful",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-
+                                    saveUserSignInState()
                                     navController.navigate(Route.Home.Category)
                                     viewModel.resetState()
                                 }
                             }
                         }
 
-                        composable(Route.Home.Category) {
-                            BongaCategory(navController = navController){}
+                        composable(Route.Home.SignIn) {
+                            BongaSignIn(
+                                navController = navController,
+                                onClick = {
+                                    lifecycleScope.launch {
+                                        val signInIntentSender = googleAuthUiClient.signIn()
+                                        launcher.launch(
+                                            IntentSenderRequest.Builder(
+                                                signInIntentSender ?: return@launch
+                                            ).build()
+                                        )
+                                    }
+                                },
+                                onForgotPassword = { email ->
+                                    auth.sendPasswordResetEmail(email)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Password reset email sent.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Error sending reset email.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        }
+                                }
+                            ) { email, password ->
+                                auth.signInWithEmailAndPassword(email, password)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            saveUserSignInState()
+                                            Toast.makeText(
+                                                context,
+                                                "Sign in successful",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            navController.navigate(Route.Home.Category)
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Sign in failed",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    }
+                            }
                         }
 
+                        composable(Route.Home.Category) {
+                            BongaCategory(navController = navController) {}
+                        }
 
+                        composable(Route.Home.ForgotPassword) {
+                            BongaForgotPassword(navController)
+                        }
+
+                        composable(Route.Home.Welcome) {
+                            BongaWelcome(navController = navController)
+                        }
 
                         composable(Route.Home.Beverage) {
-                            Beverages(navController = navController)
+                            Beverages()
                         }
 
                         composable(Route.Home.Cart) {
                             CartScreen(
                                 navController = navController,
                                 cartItems = emptyList(),
-                                cartItemViewModel = CartItemViewModel()
                             )
                         }
 
                         composable(Route.Home.ItemDetails) {
                             ItemDetailsScreen(
-                                itemId = String.toString(),
-                                navController = navController,
+                                itemId = it.arguments?.getString("itemId") ?: "",
                             )
+                        }
+
+                        composable(Route.Home.Inbox) {
+                            ChatScreen()
+                        }
+
+                        composable(Route.Home.Notification) {
+                            NotificationList()
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun isUserSignedIn(): Boolean {
+        return sharedPreferences.getBoolean("isSignedIn", false)
+    }
+
+    private fun saveUserSignInState() {
+        sharedPreferences.edit().putBoolean("isSignedIn", true).apply()
     }
 }
