@@ -50,7 +50,7 @@ fun BongaCheckbox(
             .then(toggleableModifier)
             .border(
                 width = 1.dp,
-                color = Color.Gray,
+                color = if (checked) checkedColor else Color.Gray,
                 shape = shape
             )
             .background(

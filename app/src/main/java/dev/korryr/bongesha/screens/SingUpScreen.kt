@@ -1,26 +1,11 @@
-package dev.korryr.bongesha.screens
-
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,67 +17,43 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-//import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaBox
+import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.commons.bongabutton
 import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.viewmodels.AuthState
+import dev.korryr.bongesha.viewmodels.AuthViewModelMail
+import kotlinx.coroutines.Job
 
 @Composable
 fun BongaSignUp(
     navController: NavController,
-    onClick: () -> Unit,
-){
+    authViewModel: AuthViewModelMail = viewModel(),
+    function: () -> Job
+) {
+    var yourname by rememberSaveable { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var showPasswordError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
-    var yourname by rememberSaveable {
-        mutableStateOf("")
-    }
-
-    var email by remember {
-        mutableStateOf("")
-    }
-
-    var password by remember {
-        mutableStateOf("")
-    }
-
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-
-    var showPasswordError by remember {
-        mutableStateOf(false)
-    }
-
-    var errorMessage by remember {
-        mutableStateOf("")
-    }
+    val authState by authViewModel.authState.collectAsState()
 
     Column(
         modifier = Modifier
+            .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         Spacer(modifier = Modifier.height(24.dp))
 
-        Image(
-            modifier = Modifier
-                //.clip(CircleShape)
-                .background(Color.Transparent)
-                .size(10.dp),
-            painter = painterResource(id = R.drawable.problem_solved),
-            contentDescription = "",
-
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
         Text(
-            text ="Register",
+            text = "Register",
             fontWeight = FontWeight.ExtraBold,
             fontStyle = FontStyle.Normal,
             fontSize = 56.sp,
@@ -102,29 +63,24 @@ fun BongaSignUp(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        //name textfield
         Bongatextfield(
             isPassword = false,
             isValid = true,
             trailing = null,
             errorMessage = "Please enter your name",
             label = "Your name",
-            fieldDescription = "",
             input = yourname,
             hint = "Username",
-            onChange = {
-                yourname = it
-            },
+            onChange = { yourname = it },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
             ),
-            leading = painterResource(id = R.drawable.user_person)
+            leading = painterResource(id = R.drawable.user_person),
+            fieldDescription = ""
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-
-        //email textfield
 
         Bongatextfield(
             isPassword = false,
@@ -132,13 +88,11 @@ fun BongaSignUp(
             trailing = null,
             errorMessage = "Please enter valid email",
             label = "E-mail address",
-            fieldDescription = "",
             input = email,
             hint = "bongesha@gmail.com",
             enabled = true,
-            onChange = {
-                email = it
-            },
+            onChange = { email = it },
+            fieldDescription = "",
             leading = painterResource(id = R.drawable.image_sec_icon),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
@@ -147,21 +101,23 @@ fun BongaSignUp(
         )
 
         Spacer(modifier = Modifier.height(8.dp))
-//password textfield
+
         Bongatextfield(
             label = "Password",
             isPassword = true,
             trailing = painterResource(id = R.drawable.ic_show_password),
-            fieldDescription = "",
             input = password,
             hint = "Enter your password",
-            //isError = showPasswordError,
             onChange = {
                 password = it
                 showPasswordError = false
-                       },
+            },
+            fieldDescription = "",
             leading = painterResource(id = R.drawable.padlock),
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next)
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Next
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -170,27 +126,28 @@ fun BongaSignUp(
             label = "Confirm Password",
             isPassword = true,
             trailing = painterResource(id = R.drawable.ic_show_password),
-            fieldDescription = "",
             input = confirmPassword,
             hint = "Confirm your password",
             onChange = {
                 confirmPassword = it
                 showPasswordError = false
-                       },
+            },
             leading = painterResource(id = R.drawable.padlock),
-            //isError = showPasswordError,
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done)
+            fieldDescription = "",
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Done
+            )
         )
 
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .padding(end = 8.dp)
                     .weight(1f),
@@ -200,16 +157,17 @@ fun BongaSignUp(
 
             Text(text = "or sign up with")
 
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .weight(1f),
                 thickness = 1.dp,
                 color = Color.LightGray
             )
-
         }
+
         Spacer(modifier = Modifier.weight(1f))
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -217,29 +175,25 @@ fun BongaSignUp(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             //google button
-
-                BongaBox(
-                    modifier = Modifier
-                        .clickable {
-                            onClick()
-                        },
-                    painter = painterResource(id = R.drawable.google_icons),
-
-                    )
+            BongaBox(
+                modifier = Modifier
+                    .clickable {  },
+                painter = painterResource(id = R.drawable.google_icons)
+            )
 
             //facebook button
             BongaBox(
                 modifier = Modifier,
-                painter = painterResource(id = R.drawable.facebook_icon),
+                painter = painterResource(id = R.drawable.facebook_icon)
             )
+
             //apple button
             BongaBox(
                 modifier = Modifier,
-                painter = painterResource(id = R.drawable.apple_icon),
+                painter = painterResource(id = R.drawable.apple_icon)
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
         if (showPasswordError) {
             Text(
                 text = errorMessage,
@@ -247,13 +201,39 @@ fun BongaSignUp(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        bongabutton(
+
+        if (authState is AuthState.Loading) {
+            CircularProgressIndicator(
+                color = orange28,
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(16.dp)
+            )
+        }
+
+        if (authState is AuthState.Error) {
+            Text(
+                text = (authState as AuthState.Error).message,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        if (authState is AuthState.Success) {
+            LaunchedEffect(Unit) {
+                navController.navigate(Route.Home.SignIn)
+            }
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        BongaButton(
             label = "Create an account",
             color = Color.White,
             modifier = Modifier.fillMaxWidth(),
-            buttonColor = orange28,
+            buttonColor = orange28
         ) {
-            //validation
             if (!isValidPassword(password)) {
                 showPasswordError = true
                 errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
@@ -261,14 +241,34 @@ fun BongaSignUp(
                 showPasswordError = true
                 errorMessage = "Password does not match."
             } else {
-                navController.navigate(Route.Home.SignIn)
+                authViewModel.signUp(email, password)
+                //navController.navigate(Route.Home.SignIn)
             }
-           // navController.navigate(Route.Home.SignIn)
         }
-        Row {
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text(
-                text = "Already have an account?"
+                text = "Already have an account? ",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Text(
+                text = "Sign in",
+                style = MaterialTheme.typography.bodyMedium.copy(color = orange28),
+                modifier = Modifier.clickable {
+                    navController.navigate(Route.Home.SignIn)
+                }
             )
         }
     }
+}
+
+private fun isValidPassword(password: String): Boolean {
+    val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$"
+    val pattern = Regex(passwordPattern)
+    return pattern.matches(password)
 }

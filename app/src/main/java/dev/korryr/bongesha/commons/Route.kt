@@ -14,6 +14,8 @@ class Route {
         const val Cart = "/cart/"
         const val ItemDetails = "itemDetails/{itemId}"
         const val Inbox = "/inbox/"
+        const val Notification = "/notification/"
+        const val ForgotPassword = "/forgotpassword/"
 
     }
 }

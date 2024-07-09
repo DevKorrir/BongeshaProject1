@@ -23,17 +23,17 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.korryr.bongesha.commons.CartItem
-import dev.korryr.bongesha.commons.Item
-import dev.korryr.bongesha.viewmodels.CartItemViewModel
+import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 
 
 @Composable
 fun CartScreen(
-    cartItemViewModel: CartItemViewModel = viewModel(),
+    bongaCategoryViewModel: BongaCategoryViewModel = viewModel(),
+    //cartItemViewModel: CartItemViewModel = viewModel(),
     navController: NavController,
     cartItems: List<CartItem>
 ) {
-    val cartItems by cartItemViewModel.cart.collectAsState()
+    val cartItems by bongaCategoryViewModel.cart.collectAsState()
     Column(
         modifier = Modifier
             .padding(8.dp)

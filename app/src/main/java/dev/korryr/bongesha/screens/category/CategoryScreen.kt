@@ -1,6 +1,5 @@
 package dev.korryr.bongesha.screens.category
 
-import BongaCategoryViewModel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,10 +27,10 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Badge
-import androidx.compose.material3.Divider
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -54,19 +54,21 @@ import dev.korryr.bongesha.commons.BongaSearchBar
 import dev.korryr.bongesha.commons.Category
 import dev.korryr.bongesha.commons.ItemRow
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.screens.NotificationList
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange28
-import dev.korryr.bongesha.viewmodels.CartItemViewModel
+import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
+import dev.korryr.bongesha.viewmodels.NotificationViewModel
 
 @Composable
 fun BongaCategory(
-    cartItemViewModel: CartItemViewModel = viewModel(),
     bongaCategoryViewModel: BongaCategoryViewModel = viewModel(),
     navController: NavController,
+    notificationViewModel: NotificationViewModel = viewModel(),
     onClick: () -> Unit
 ) {
     val categories by bongaCategoryViewModel.categories.collectAsState()
-    val cartItems by cartItemViewModel.cart.collectAsState()
+    val cartItems by bongaCategoryViewModel.cart.collectAsState()
     var selectedCategory by remember { mutableStateOf<Category?>(categories.firstOrNull()) }
     val context = LocalContext.current
 
@@ -76,6 +78,8 @@ fun BongaCategory(
     var isFavoriteClicked by remember { mutableStateOf(false) }
     var isProfileClicked by remember { mutableStateOf(false) }
     var isChatsClicked by remember { mutableStateOf(false) }
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
+    var showNotifications by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -91,7 +95,9 @@ fun BongaCategory(
             modifier = Modifier
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Default.Menu,
@@ -101,11 +107,47 @@ fun BongaCategory(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "",
-                    tint = orange28
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = Color.White,
+                            shape = CircleShape
+                        )
+                ) {
+                    IconButton(
+                        onClick = { showNotifications = !showNotifications }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notifications",
+                            tint = orange28
+                        )
+                        if (unreadCount > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .background(
+                                        Color.Red,
+                                        shape = CircleShape
+                                    )
+                                    .align(
+                                        Alignment.TopEnd
+                                    )
+                            ) {
+                                Text(
+                                    text = unreadCount.toString(),
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        }
+                    }
+                }
+                //if (showNotifications) {
+                     //NotificationList(notificationViewModel = notificationViewModel)
+                //}
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -188,7 +230,7 @@ fun BongaCategory(
                     category.items.forEach { item ->
                         ItemRow(
                             item = item,
-                            viewModel = cartItemViewModel,
+                            viewModel = bongaCategoryViewModel,
                             navController = navController
                         )
                     }

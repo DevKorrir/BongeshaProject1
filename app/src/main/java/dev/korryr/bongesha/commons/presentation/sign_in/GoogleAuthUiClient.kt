@@ -88,6 +88,10 @@ class GoogleAuthUiClient(
             .setAutoSelectEnabled(true)
             .build()
     }
+
+    fun resetState() {
+        TODO("Not yet implemented")
+    }
 }
 
 

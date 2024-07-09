@@ -22,13 +22,13 @@ class ChatViewModel : ViewModel() {
     )
 
     fun sendMessage(message: String) {
-        _messages.value = _messages.value + ChatMessage(message, isUser = true)
+        _messages.value += ChatMessage(message, isUser = true)
         receiveBotMessage(message)
     }
 
     private fun receiveBotMessage(userMessage: String) {
         val botMessage = generateBotResponse(userMessage)
-        _messages.value = _messages.value + ChatMessage(botMessage, isUser = false)
+        _messages.value += ChatMessage(botMessage, isUser = false)
         _unreadMessages.value += 1
     }
 

@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -32,20 +34,20 @@ import androidx.navigation.NavController
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green07
 import dev.korryr.bongesha.ui.theme.green99
-import dev.korryr.bongesha.viewmodels.CartItemViewModel
+import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 
 
 @Composable
 fun ItemRow(
     item: Item,
-    viewModel: CartItemViewModel,
+    viewModel: BongaCategoryViewModel,
     navController: NavController
 ) {
     val context = LocalContext.current
 
     Box(
         modifier = Modifier
-            .padding(8.dp)
+            .padding(4.dp)
             .background(
                 shape = RoundedCornerShape(12.dp),
                 color = Color.White
@@ -56,7 +58,8 @@ fun ItemRow(
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Box(
                 modifier = Modifier
@@ -66,6 +69,7 @@ fun ItemRow(
                         shape = RoundedCornerShape(12.dp)
                     )
                     .size(70.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         navController.navigate(Route.Home.ItemDetails)
                     },
@@ -74,11 +78,13 @@ fun ItemRow(
                 Image(
                     painter = painterResource(id = item.image),
                     contentDescription = item.name,
-                    modifier = Modifier.size(64.dp),
-                    contentScale = ContentScale.Crop
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .size(64.dp),
+                    contentScale = ContentScale.FillBounds
                 )
             }
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(8.dp))
             Column {
                 Text(
                     text = item.name,
