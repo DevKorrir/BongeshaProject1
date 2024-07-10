@@ -35,66 +35,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.korryr.bongesha.MainViewModel
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.ui.theme.gray01
 
-@Composable
-fun SearchyBar(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onSearchClick: () -> Unit,
-) {
-    val viewModel = viewModel<MainViewModel>()
-    val searchText by viewModel.searchText.collectAsState()
-    val persons by viewModel.products.collectAsState()
-    val isSearching by viewModel.isSearching.collectAsState()
-
-    OutlinedTextField(
-        value = query,
-        onValueChange = viewModel::onSearchTextChange,
-        placeholder = { Text("Search") },
-        leadingIcon = {
-            Icon(
-                painter = painterResource(id = R.drawable.apple_icon),
-                contentDescription = null,
-                tint = Color.Gray
-            )
-        },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Search
-        ),
-        keyboardActions = KeyboardActions(
-            onSearch = { onSearchClick() }
-        ),
-        modifier = Modifier.fillMaxWidth(),
-    )
-
-    if(isSearching) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                //.weight(1f)
-        ) {/*
-            items(products) { product ->
-                Text(
-                    text = "${product.firstName} ${product.lastName}",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp)
-                )
-            }
-            */
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

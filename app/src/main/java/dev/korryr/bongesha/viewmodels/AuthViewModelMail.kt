@@ -62,6 +62,7 @@ class AuthViewModelMail : ViewModel() {
                         if (task.isSuccessful) {
                             val user = auth.currentUser
                             if (user != null && user.isEmailVerified) {
+                                //saveUserDetails(user.email, user.displayName)
                                 // Email is verified, proceed with sign-in
                                 //saveUserSignInState()
                                 _authState.value = AuthState.Success("Sign in successful")

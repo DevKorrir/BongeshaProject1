@@ -352,7 +352,10 @@ fun BongaCategory(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     IconButton(
-                        onClick = { isProfileClicked = !isProfileClicked }
+                        onClick = {
+                            navController.navigate(Route.Home.Profile)
+                            isProfileClicked = !isProfileClicked
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,

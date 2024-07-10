@@ -16,6 +16,7 @@ class Route {
         const val Inbox = "/inbox/"
         const val Notification = "/notification/"
         const val ForgotPassword = "/forgotpassword/"
+        const val Profile = "/profile/"
 
     }
 }
