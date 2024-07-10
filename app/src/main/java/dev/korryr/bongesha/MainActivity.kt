@@ -29,6 +29,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.commons.presentation.profile.UserProfile
 import dev.korryr.bongesha.commons.presentation.sign_in.GoogleAuthUiClient
 import dev.korryr.bongesha.commons.presentation.sign_in.SignInViewModel
 import dev.korryr.bongesha.screens.*
@@ -144,27 +145,39 @@ class MainActivity : ComponentActivity() {
                                                 ).show()
                                             }
                                         }
-                                }
-                            ) { email, password ->
-                                auth.signInWithEmailAndPassword(email, password)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            saveUserSignInState()
-                                            Toast.makeText(
-                                                context,
-                                                "Sign in successful",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                            navController.navigate(Route.Home.Category)
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Sign in failed",
-                                                Toast.LENGTH_LONG
-                                            ).show()
+                                },
+                                onSignIn = { email, password ->
+                                    auth.signInWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                val user = auth.currentUser
+                                                if (user != null && user.isEmailVerified) {
+                                                    saveUserDetails(user.email, user.displayName)
+                                                    saveUserSignInState()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Sign in successful",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    navController.navigate(Route.Home.Category)
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Please verify your email first",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    auth.signOut()
+                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Sign in failed",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
                                         }
-                                    }
-                            }
+                                }
+                            )
                         }
 
                         composable(Route.Home.Category) {
@@ -203,6 +216,14 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.Notification) {
                             NotificationList()
                         }
+
+                        composable(Route.Home.Profile) {
+                            UserProfile(navController = navController) {
+                                auth.signOut()
+                                clearUserSignInState()
+                                navController.navigate(Route.Home.SignIn)
+                            }
+                        }
                     }
                 }
             }
@@ -215,5 +236,22 @@ class MainActivity : ComponentActivity() {
 
     private fun saveUserSignInState() {
         sharedPreferences.edit().putBoolean("isSignedIn", true).apply()
+    }
+
+    private fun saveUserDetails(email: String?, displayName: String?) {
+        sharedPreferences.edit().apply {
+            putString("userEmail", email)
+            putString("userDisplayName", displayName)
+            apply()
+        }
+    }
+
+    private fun clearUserSignInState() {
+        sharedPreferences.edit().apply {
+            putBoolean("isSignedIn", false)
+            remove("userEmail")
+            remove("userDisplayName")
+            apply()
+        }
     }
 }

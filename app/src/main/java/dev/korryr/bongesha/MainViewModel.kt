@@ -1,18 +1,32 @@
 package dev.korryr.bongesha
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import android.content.SharedPreferences
 
-class MainViewModel: ViewModel() {
+//val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+private lateinit var sharedPreferences: SharedPreferences
+private fun saveUserDetails(email: String?, displayName: String?) {
+    sharedPreferences.edit().apply {
+        putString("userEmail", email)
+        putString("userDisplayName", displayName)
+        apply()
+    }
+}
+
+
+
+
+private fun clearUserSignInState() {
+    sharedPreferences.edit().apply {
+        putBoolean("isSignedIn", false)
+        remove("userEmail")
+        remove("userDisplayName")
+        apply()
+    }
+}
+
+
+
+/*class MainVijewModel: ViewModel() {
 
     private val  _searchText = MutableStateFlow("")
     val searchText = _searchText.asStateFlow()
@@ -66,3 +80,4 @@ private val allproducts = listOf(
         lastName = "camon"
     )
 )
+*/
