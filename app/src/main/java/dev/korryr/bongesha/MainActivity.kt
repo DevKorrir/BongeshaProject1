@@ -144,27 +144,38 @@ class MainActivity : ComponentActivity() {
                                                 ).show()
                                             }
                                         }
-                                }
-                            ) { email, password ->
-                                auth.signInWithEmailAndPassword(email, password)
-                                    .addOnCompleteListener { task ->
-                                        if (task.isSuccessful) {
-                                            saveUserSignInState()
-                                            Toast.makeText(
-                                                context,
-                                                "Sign in successful",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                            navController.navigate(Route.Home.Category)
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "Sign in failed",
-                                                Toast.LENGTH_LONG
-                                            ).show()
+                                },
+                                onSignIn = { email, password ->
+                                    auth.signInWithEmailAndPassword(email, password)
+                                        .addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                val user = auth.currentUser
+                                                if (user != null && user.isEmailVerified) {
+                                                    saveUserSignInState()
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Sign in successful",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    navController.navigate(Route.Home.Category)
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Please verify your email first",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    auth.signOut()
+                                                }
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Sign in failed",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
                                         }
-                                    }
-                            }
+                                }
+                            )
                         }
 
                         composable(Route.Home.Category) {

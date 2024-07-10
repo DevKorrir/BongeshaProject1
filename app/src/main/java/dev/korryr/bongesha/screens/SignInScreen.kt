@@ -48,6 +48,7 @@ fun BongaSignIn(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
+    val auth = FirebaseAuth.getInstance()
 
 
     // Check if the user is already signed in
@@ -252,13 +253,13 @@ fun BongaSignIn(
             color = Color.White,
             buttonColor = orange28,
             onClick = {
-                //onSignIn(email, password)
+                onSignIn(email, password)
 
-                if (email.isNotBlank() && password.isNotBlank()) {
-                    signInWithEmailAndPassword(email, password, context, navController)
-                } else {
-                    Toast.makeText(context, "Please enter valid credentials", Toast.LENGTH_SHORT).show()
-                }
+                //if (email.isNotBlank() && password.isNotBlank()) {
+                    //signInWithEmailAndPassword(email, password, context, navController)
+                //} else {
+                    //Toast.makeText(context, "Please enter valid credentials", Toast.LENGTH_SHORT).show()
+                //}
             }
         ) /*{
             if (email.isNotEmpty() && password.isNotEmpty()) {
@@ -281,8 +282,8 @@ fun BongaSignIn(
                         }
                     }
             }
-        }
-        */
+        }*/
+
 
         Spacer(modifier = Modifier.height(16.dp))
 
