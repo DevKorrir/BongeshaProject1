@@ -13,8 +13,6 @@ private fun saveUserDetails(email: String?, displayName: String?) {
 }
 
 
-
-
 private fun clearUserSignInState() {
     sharedPreferences.edit().apply {
         putBoolean("isSignedIn", false)

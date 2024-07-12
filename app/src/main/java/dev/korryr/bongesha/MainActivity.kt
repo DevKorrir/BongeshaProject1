@@ -29,7 +29,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.commons.presentation.profile.UserProfile
+import dev.korryr.bongesha.screens.UserProfile
 import dev.korryr.bongesha.commons.presentation.sign_in.GoogleAuthUiClient
 import dev.korryr.bongesha.commons.presentation.sign_in.SignInViewModel
 import dev.korryr.bongesha.screens.*
@@ -37,6 +37,7 @@ import dev.korryr.bongesha.screens.category.BongaCategory
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
+import dev.korryr.bongesha.ui.theme.orange01
 import dev.korryr.bongesha.viewmodels.AuthViewModelMail
 import kotlinx.coroutines.launch
 
@@ -214,7 +215,7 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.Notification) {
-                            NotificationList()
+                            NotificationScreen()
                         }
 
                         composable(Route.Home.Profile) {
