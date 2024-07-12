@@ -34,6 +34,10 @@ import androidx.navigation.NavController
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green07
 import dev.korryr.bongesha.ui.theme.green99
+import dev.korryr.bongesha.ui.theme.orange01
+import dev.korryr.bongesha.ui.theme.orange07
+import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.ui.theme.orange99
 import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 
 
@@ -104,6 +108,9 @@ fun ItemRow(
 
             Box(
                 modifier = Modifier
+                    .clip(
+                        RoundedCornerShape(24.dp)
+                    )
                     .clickable {
                         viewModel.addToCart(item)
                         Toast
@@ -116,7 +123,7 @@ fun ItemRow(
                     }
                     .size(32.dp)
                     .background(
-                        color = green07,
+                        color = orange01,
                         shape = RoundedCornerShape(24.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -124,7 +131,7 @@ fun ItemRow(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "",
-                    tint = green99
+                    tint = orange28
                 )
             }
         }
@@ -141,7 +148,13 @@ fun BadgedBox(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 4.dp, end = 4.dp)
+                .padding(
+                    top = 4.dp,
+                    end = 4.dp)
+                .background(
+                    color = green07,
+                    shape = RoundedCornerShape(12.dp)
+                )
         ) {
             badge()
         }

@@ -16,7 +16,7 @@ class NotificationViewModel : ViewModel() {
     init {
         // Initialize with some sample data
         _notifications.value = listOf(
-            Notification("1", "New order received", false),
+            Notification("1", "$100.00 paid", false),
             Notification("2", "Payment received", true),
             Notification("3", "New message from customer", false)
         )

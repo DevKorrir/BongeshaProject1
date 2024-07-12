@@ -20,18 +20,30 @@ import dev.korryr.bongesha.viewmodels.Notification
 import dev.korryr.bongesha.viewmodels.NotificationViewModel
 
 @Composable
-fun NotificationIcon(
-
+fun NotificationScreen(
+    notificationViewModel: NotificationViewModel = viewModel()
 ) {
-
-
-
-
-
+    val notifications by notificationViewModel.notifications.collectAsState()
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
+    var showNotifications by remember { mutableStateOf(false) }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        if (showNotifications) {
+            NotificationList(notificationViewModel = notificationViewModel)
+        }
+    }
 }
 
+
+
+
 @Composable
-fun NotificationList(notificationViewModel: NotificationViewModel = viewModel()) {
+fun NotificationList(
+    notificationViewModel: NotificationViewModel = viewModel()
+) {
     val notifications by notificationViewModel.notifications.collectAsState()
 
     LazyColumn(
@@ -45,7 +57,7 @@ fun NotificationList(notificationViewModel: NotificationViewModel = viewModel())
                 notification = notification,
                 onClick = { notificationViewModel.markAsRead(notification.id) }
             )
-            Divider()
+            HorizontalDivider()
         }
     }
 }
@@ -67,6 +79,9 @@ fun NotificationRow(
             .padding(vertical = 8.dp)
             .clickable(onClick = onClick)
     ) {
-        Text(text = notification.message, style = textStyle)
+        Text(
+            text = notification.message,
+            style = textStyle
+        )
     }
 }

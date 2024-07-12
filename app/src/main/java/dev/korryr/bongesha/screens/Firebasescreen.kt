@@ -24,47 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import dev.korryr.bongesha.R
-
-@Composable
-fun BongaFirebase(
-    navController: NavController
-){
-
-    var imageUriList by remember {
-        mutableStateOf<List<Uri>>(emptyList())
-    }
-
-    Row(
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-
-    ) {
-    Column(
-        modifier = Modifier
-            .padding(24.dp)
-    //.verticalScroll(rememberScrollState())
-    ) {
-        AldoImagepicker {
-            imageUriList = it
-
-        }
-            imageUriList.forEach{
-                Image(
-                    painter = rememberAsyncImagePainter(model = it),
-                    contentDescription = null
-                )
-            }
-    }
-        ProfileScreen(profilePicture = painterResource(id = R.drawable.problem_solved))
-
-    }
-}
-
 @Composable
 fun AldoImagepicker(onImageSelected: (List<Uri>) -> Unit) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents(),
-        onResult = {uriList ->
+        onResult = { uriList ->
             onImageSelected(uriList)
         }
     )
@@ -74,9 +38,4 @@ fun AldoImagepicker(onImageSelected: (List<Uri>) -> Unit) {
     ) {
         Text("Select Image")
     }
-}
-
-@Composable
-fun BongaPofile(){
-
 }
