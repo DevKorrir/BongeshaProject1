@@ -1,8 +1,6 @@
 package dev.korryr.bongesha.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,9 +17,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.commons.CartItem
 import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 
@@ -29,9 +29,7 @@ import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 @Composable
 fun CartScreen(
     bongaCategoryViewModel: BongaCategoryViewModel = viewModel(),
-    //cartItemViewModel: CartItemViewModel = viewModel(),
     navController: NavController,
-    cartItems: List<CartItem>
 ) {
     val cartItems by bongaCategoryViewModel.cart.collectAsState()
     Column(
@@ -43,13 +41,9 @@ fun CartScreen(
             style = MaterialTheme.typography.headlineLarge,
             modifier = Modifier.padding(8.dp)
         )
-        if (cartItems.isEmpty()) {
-            Text(
-                text = "Your cart is empty.",
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(8.dp)
-            )
-        } else {
+
+
+
             cartItems.forEach { cartItem ->
                 Row(
                     modifier = Modifier
@@ -71,23 +65,35 @@ fun CartScreen(
                     }
                 }
             }
-        }
+
     }
 }
 
+
 @Composable
-fun BadgedBox(
-    badge: @Composable BoxScope.() -> Unit,
-    content: @Composable BoxScope.() -> Unit
-) {
-    Box {
-        content()
-        Box(
+fun CartItemRow(cartItem: CartItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Image(
+            painter = rememberImagePainter(data = cartItem.item.image),
+            contentDescription = null,
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 4.dp, end = 4.dp)
+                .size(64.dp)
+                .padding(8.dp)
+        )
+        Column(
+            modifier = Modifier.weight(1f)
         ) {
-            badge()
+            Text(
+                text = cartItem.item.name,
+                fontWeight = FontWeight.Bold
+            )
+            Text(text = "${cartItem.quantity}")
+            Text(text = "Quantity: ${cartItem.quantity}")
         }
     }
 }

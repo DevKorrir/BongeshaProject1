@@ -1,5 +1,6 @@
 package dev.korryr.bongesha.commons
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,12 +36,11 @@ import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green07
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange01
-import dev.korryr.bongesha.ui.theme.orange07
 import dev.korryr.bongesha.ui.theme.orange28
-import dev.korryr.bongesha.ui.theme.orange99
 import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ItemRow(
     item: Item,
@@ -92,7 +92,9 @@ fun ItemRow(
             Column {
                 Text(
                     text = item.name,
-                    style = MaterialTheme.typography.bodyLarge
+                    //style = if (isClicked) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle(textDecoration = TextDecoration.None)
+                    style = MaterialTheme.typography.bodyLarge,
+                    //style = if (isaddToCart) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle(textDecoration = TextDecoration.None)
                 )
                 Text(
                     text = item.description,
@@ -141,7 +143,8 @@ fun ItemRow(
 @Composable
 fun BadgedBox(
     badge: @Composable BoxScope.() -> Unit,
-    content: @Composable BoxScope.() -> Unit
+    content: @Composable BoxScope.() -> Unit,
+    //modifier: Modifier = Modifier
 ) {
     Box {
         content()
@@ -156,7 +159,7 @@ fun BadgedBox(
                     shape = RoundedCornerShape(12.dp)
                 )
         ) {
-            badge()
+            //badge()
         }
     }
 }

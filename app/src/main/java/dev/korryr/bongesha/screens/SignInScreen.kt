@@ -185,14 +185,14 @@ fun BongaSignIn(
                 style = TextStyle(textDecoration = TextDecoration.Underline),
                 modifier = Modifier
                     .clickable {
-                        if (email.isNotEmpty()) {
-                            onForgotPassword(email)
-                        } else {
-                            Toast
-                                .makeText(context, "Please enter your email", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                    //navController.navigate(Route.Home.ForgotPassword)
+//                        if (email.isNotEmpty()) {
+//                            onForgotPassword(email)
+//                        } else {
+//                            Toast
+//                                .makeText(context, "Please enter your email", Toast.LENGTH_SHORT)
+//                                .show()
+//                        }
+                    navController.navigate(Route.Home.ForgotPassword)
                 }
             )
         }

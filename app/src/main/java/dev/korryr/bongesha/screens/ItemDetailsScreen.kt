@@ -43,12 +43,15 @@ import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 @Composable
 fun ItemDetailsScreen(
     itemId: String,
+    //viewModel: ItemViewModel = viewModel(),
+    //cartViewModel: CartViewModel = viewModel()
     bongaCategoryViewModel: BongaCategoryViewModel = viewModel(),
 ) {
     val selectedItem by bongaCategoryViewModel.selectedItem.collectAsState()
     var quantity by remember { mutableIntStateOf(1) }
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
 
     LaunchedEffect(itemId) {
         bongaCategoryViewModel.selectItem(itemId)

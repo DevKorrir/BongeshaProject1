@@ -13,9 +13,10 @@ data class Item(
     val description: String,
     val image: Int,
     val price: Double
-)
+) {
+}
 
 data class CartItem(
     val item: Item,
-    var quantity: Int
+    var quantity: Int,
 )

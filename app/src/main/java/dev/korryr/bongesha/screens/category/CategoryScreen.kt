@@ -19,14 +19,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Badge
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,16 +48,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
-import dev.korryr.bongesha.commons.BadgedBox
 import dev.korryr.bongesha.commons.BongaSearchBar
 import dev.korryr.bongesha.commons.Category
 import dev.korryr.bongesha.commons.ItemRow
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.NotificationList
-import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange01
-import dev.korryr.bongesha.ui.theme.orange07
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.BongaCategoryViewModel
 import dev.korryr.bongesha.viewmodels.NotificationViewModel
@@ -278,7 +272,7 @@ fun BongaCategory(
             Row(
                 modifier = Modifier
                     .background(
-                        color = orange07,
+                        color = orange01,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .padding(4.dp)
@@ -312,19 +306,66 @@ fun BongaCategory(
                             navController.navigate(Route.Home.Cart)
                         }
                     ) {
-                        BadgedBox(
-                            badge = {
-                                if (cartItems.isNotEmpty()) {
-                                    Badge { Text("${cartItems.size}") }
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(32.dp)
+                        ){
+                            Image(
+                                modifier = Modifier
+                                    .size(24.dp),
+                                painter = painterResource(id = R.drawable.checkout_icon),
+                                contentDescription = "Cart",
+                                colorFilter = ColorFilter.tint(if (isCartClicked) orange28 else Color.Black)
+                                            //ColorFilter.tint = if (isCartClicked) orange28 else Color.Black
+                            )
+                            if (cartItems.isNotEmpty()){
+                                Box(
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .background(
+                                            orange28,
+                                            shape = CircleShape
+                                        )
+                                        .align(
+                                            Alignment.TopEnd
+                                        )
+                                ){
+                                    Text(
+                                        text = cartItems.size.toString(),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.align(Alignment.Center)
+                                        )
                                 }
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.ShoppingCart,
-                                contentDescription = "Cart",
-                                tint = if (isCartClicked) orange28 else Color.Black
-                            )
                         }
+                        //badge
+//                        BadgedBox(
+//                            badge = {
+//                                if (cartItems.isNotEmpty()) {
+//                                    Badge (
+//                                        modifier = Modifier
+//                                            .align(Alignment.TopEnd),
+//                                        containerColor = orange28,
+//                                    ){
+//                                        Text(
+//                                            "${cartItems.size}",
+//                                            color = Color.White
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        ) {
+//                            Image(
+//                                modifier = Modifier
+//                                    .size(24.dp),
+//                                painter = painterResource(id = R.drawable.checkout_icon),
+//                                contentDescription = "Cart",
+//                                colorFilter = ColorFilter.tint(if (isCartClicked) orange28 else Color.Black)
+//                                            //ColorFilter.tint = if (isCartClicked) orange28 else Color.Black
+//                            )
+//                        }
                     }
                     if (isCartClicked) {
                         Text("Cart Content", color = orange28)
