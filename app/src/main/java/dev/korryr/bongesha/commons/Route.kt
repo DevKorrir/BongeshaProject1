@@ -4,6 +4,7 @@ class Route {
 
     object Home {
 
+
         const val SignUp = "/signup/"
         const val Welcome = "/welcome/"
         const val SignIn = "/signin/"
@@ -17,6 +18,9 @@ class Route {
         const val Notification = "/notification/"
         const val ForgotPassword = "/forgotpassword/"
         const val Profile = "/profile/"
+        const val HelpSupport = "/helpsupport/"
+        const val AccountSettings = "/accountsettings/"
+        const val Callsheet = "/callsheeet/"
 
     }
 }

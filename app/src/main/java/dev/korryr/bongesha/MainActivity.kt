@@ -29,15 +29,23 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.screens.UserProfile
 import dev.korryr.bongesha.commons.presentation.sign_in.GoogleAuthUiClient
 import dev.korryr.bongesha.commons.presentation.sign_in.SignInViewModel
-import dev.korryr.bongesha.screens.*
+import dev.korryr.bongesha.screens.BongaAccSettings
+import dev.korryr.bongesha.screens.BongaForgotPassword
+import dev.korryr.bongesha.screens.BongaHelp
+import dev.korryr.bongesha.screens.BongaSignIn
+import dev.korryr.bongesha.screens.BongaWelcome
+import dev.korryr.bongesha.screens.BottomSheetContent
+import dev.korryr.bongesha.screens.CartScreen
+import dev.korryr.bongesha.screens.ChatScreen
+import dev.korryr.bongesha.screens.ItemDetailsScreen
+import dev.korryr.bongesha.screens.NotificationScreen
+import dev.korryr.bongesha.screens.UserProfile
 import dev.korryr.bongesha.screens.category.BongaCategory
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
-import dev.korryr.bongesha.ui.theme.orange01
 import dev.korryr.bongesha.viewmodels.AuthViewModelMail
 import kotlinx.coroutines.launch
 
@@ -200,7 +208,7 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.Cart) {
                             CartScreen(
                                 navController = navController,
-                                cartItems = emptyList(),
+                                //cartItems = emptyList(),
                             )
                         }
 
@@ -225,6 +233,26 @@ class MainActivity : ComponentActivity() {
                                 navController.navigate(Route.Home.SignIn)
                             }
                         }
+
+                        composable(Route.Home.HelpSupport) {
+                            BongaHelp(
+                                navController = navController
+                            )
+                        }
+
+                        composable(Route.Home.AccountSettings) {
+                            BongaAccSettings(
+                                navController = navController
+                            )
+                        }
+
+                        composable(Route.Home.Callsheet) {
+                            BottomSheetContent(navController = navController)
+                        }
+
+
+
+
                     }
                 }
             }
