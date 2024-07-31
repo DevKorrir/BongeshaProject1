@@ -1,32 +1,142 @@
 package dev.korryr.bongesha.viewmodels
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberImagePainter
+import com.google.firebase.firestore.FirebaseFirestore
 import dev.korryr.bongesha.commons.Item
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class CartItemViewModel : ViewModel() {
 
-}
-class ItemViewModel : ViewModel() {
-    private val repository = ItemRepository() // Assume this is your data source
+//class ItemViewModel : ViewModel() {
+//    private val repository = ItemRepository() // Assume this is your data source
+//
+//    fun getItemById(itemId: String) = repository.getItemById(itemId)
+//
+//    fun isItemFavorite(itemId: String) {
+//        // Check if the item is in the favorite list
+//    }
+//
+//    fun toggleFavorite(item: Item) {
+//        // Add or remove the item from the favorite list
+//    }
+//}
+//
+//
+//
+//class ItemRepository {
+//    // Implement the data fetching and storing logic here
+//    fun getItemById(itemId: String) {
+//        // Fetch the item by ID from your data source
+//    }
+//
+//    // Add other data operations as needed
+//}
 
-    fun getItemById(itemId: String) = repository.getItemById(itemId)
 
-    fun isItemFavorite(itemId: String) {
-        // Check if the item is in the favorite list
+
+class SearchViewModel : ViewModel() {
+
+    private val db = FirebaseFirestore.getInstance()
+    private val _items = MutableStateFlow<List<Item>>(listOf(
+        //add items here
+
+    ))
+    val items: StateFlow<List<Item>> = _items
+    private val _searchResults = MutableStateFlow<List<Item>>(listOf())
+    val searchResults: StateFlow<List<Item>> = _searchResults
+
+    init {
+        fetchItems()
     }
 
-    fun toggleFavorite(item: Item) {
-        // Add or remove the item from the favorite list
+    fun searchItems(query: String) {
+        _searchResults.value = if (query.isEmpty()) {
+            listOf()
+        }else {
+            _items.value.filter {
+                it.name.contains(query, ignoreCase = true)
+            }
+        }
+    }
+
+    private fun fetchItems() {
+        viewModelScope.launch {
+            db.collection("items")
+                .get()
+                .addOnSuccessListener { result ->
+                    val itemList = result.documents.mapNotNull { it.toObject(Item::class.java) }
+                    _items.value = itemList
+                }
+                .addOnFailureListener { exception ->
+                    // Handle the error
+                }
+        }
     }
 }
 
 
+@Composable
+fun ItemListScreen(
+    serchViewModel: SearchViewModel = viewModel(),
+    onItemClick: (Item) -> Unit
+) {
+    val items by serchViewModel.items.collectAsState()
 
-class ItemRepository {
-    // Implement the data fetching and storing logic here
-    fun getItemById(itemId: String) {
-        // Fetch the item by ID from your data source
+    LazyColumn(modifier = Modifier.padding(16.dp)) {
+        items(items) { item ->
+            ItemRow(item, onItemClick)
+        }
     }
-
-    // Add other data operations as needed
 }
+
+@Composable
+private fun ItemRow(item: Item, onItemClick: (Item) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onItemClick(item) }
+    ) {
+        Image(
+            painter = rememberImagePainter(item.image),
+            contentDescription = item.name,
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(text = item.name)
+            Text(text = item.description)
+            Text(text = "$${item.price}")
+        }
+    }
+}
+
+data class Item(
+    val id: String = "",
+    val name: String = "",
+    val description: String = "",
+    val imageUrl: String = "",
+    val price: Double = 0.0
+    // Add other fields as needed
+)

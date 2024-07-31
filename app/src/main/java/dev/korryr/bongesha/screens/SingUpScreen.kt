@@ -64,36 +64,34 @@ fun BongaSignUp(
         Spacer(modifier = Modifier.height(16.dp))
 
         Bongatextfield(
-            isPassword = false,
-            isValid = true,
-            trailing = null,
-            errorMessage = "Please enter your name",
             label = "Your name",
+            isPassword = false,
+            fieldDescription = "",
+            isValid = true,
             input = yourname,
+            trailing = null,
+            leading = painterResource(id = R.drawable.user_person),
             hint = "Username",
             onChange = { yourname = it },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
-            ),
-            leading = painterResource(id = R.drawable.user_person),
-            fieldDescription = ""
+            )
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Bongatextfield(
-            isPassword = false,
-            isValid = true,
-            trailing = null,
-            errorMessage = "Please enter valid email",
             label = "E-mail address",
-            input = email,
-            hint = "bongesha@gmail.com",
-            enabled = true,
-            onChange = { email = it },
+            isPassword = false,
             fieldDescription = "",
+            isValid = true,
+            input = email,
+            trailing = null,
             leading = painterResource(id = R.drawable.image_sec_icon),
+            hint = "bongesha@gmail.com",
+            onChange = { email = it },
+            enabled = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -105,15 +103,15 @@ fun BongaSignUp(
         Bongatextfield(
             label = "Password",
             isPassword = true,
-            trailing = painterResource(id = R.drawable.ic_show_password),
+            fieldDescription = "",
             input = password,
+            trailing = painterResource(id = R.drawable.ic_show_password),
+            leading = painterResource(id = R.drawable.padlock),
             hint = "Enter your password",
             onChange = {
                 password = it
                 showPasswordError = false
             },
-            fieldDescription = "",
-            leading = painterResource(id = R.drawable.padlock),
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
@@ -125,15 +123,15 @@ fun BongaSignUp(
         Bongatextfield(
             label = "Confirm Password",
             isPassword = true,
-            trailing = painterResource(id = R.drawable.ic_show_password),
+            fieldDescription = "",
             input = confirmPassword,
+            trailing = painterResource(id = R.drawable.ic_show_password),
+            leading = painterResource(id = R.drawable.padlock),
             hint = "Confirm your password",
             onChange = {
                 confirmPassword = it
                 showPasswordError = false
             },
-            leading = painterResource(id = R.drawable.padlock),
-            fieldDescription = "",
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done

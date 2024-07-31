@@ -34,6 +34,8 @@ import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaRow
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.ui.theme.blue88
+import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
@@ -54,7 +56,7 @@ fun UserProfile(
         Row(
             modifier = Modifier
                 .background(
-                    color = Color.White,
+                    color = blue88,
                     shape = RoundedCornerShape(12.dp)
                 )
                 .fillMaxWidth(),
@@ -69,21 +71,21 @@ fun UserProfile(
                     text = "My profile".uppercase(),
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black
+                    color = Color.White
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = "Welcome $userName!",
-                    color = orange28
+                    color = orange100
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "Email: $email",
-                    color = orange28
+                    color = orange100
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -226,7 +228,7 @@ fun UserProfile(
             ) {
                 Button(
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = orange28,
+                        containerColor = blue88,
                         contentColor = Color.White
                     ),
                     modifier = Modifier

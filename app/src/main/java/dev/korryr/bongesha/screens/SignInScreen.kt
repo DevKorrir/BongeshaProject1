@@ -1,9 +1,11 @@
 package dev.korryr.bongesha.screens
 
+import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,10 +32,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
+import com.facebook.CallbackManager
+import com.facebook.login.LoginManager
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.*
 import dev.korryr.bongesha.ui.theme.orange28
+import androidx.lifecycle.lifecycleScope
+import dev.korryr.bongesha.viewmodels.generateVerificationCode
+import dev.korryr.bongesha.viewmodels.sendVerificationEmail
+import dev.korryr.bongesha.viewmodels.storeVerificationCode
 
 private const val PREFS_NAME = "BongaPrefs"
 private const val PREFS_KEY_SIGNED_IN = "isSignedIn"
@@ -43,10 +52,12 @@ fun BongaSignIn(
     navController: NavController,
     onClick: () -> Unit,
     onForgotPassword: (String) -> Unit,
-    onSignIn: (String, String) -> Unit
+    onSignIn: (String, String) -> Unit,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var verificationCode by remember { mutableStateOf("") }
+    var isVerificationRequired by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
 
@@ -121,15 +132,15 @@ fun BongaSignIn(
 
         Bongatextfield(
             label = "E-mail address",
+            fieldDescription = "",
             input = email,
+            leading = painterResource(id = R.drawable.image_sec_icon),
             hint = "Yourname@gmail.com",
             onChange = { email = it },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
-            ),
-            leading = painterResource(id = R.drawable.image_sec_icon),
-            fieldDescription = ""
+            )
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -137,16 +148,16 @@ fun BongaSignIn(
         Bongatextfield(
             label = "Password",
             isPassword = true,
+            fieldDescription ="",
             input = password,
+            trailing = painterResource(id = R.drawable.ic_show_password),
+            leading = painterResource(id = R.drawable.padlock),
             hint = "Enter your password",
             onChange = { password = it },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
-            ),
-            leading = painterResource(id = R.drawable.padlock),
-            trailing = painterResource(id = R.drawable.ic_show_password),
-            fieldDescription =""
+            )
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -229,13 +240,39 @@ fun BongaSignIn(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+
+            val callbackManager = remember { CallbackManager.Factory.create() }
+
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                callbackManager.onActivityResult(result.resultCode, result.resultCode, result.data)
+            }
+
             BongaBox(
                 modifier = Modifier.clickable { onClick() },
                 painter = painterResource(id = R.drawable.google_icons)
             )
 
             BongaBox(
-                modifier = Modifier,
+                modifier = Modifier
+                    .clickable {
+                        onClick ()
+//                            {
+//                            lifecycleScope.launch {
+//                                val signInIntent =
+//                                    LoginManager.getInstance().logInWithReadPermissions(
+//                                        context as Activity,
+//                                        listOf("email", "public_profile")
+//                                    )
+//                                launcher.launch(
+//                                    IntentSenderRequest.Builder(
+//                                        signInIntent ?: return@launch
+//                                    ).build()
+//                                )
+//                            }
+//                        }
+                    },
                 painter = painterResource(id = R.drawable.facebook_icon)
             )
 
@@ -247,6 +284,38 @@ fun BongaSignIn(
 
         Spacer(modifier = Modifier.weight(1f))
 
+//        if (isVerificationRequired) {
+//            Bongatextfield(
+//                label = "Verification Code",
+//                fieldDescription = "",
+//                input = verificationCode,
+//                //leading = painterResource(id = R.drawable.image_sec_icon),
+//                hint = "Enter your verification code",
+//                onChange = { verificationCode = it },
+//                keyboardOptions = KeyboardOptions(
+//                    keyboardType = KeyboardType.Number,
+//                    imeAction = ImeAction.Done
+//                )
+//            )
+//            Spacer(modifier = Modifier.height(24.dp))
+//
+//            BongaButton(
+//                modifier = Modifier.fillMaxWidth(),
+//                label = "Verify",
+//                color = Color.White,
+//                buttonColor = orange28,
+//                onClick = {
+//                    verifyCode(auth.currentUser?.uid ?: "", verificationCode, {
+//                        // Handle successful verification
+//                        navController.navigate(Route.Home.Category)
+//                    }, { error ->
+//                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+//                    })
+//                }
+//            )
+//        } else {}
+
+
         BongaButton(
             modifier = Modifier.fillMaxWidth(),
             label = "Login",
@@ -254,6 +323,13 @@ fun BongaSignIn(
             buttonColor = orange28,
             onClick = {
                 onSignIn(email, password)
+
+                // Check if email verification is needed
+//                val code = generateVerificationCode()
+//                storeVerificationCode(auth.currentUser?.uid ?: "", email, code)
+//                sendVerificationEmail(email, code)
+//
+//                isVerificationRequired = true
 
                 //if (email.isNotBlank() && password.isNotBlank()) {
                     //signInWithEmailAndPassword(email, password, context, navController)
@@ -322,17 +398,6 @@ private fun signInWithEmailAndPassword(email: String, password: String, context:
         }
 }
 
-private fun resetPassword(email: String, context: Context) {
-    val auth = FirebaseAuth.getInstance()
-    auth.sendPasswordResetEmail(email)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Toast.makeText(context, "Password reset email sent", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Failed to send password reset email", Toast.LENGTH_SHORT).show()
-            }
-        }
-}
 
 
 private fun saveSignInState(context: Context) {
@@ -352,3 +417,42 @@ fun CheckSignInState(navController: NavController) {
         navController.navigate(Route.Home.Category)
     }
 }
+
+private fun verifyCode(uid: String, code: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+    val firestore = FirebaseFirestore.getInstance()
+
+    firestore.collection("verificationCodes")
+        .document(uid)
+        .get()
+        .addOnSuccessListener { document ->
+            if (document != null && document.exists()) {
+                val storedCode = document.getString("code")
+                val expiry = document.getLong("expiry") ?: 0
+                val verified = document.getBoolean("verified") ?: false
+
+                if (verified) {
+                    onFailure("Email already verified.")
+                } else if (System.currentTimeMillis() > expiry) {
+                    onFailure("Code expired.")
+                } else if (code == storedCode) {
+                    firestore.collection("verificationCodes")
+                        .document(uid)
+                        .update("verified", true)
+                        .addOnSuccessListener {
+                            onSuccess()
+                        }
+                        .addOnFailureListener { e ->
+                            onFailure("Failed to update verification status: ${e.message}")
+                        }
+                } else {
+                    onFailure("Invalid code.")
+                }
+            } else {
+                onFailure("Invalid code.")
+            }
+        }
+        .addOnFailureListener { e ->
+            onFailure("Verification failed: ${e.message}")
+        }
+}
+

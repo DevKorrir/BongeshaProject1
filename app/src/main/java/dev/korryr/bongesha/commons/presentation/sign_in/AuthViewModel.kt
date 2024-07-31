@@ -1,4 +1,4 @@
-package dev.korryr.bongesha.viewmodels
+package dev.korryr.bongesha.commons.presentation.sign_in
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
