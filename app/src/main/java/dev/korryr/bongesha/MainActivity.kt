@@ -16,8 +16,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,17 +34,19 @@ import dev.korryr.bongesha.screens.BongaForgotPassword
 import dev.korryr.bongesha.screens.BongaHelp
 import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaWelcome
-import dev.korryr.bongesha.screens.BottomSheetContent
 import dev.korryr.bongesha.screens.CartScreen
 import dev.korryr.bongesha.screens.ChatScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.UserProfile
-import dev.korryr.bongesha.screens.category.BongaCategory
+import dev.korryr.bongesha.screens.BongaCategory
+import dev.korryr.bongesha.screens.OrdersScreen
+import dev.korryr.bongesha.screens.Screen
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthViewModelMail
+import dev.korryr.bongesha.viewmodels.CartViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -62,6 +62,7 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         auth = Firebase.auth
         sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
@@ -71,9 +72,9 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val currentSignInState = rememberUpdatedState(viewModel.state.value.isSignInSuccessful)
 
-            window?.statusBarColor = Color.Black.toArgb()
 
             BongeshaTheme {
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = gray01
@@ -190,7 +191,11 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.Category) {
-                            BongaCategory(navController = navController) {}
+                            BongaCategory(
+                                navController = navController,
+                                currentScreen = Screen.Home,
+                                onScreenSelected = {}
+                            )
                         }
 
                         composable(Route.Home.ForgotPassword) {
@@ -208,13 +213,14 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.Cart) {
                             CartScreen(
                                 navController = navController,
-                                //cartItems = emptyList(),
                             )
                         }
 
                         composable(Route.Home.ItemDetails) {
                             ItemDetailsScreen(
+                                navController = navController,
                                 itemId = it.arguments?.getString("itemId") ?: "",
+                                onClick = {}
                             )
                         }
 
@@ -246,9 +252,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(Route.Home.Callsheet) {
-                            BottomSheetContent(navController = navController)
+                        composable(Route.Home.Order){
+                            OrdersScreen()
                         }
+
+
 
 
 

@@ -2,24 +2,19 @@ package dev.korryr.bongesha.viewmodels
 
 import androidx.lifecycle.ViewModel
 import dev.korryr.bongesha.R
-import dev.korryr.bongesha.commons.CartItem
 import dev.korryr.bongesha.commons.Category
 import dev.korryr.bongesha.commons.Item
+import dev.korryr.bongesha.commons.Variation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 
-class BongaCategoryViewModel : ViewModel() {
+class CategoryViewModel : ViewModel() {
 
 
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> = _categories
 
-    private val _cart = MutableStateFlow<List<CartItem>>(emptyList())
-    val cart: StateFlow<List<CartItem>> get() = _cart
-
-    private val _selectedItem = MutableStateFlow<Item?>(null)
-    val selectedItem: StateFlow<Item?> get() = _selectedItem
 
     init {
         // Initialize with some sample data
@@ -33,14 +28,14 @@ class BongaCategoryViewModel : ViewModel() {
                         name = "Coca cola",
                         description = "500ml pet",
                         image = R.drawable.coke,
-                        price = 70.00
+                        price = 70.00,
                     ),
                     Item(
                         id = "a2",
                         name = "Fanta Orange",
                         description = "500ml pet",
                         image = R.drawable.fanta_orange_pet,
-                        price = 70.00
+                        price = 70.00,
                     ),
                     Item(
                         id = "a3",
@@ -251,28 +246,12 @@ class BongaCategoryViewModel : ViewModel() {
         )
     }
 
-    private fun getItemById(itemId: String): Item? {
+    fun getItemById(itemId: String): Item? {
         for (category in _categories.value) {
             val item = category.items.find { it.id == itemId }
             if (item != null) return item
         }
         return null
-    }
-
-    fun selectItem(itemId: String) {
-        _selectedItem.value = getItemById(itemId)
-    }
-
-    fun addToCart(item: Item, quantity: Int = 1) {
-        val currentCart = _cart.value.toMutableList()
-        val existingItem = currentCart.find { it.item.id == item.id }
-
-        if (existingItem != null) {
-            existingItem.quantity += quantity
-        } else {
-            currentCart.add(CartItem(item, quantity))
-        }
-        _cart.value = currentCart
     }
 
 }

@@ -1,5 +1,6 @@
 package dev.korryr.bongesha.screens
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,6 +51,8 @@ fun BongaForgotPassword(
 ) {
     var email by remember { mutableStateOf("") }
     val context = LocalContext.current
+    var isPasswordResetEmailSent by remember { mutableStateOf(false) }
+    val auth = FirebaseAuth.getInstance()
 
 
     Column(
@@ -102,30 +105,35 @@ fun BongaForgotPassword(
 
         Bongatextfield(
             label = "E-mail address",
-            hint = "Yourname@gmail.com",
+            fieldDescription = "Enter your email address to reset your password",
             input = email,
+            leading = painterResource(id = R.drawable.image_sec_icon),
+            hint = "Yourname@gmail.com",
             onChange = { email = it },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Done
-            ),
-            leading = painterResource(id = R.drawable.image_sec_icon),
-            fieldDescription = "Enter your email address to reset your password"
+            )
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         BongaButton(
+            modifier = Modifier.fillMaxWidth(),
             label = "Reset Password",
             color = Color.White,
             buttonColor = orange28,
             onClick = {
                 if (email.isNotBlank()) {
-                    //resetPassword(email, context)
+                    isPasswordResetEmailSent = true
+                    resetPassword(email, context,navController){
+                        isPasswordResetEmailSent = false
+                    }
                 } else {
                     Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
                 }
             }
+            //enabled = !isPasswordResetEmailSent
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -140,4 +148,24 @@ fun BongaForgotPassword(
         )
     }
 }
+}
+
+
+private fun resetPassword(
+    email: String,
+    context: Context,
+    navController: NavController,
+    onSuccess: () -> Unit
+) {
+    val auth = FirebaseAuth.getInstance()
+    auth.sendPasswordResetEmail(email)
+        .addOnCompleteListener { task ->
+            onSuccess()
+            if (task.isSuccessful) {
+                Toast.makeText(context, "Password reset email sent", Toast.LENGTH_SHORT).show()
+                navController.navigateUp()
+            } else {
+                Toast.makeText(context, "Failed to send password reset email", Toast.LENGTH_SHORT).show()
+            }
+        }
 }

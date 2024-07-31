@@ -21,6 +21,10 @@ class Route {
         const val HelpSupport = "/helpsupport/"
         const val AccountSettings = "/accountsettings/"
         const val Callsheet = "/callsheeet/"
+        const val OrderHistory = "/orderhistory/"
+        const val OrderDetails = "/orderdetails/"
+        const val Payment = "/payment/"
+        const val Order= "/order/"
 
     }
 }

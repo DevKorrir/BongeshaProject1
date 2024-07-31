@@ -24,7 +24,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
@@ -41,7 +40,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.korryr.bongesha.R
-import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange28
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,7 +58,6 @@ fun Bongatextfield(
     onTrailingIconClicked: (() -> Unit)? = null,
     hint: String,
     onChange: (String) -> Unit,
-    errorMessage: String = "Error occurred",
     enabled: Boolean = true,
     readOnly: Boolean = false,
     onDone: () -> Unit = {},
@@ -70,7 +67,6 @@ fun Bongatextfield(
     val current = LocalFocusManager.current
     val softwareKeyboard = LocalSoftwareKeyboardController.current
     var passwordVisible by rememberSaveable { mutableStateOf(showPassword) }
-    var passwordField by rememberSaveable { mutableStateOf(input) }
 
     Column(
         modifier = Modifier,
@@ -128,10 +124,8 @@ fun Bongatextfield(
                     unfocusedLeadingIconColor = Color.LightGray,
                     disabledLeadingIconColor = Color.Red,
                     errorLeadingIconColor = Color.Red,
-                    focusedTrailingIconColor = Color.Red,
-                    unfocusedTrailingIconColor = Color.Red,
-                    disabledTrailingIconColor = Color.Red,
-                    errorTrailingIconColor = Color.Red,
+                    focusedTrailingIconColor = orange28,
+                    unfocusedTrailingIconColor = orange28,
                     focusedLabelColor = Color.Red,
                     disabledLabelColor = Color.Red,
                     errorLabelColor = Color.Red,
