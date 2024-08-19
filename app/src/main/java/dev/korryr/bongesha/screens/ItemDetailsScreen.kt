@@ -22,11 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,17 +50,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.google.android.gms.common.api.Scope
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
-import dev.korryr.bongesha.commons.Variation
+import dev.korryr.bongesha.commons.WishlistItems
 import dev.korryr.bongesha.ui.theme.gray01
-import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.SelectedItemViewModel
-import kotlinx.coroutines.launch
+import dev.korryr.bongesha.viewmodels.WishlistViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,6 +68,7 @@ fun ItemDetailsScreen(
     selectedItemViewModel: SelectedItemViewModel = viewModel(),
     cartViewModel: CartViewModel = viewModel(),
     categoryViewModel: CategoryViewModel = viewModel(),
+    wishlistViewModel: WishlistViewModel = viewModel(), // Add this line
     onClick: () -> Unit
 ) {
     val categories by categoryViewModel.categories.collectAsState()
@@ -82,7 +77,7 @@ fun ItemDetailsScreen(
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
-    var selectedVariation by remember { mutableStateOf<Variation?>(null) }
+    //val wishlistViewModel by wishlistViewModel.wishlistItems.collectAsState()
 
 
     LaunchedEffect(itemId) {
@@ -92,6 +87,14 @@ fun ItemDetailsScreen(
     }
 
     selectedItem?.let { item ->
+        val isItemInWishlist = wishlistViewModel.isItemInWishlist(wishlistItem = WishlistItems(
+            item.id,
+            item.name,
+            item.description,
+            item.image,
+            item.price
+            ))
+
         val modalBottomSheetState = rememberModalBottomSheetState()
         val scope = rememberCoroutineScope()
         var isShowBottomSheet by remember { mutableStateOf(false) }
@@ -134,10 +137,29 @@ fun ItemDetailsScreen(
                 Box (
                     modifier = Modifier
                         .clickable {
+                            wishlistViewModel.toggleItemInWishlist(
+                                WishlistItems(
+                                    item.id,
+                                    item.name,
+                                    item.description,
+                                    item.image,
+                                    item.price
+                                )
+                            )
                             isFavorite = !isFavorite
                             // Add to favorite list in your ViewModel
+                            wishlistViewModel.addItemToWishlist(
+                                WishlistItems(
+                                    item.id,
+                                    item.name,
+                                    item.description,
+                                    item.image,
+                                    item.price
+                                )
+                            )
+                            // Show a toast
                             Toast
-                                .makeText(context, "Added to Buy Later", Toast.LENGTH_SHORT)
+                                .makeText(context, "Added to Wishlist", Toast.LENGTH_SHORT)
                                 .show()
                         }
                         .size(30.dp)
@@ -158,11 +180,11 @@ fun ItemDetailsScreen(
                     Image(
                         modifier = Modifier
                             .size(24.dp),
-                        painter = painterResource(id = if (isFavorite) R.drawable.heart_icon else R.drawable.heart_icon_fave),
+                        painter = painterResource(id = if (isItemInWishlist) R.drawable.heart_icon else R.drawable.heart_icon_fave),
                         contentDescription = "wishlist",
                         contentScale = ContentScale.Fit,
                         colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
-                            if (isFavorite) Color.Red else Color.Red
+                            if (isItemInWishlist) Color.Red else Color.Gray
                         )
                     )
                 }
@@ -208,7 +230,7 @@ fun ItemDetailsScreen(
                     )
                 }
                 Row {
-                    // i want to create boxes here for variation
+                    // variation goes here
                 }
                 Text(
                     text = item.name,
@@ -284,15 +306,30 @@ fun ItemDetailsScreen(
                             .height(60.dp),
                         label = "Buy Later",
                         color = Color.White,
-                        buttonColor = orange28
-                    ) {
-                        //add to wish list
-                        Toast
-                            .makeText(context, "Added to Buy Later", Toast.LENGTH_SHORT)
-                            .show()
-                        cartViewModel.addToCart(item, quantity)
-                        // Show a toast or snackbar
-                    }
+                        buttonColor = orange28,
+                        onClick = {
+                            //add to wishlist
+                            wishlistViewModel.addItemToWishlist(
+                                WishlistItems(
+                                    item.id,
+                                    item.name,
+                                    item.description,
+                                    item.image,
+                                    item.price
+                                )
+                            )
+                        }
+                    )
+//                    {
+//                        //add to wish list
+//                        //wishlistViewModel.addToWishlist(item.id)
+//
+//
+//                        // Show a toast
+//                        Toast
+//                            .makeText(context, "Added to Buy Later", Toast.LENGTH_SHORT)
+//                            .show()
+//                    }
                     BongaButton(
                         modifier = Modifier
                             .width(150.dp)
@@ -301,8 +338,11 @@ fun ItemDetailsScreen(
                         color = Color.White,
                         buttonColor = orange28
                     ) {
-                        cartViewModel.addToCart(item, quantity)
+                        cartViewModel.addToCart(item)
                         // Show a toast or snackbar
+                        Toast
+                            .makeText(context, "Added to Cart", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
             }

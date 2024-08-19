@@ -1,10 +1,11 @@
 package dev.korryr.bongesha.viewmodels
 
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.lifecycle.ViewModel
+import com.google.firebase.firestore.FirebaseFirestore
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.Category
 import dev.korryr.bongesha.commons.Item
-import dev.korryr.bongesha.commons.Variation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -13,7 +14,7 @@ class CategoryViewModel : ViewModel() {
 
 
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
-    val categories: StateFlow<List<Category>> = _categories
+    val categories: StateFlow<List<Category>> get() = _categories
 
 
     init {
@@ -252,6 +253,51 @@ class CategoryViewModel : ViewModel() {
             if (item != null) return item
         }
         return null
+    }
+
+    fun loadCategories() {
+        // Fetch categories from Firestore
+        val categoriesRef = FirebaseFirestore.getInstance().collection("categories")
+
+        categoriesRef.get().addOnSuccessListener { documents ->
+            val categoryList = mutableListOf<Category>()
+
+            for (document in documents) {
+                val categoryName = document.getString("name") ?: ""
+                val categoryId = document.id
+                val itemsRef = document.reference.collection("items")
+
+                itemsRef.get().addOnSuccessListener { itemsSnapshot ->
+                    val itemList = mutableListOf<Item>()
+
+                    for (itemDocument in itemsSnapshot) {
+                        val itemName = itemDocument.getString("name") ?: ""
+                        val imageUrl = itemDocument.getString("image") ?: ""
+
+                        // Create Item object
+                        val item = Item(
+                            name = itemName,
+                            imageUrl = imageUrl,
+                            id = String.toString(),
+                            description = String.toString(),
+                            price = 10.0,
+                            image = R.drawable.coke
+                        )
+                        itemList.add(item)
+                    }
+
+                    // Create Category object and add to list
+                    val category = Category(
+                        id = categoryId,
+                        name = categoryName,
+                        items = itemList,
+                        icon = R.drawable.category_icon
+                    )
+                    categoryList.add(category)
+                }
+            }
+            _categories.value = categoryList
+        }
     }
 
 }

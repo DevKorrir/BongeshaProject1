@@ -36,7 +36,6 @@ import dev.korryr.bongesha.commons.BongaRow
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.blue88
 import dev.korryr.bongesha.ui.theme.orange100
-import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
 fun UserProfile(
@@ -132,9 +131,14 @@ fun UserProfile(
             Spacer(modifier = Modifier.height(12.dp))
 
             BongaRow(
-                text = "Inbox",
-                imageVectorleading = painterResource(id = R.drawable.padlock),
+                text = "Chat",
+                imageVectorleading = painterResource(id = R.drawable.bubble_chat),
                 modifier = Modifier
+                    .clickable(
+                        onClick = {
+                            navController.navigate(Route.Home.Inbox)
+                        }
+                    )
                     .padding(16.dp)
                     .fillMaxWidth()
                     .background(
@@ -142,7 +146,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {                }
+
             )
 
             Spacer(modifier = Modifier.height(12.dp))

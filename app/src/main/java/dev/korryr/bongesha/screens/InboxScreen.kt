@@ -3,9 +3,11 @@ package dev.korryr.bongesha.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -48,13 +50,36 @@ fun ChatScreen(chatViewModel: ChatViewModel = viewModel()) {
 
     Column(
         modifier = Modifier
-            .verticalScroll(rememberScrollState())
+            //.verticalScroll(rememberScrollState())
             .padding(16.dp)
+            .background(Color.Transparent)
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp)
+                .background(
+                    color = Color.Transparent,
+                    shape = RoundedCornerShape(12.dp)
+                ),
+            contentAlignment = Alignment.BottomStart
+        ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 100.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.Top
+                //.weight(1f)
+        ) {
+            Text("Unread Messages: $unreadMessages")
+        }
+
+
         LazyColumn(
             modifier = Modifier
-                //.verticalScroll(rememberScrollState())
-                .weight(1f)
+                .padding(bottom = 50.dp)
+                //.weight(1f)
         ) {
             items(messages.size) { index ->
                 val message = messages[index]
@@ -65,6 +90,9 @@ fun ChatScreen(chatViewModel: ChatViewModel = viewModel()) {
                 }
             }
         }
+
+
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -75,7 +103,7 @@ fun ChatScreen(chatViewModel: ChatViewModel = viewModel()) {
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
                     cursorColor = Color.Black,
-                    containerColor = Color.White
+//                    containerColor = Color.White mç¾
                 ),
                 value = currentMessage,
                 onValueChange = { currentMessage = it },
@@ -114,7 +142,7 @@ fun ChatScreen(chatViewModel: ChatViewModel = viewModel()) {
             }) {
                 Text("Send")
             }
-        }
+        }}
     }
 }
 
