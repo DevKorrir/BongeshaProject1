@@ -1,6 +1,7 @@
 package dev.korryr.bongesha.commons
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -52,6 +53,7 @@ import dev.korryr.bongesha.ui.theme.orange01
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
+import dev.korryr.bongesha.viewmodels.WishlistViewModel
 import kotlinx.coroutines.launch
 
 
@@ -61,12 +63,21 @@ import kotlinx.coroutines.launch
 fun ItemRow(
     modifier: Modifier = Modifier,
     item: Item,
+    wishlistViewModel: WishlistViewModel,
     viewModel: CartViewModel,
     navController: NavController,
     onAddToCart: (CartItem) -> Unit
 
 
     ) {
+    var isFavorite by remember { mutableStateOf(false) }
+    val isItemInWishlist = wishlistViewModel.isItemInWishlist(wishlistItem = WishlistItems(
+        item.id,
+        item.name,
+        item.description,
+        item.image,
+        item.price
+    ))
     var isShowBottomSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -123,7 +134,9 @@ fun ItemRow(
                     contentScale = ContentScale.FillBounds
                 )
             }
+
             Spacer(modifier = Modifier.width(8.dp))
+
             Column {
                 Text(
                     text = item.name,
@@ -146,8 +159,25 @@ fun ItemRow(
             Box(
                 modifier = Modifier
                     .clip(
-                        RoundedCornerShape(24.dp)
+                        CircleShape
                     )
+                    .clickable {
+                        wishlistViewModel.toggleItemInWishlist(
+                            WishlistItems(
+                                item.id,
+                                item.name,
+                                item.description,
+                                item.image,
+                                item.price
+                            )
+                        )
+                        //isFavorite = !isFavorite
+
+                        // Show a toast
+                        Toast
+                            .makeText(context, "Added to Wishlist", Toast.LENGTH_SHORT)
+                            .show()
+                    }
 //                    .clickable {
 //                        viewModel.addToCart(item)
 //                        Toast
@@ -158,17 +188,21 @@ fun ItemRow(
 //                            )
 //                            .show()
 //                    }
-                    .size(32.dp)
+                    .size(50.dp)
                     .background(
-                        color = orange01,
-                        shape = RoundedCornerShape(24.dp)
+                        color = gray01,
+                        shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Add,
+                    modifier = Modifier
+                        .size(30.dp),
+
+                    painter = painterResource(id = if (isItemInWishlist) R.drawable.heart_icon else R.drawable.heart_icon_fave),
+                    //imageVector = painterResource(id = R.drawable.cart_icon),
                     contentDescription = "",
-                    tint = orange28
+                    tint = if (isItemInWishlist) Color.Red else Color.Gray
                 )
             }
         }

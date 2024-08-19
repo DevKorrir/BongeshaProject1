@@ -61,6 +61,7 @@ import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.NotificationViewModel
 import dev.korryr.bongesha.viewmodels.SearchViewModel
+import dev.korryr.bongesha.viewmodels.WishlistViewModel
 
 @Composable
 fun BongaCategory(
@@ -75,6 +76,7 @@ fun BongaCategory(
 ) {
     val categories by categoryViewModel.categories.collectAsState()
     val cartItems by cartViewModel.cartItems.collectAsState()
+    val wishlistViewModel = viewModel<WishlistViewModel>()
     var selectedCategory by remember { mutableStateOf<Category?>(categories.firstOrNull()) }
     val context = LocalContext.current
 
@@ -324,8 +326,9 @@ fun BongaCategory(
                             item = item,
                             viewModel = CartViewModel(),
                             navController = navController,
+                            wishlistViewModel = viewModel(),
                             onAddToCart = {
-                                cartViewModel.addToCart(item,quantity = 1)
+                                cartViewModel.addToCart(item)
                             },
 //                            onRemoveFromCart = {
 //                                viewModel.removeFromCart(item)
@@ -337,6 +340,9 @@ fun BongaCategory(
             }
         }
 
+///////////////////////////////////////////////////////////////////////////
+// Beginning of bottom navigation bar
+///////////////////////////////////////////////////////////////////////////
 
         BottomAppBar(
             containerColor = Color.White,
@@ -353,7 +359,8 @@ fun BongaCategory(
                     modifier = Modifier
                         .fillMaxWidth()
                 ){
-                    BottomNavigationItem(
+
+                    BottomNavigationItem(//home icon
                         icon = {
                             Icon(
                                 imageVector = Icons.Default.Home,
@@ -368,8 +375,19 @@ fun BongaCategory(
                         }
                     )
 
+                    //cart icon
+
                     BottomNavigationItem(
                         icon = {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(
+                                        Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                            ){
                             Image(
                                 modifier = Modifier
                                     .size(24.dp),
@@ -377,6 +395,26 @@ fun BongaCategory(
                                 contentDescription = "Cart",
                                 colorFilter = ColorFilter.tint(if (isCartClicked) Color.Black else Color.Gray)
                             )
+                            if (cartItems.isNotEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(14.dp)
+                                        .background(
+                                            orange28,
+                                            shape = CircleShape
+                                        )
+                                        .align(
+                                            Alignment.TopEnd
+                                        )
+                                ) {
+                                    Text(
+                                        text = cartItems.size.toString(),
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+                            }}
                         },
                         label ="Cart",
                         isSelected = currentScreen == Screen.Cart,
@@ -385,41 +423,57 @@ fun BongaCategory(
                             navController.navigate(Route.Home.Cart)
                         }
                     )
-                    if (cartItems.isNotEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .size(14.dp)
-                                .background(
-                                    orange28,
-                                    shape = CircleShape
-                                )
-//                                .align(
-//                                    Alignment.TopEnd
-//                                )
-                        ) {
-                            Text(
-                                text = cartItems.size.toString(),
-                                color = Color.White,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                    }
 
 
+                    //wishlist icon
                     BottomNavigationItem(
                         icon = {
-                            Image(
+                            Box(
+                                contentAlignment = Alignment.Center,
                                 modifier = Modifier
-                                    .size(24.dp),
-                                painter = painterResource(id = R.drawable.shopping_wishlish),
-                                contentDescription = "wishlist",
-                                colorFilter = ColorFilter.tint(if (isFavoriteClicked) Color.Black else Color.Gray)
-                            )
+                                    .size(70.dp)
+                                    .background(
+                                        Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                            ){
+                                Image(
+                                    modifier = Modifier
+                                        .size(24.dp),
+                                    painter = painterResource(id = R.drawable.shopping_wishlish),
+                                    contentDescription = "wishlist",
+                                    colorFilter = ColorFilter.tint(if (isFavoriteClicked) Color.Black else Color.Gray)
+                                )
+
+                                val wishlistCount = wishlistViewModel.wishlistItems.collectAsState()
+                                if (wishlistCount.value.isNotEmpty()) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(14.dp)
+                                            .background(
+                                                orange28,
+                                                shape = CircleShape
+                                            )
+                                            .align(
+                                                Alignment.TopEnd
+                                            ),
+                                        contentAlignment = Alignment.Center
+
+                                    ){
+                                        Text(
+                                            text = wishlistCount.value.size.toString(),
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            modifier = Modifier.align(Alignment.Center)
+                                            )
+                                    }
+                                }
+                            }
                         },
                         label = "WishList",
                         isSelected = currentScreen == Screen.Favourite,
                         onClick = {
+                            navController.navigate(Route.Home.Wishlist)
                             onScreenSelected(Screen.Favourite)
                         }
                     )
@@ -446,7 +500,7 @@ fun BongaCategory(
                             Image(
                                 modifier = Modifier
                                     .size(24.dp),
-                                painter = painterResource(id = R.drawable.setting),
+                                painter = painterResource(id = R.drawable.information),
                                 contentDescription = "Profile",
                                 colorFilter = ColorFilter.tint(if (isProfileClicked) Color.Black else Color.Gray)
                             )
@@ -472,5 +526,7 @@ enum class Screen {
     Profile,
 
 }
+
+
 
 

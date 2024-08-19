@@ -1,6 +1,7 @@
 package dev.korryr.bongesha
 
 import BongaSignUp
+import WishlistScreen
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
@@ -254,6 +255,10 @@ class MainActivity : ComponentActivity() {
 
                         composable(Route.Home.Order){
                             OrdersScreen()
+                        }
+
+                        composable(Route.Home.Wishlist){
+                            WishlistScreen()
                         }
 
 

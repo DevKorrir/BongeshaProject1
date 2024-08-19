@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -18,25 +17,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import dev.korryr.bongesha.commons.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
-import dev.korryr.bongesha.viewmodels.CategoryViewModel
-
 
 @Composable
 fun CartScreen(
     cartViewModel: CartViewModel = viewModel(),
-    navController: NavController,
+    navController: NavController
 ) {
-    val cartItems  by cartViewModel.cartItems.collectAsState()
-
+    val items by cartViewModel.cartItems.collectAsState()
 
     Column(
         modifier = Modifier
@@ -48,12 +42,10 @@ fun CartScreen(
             modifier = Modifier.padding(8.dp)
         )
 
-
-
-        if (cartItems.isNotEmpty()) {
+        if (items.isNotEmpty()) {
             LazyColumn {
-                items(cartItems) { cartItem ->
-                    CartItemRow(cartItem)
+                items(items) { item ->
+                    CartItemRow(CartItem(item, 1))
                 }
             }
         } else {
@@ -64,7 +56,6 @@ fun CartScreen(
             )
         }
 
-
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
@@ -73,35 +64,12 @@ fun CartScreen(
         ) {
             Text(text = "Checkout")
         }
-//        currentCart.forEach { cartItem ->
-//                Row(
-//                    modifier = Modifier
-//                        .padding(8.dp)
-//                        .fillMaxWidth(),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Image(
-//                        painter = painterResource(id = cartItem.item.image),
-//                        contentDescription = cartItem.item.name,
-//                        modifier = Modifier.size(64.dp),
-//                        contentScale = ContentScale.Crop,
-//                    )
-//                    Spacer(modifier = Modifier.width(16.dp))
-//                    Column {
-//                        Text(text = cartItem.item.name, style = MaterialTheme.typography.bodyLarge)
-//                        Text(text = "$${cartItem.item.price}", style = MaterialTheme.typography.bodyMedium)
-//                        Text(text = "Quantity: ${cartItem.quantity}", style = MaterialTheme.typography.bodySmall)
-//                    }
-//                }
-//            }
-
     }
 }
 
-
 @Composable
 fun CartItemRow(
-    cartItem: CartItem
+    item: CartItem
 ) {
     Row(
         modifier = Modifier
@@ -110,7 +78,7 @@ fun CartItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
-            painter = rememberImagePainter(data = cartItem.item.image),
+            painter = rememberAsyncImagePainter(model = item.item.image),
             contentDescription = null,
             modifier = Modifier
                 .size(64.dp)
@@ -120,11 +88,11 @@ fun CartItemRow(
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = cartItem.item.name,
+                text = item.item.name,
                 fontWeight = FontWeight.Bold
             )
-            Text(text = "${cartItem.quantity}")
-            Text(text = "Quantity: ${cartItem.quantity}")
+            Text(text = "$${item.item.price}")
+            //Text(text = "Quantity: ${item.quantity}")
         }
     }
 }

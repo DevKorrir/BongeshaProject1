@@ -1,8 +1,6 @@
 package dev.korryr.bongesha.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
-import dev.korryr.bongesha.commons.CartItem
 import dev.korryr.bongesha.commons.Item
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,22 +9,20 @@ import kotlinx.coroutines.flow.StateFlow
 class CartViewModel : ViewModel() {
 
 
-    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
-    val cartItems: StateFlow<List<CartItem>> get()= _cartItems
+    private val _cartItems = MutableStateFlow<List<Item>>(emptyList())
+    val cartItems: StateFlow<List<Item>> get()= _cartItems
 
     fun addToCart(
         item: Item,
-        quantity: Int
-    ) {
-        val currentItems = _cartItems.value.toMutableList()
-        val existingItem = currentItems.find { it.item.id == item.id }
+        ) {
+        val currentItems = _cartItems.value.toMutableList() ?: mutableListOf()
+        currentItems.add(item)
+        _cartItems.value = currentItems
+    }
 
-        if (existingItem != null) {
-            existingItem.quantity += quantity
-        } else {
-            currentItems.add(CartItem(item, quantity))
-
-        }
+    fun removeItemFromCart(itemId: String) {
+        val currentItems = _cartItems.value.toMutableList() ?: mutableListOf()
+        currentItems.removeAll { it.id == itemId }
         _cartItems.value = currentItems
     }
 }

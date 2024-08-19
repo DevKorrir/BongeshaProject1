@@ -17,6 +17,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -27,31 +29,32 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+class ItemViewModel : ViewModel() {
+    private val _items = MutableLiveData<List<Item>>()
+    val items: LiveData<List<Item>> get() = _items
 
-//class ItemViewModel : ViewModel() {
-//    private val repository = ItemRepository() // Assume this is your data source
-//
-//    fun getItemById(itemId: String) = repository.getItemById(itemId)
-//
-//    fun isItemFavorite(itemId: String) {
-//        // Check if the item is in the favorite list
-//    }
-//
-//    fun toggleFavorite(item: Item) {
-//        // Add or remove the item from the favorite list
-//    }
-//}
-//
-//
-//
-//class ItemRepository {
-//    // Implement the data fetching and storing logic here
-//    fun getItemById(itemId: String) {
-//        // Fetch the item by ID from your data source
-//    }
-//
-//    // Add other data operations as needed
-//}
+    init {
+        fetchItems()
+    }
+
+    private fun fetchItems() {
+        // Firestore collection reference
+        val db = FirebaseFirestore.getInstance()
+        db.collection("items")
+            .get()
+            .addOnSuccessListener { result ->
+                val itemList = mutableListOf<Item>()
+                for (document in result) {
+                    val item = document.toObject(Item::class.java)
+                    itemList.add(item)
+                }
+                _items.value = itemList
+            }
+            .addOnFailureListener { exception ->
+                // Handle any errors
+            }
+    }
+}
 
 
 
@@ -132,11 +135,11 @@ private fun ItemRow(item: Item, onItemClick: (Item) -> Unit) {
     }
 }
 
-data class Item(
-    val id: String = "",
-    val name: String = "",
-    val description: String = "",
-    val imageUrl: String = "",
-    val price: Double = 0.0
-    // Add other fields as needed
-)
+//data class Item(
+//    val id: String = "",
+//    val name: String = "",
+//    val description: String = "",
+//    val imageUrl: String = "",
+//    val price: Double = 0.0
+//    // Add other fields as needed
+//)
