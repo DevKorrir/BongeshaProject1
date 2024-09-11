@@ -2,6 +2,7 @@ package dev.korryr.bongesha.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,18 +33,9 @@ fun OrdersScreen(
 ) {
     val categories by categoryViewModel.categories.collectAsState(emptyList())
 
-    LazyColumn {
-        items(categories) { category ->
-            Text(
-                text = "Category",
-                style = FontStyle.Italic,
-                modifier = Modifier.padding(8.dp)
-            )
-            LazyRow {
-                items(category) { item ->
-                    ItemCard(item)
-                }
-            }
+    Column {
+        Row {
+            Text(text = "nothing yet")
         }
     }
 }
