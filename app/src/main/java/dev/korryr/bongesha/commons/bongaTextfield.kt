@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,7 +63,19 @@ fun Bongatextfield(
     readOnly: Boolean = false,
     onDone: () -> Unit = {},
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-    keyboardActions: KeyboardActions? = null
+    keyboardActions: KeyboardActions? = null,
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.White,
+        unfocusedContainerColor = Color.White,
+        disabledContainerColor = Color.White,
+        errorContainerColor = Color.White,
+        unfocusedTextColor = Color.Black,
+        disabledTextColor = Color.Black,
+        errorTextColor = Color.Black,
+        errorIndicatorColor = Color.Red,
+        unfocusedIndicatorColor = Color.Gray,
+        focusedIndicatorColor = Color.Transparent,
+    )
 ) {
     val current = LocalFocusManager.current
     val softwareKeyboard = LocalSoftwareKeyboardController.current
@@ -105,46 +118,7 @@ fun Bongatextfield(
                     .height(if (isLongText) 150.dp else TextFieldDefaults.MinHeight)
                     .fillMaxWidth()
                     .testTag(label + "1"),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    disabledPlaceholderColor = Color.Red,
-                    focusedBorderColor = orange28,
-                    unfocusedBorderColor = Color.Transparent,
-                    containerColor = Color.White,
-                    unfocusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Blue,
-                    disabledTextColor = Color.Red,
-                    errorTextColor = Color.Red,
-                    errorContainerColor = Color.Red,
-                    cursorColor = Color.Black,
-                    errorCursorColor = Color.Red,
-                    disabledBorderColor = Color.Red,
-                    errorBorderColor = Color.Red,
-                    focusedLeadingIconColor = Color.Gray,
-                    unfocusedLeadingIconColor = Color.LightGray,
-                    disabledLeadingIconColor = Color.Red,
-                    errorLeadingIconColor = Color.Red,
-                    focusedTrailingIconColor = orange28,
-                    unfocusedTrailingIconColor = orange28,
-                    focusedLabelColor = Color.Red,
-                    disabledLabelColor = Color.Red,
-                    errorLabelColor = Color.Red,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.DarkGray,
-                    errorPlaceholderColor = Color.Red,
-                    focusedSupportingTextColor = Color.Red,
-                    unfocusedSupportingTextColor = Color.Red,
-                    disabledSupportingTextColor = Color.Red,
-                    errorSupportingTextColor = Color.Red,
-                    focusedPrefixColor = Color.Red,
-                    unfocusedPrefixColor = Color.Red,
-                    disabledPrefixColor = Color.Red,
-                    errorPrefixColor = Color.Red,
-                    focusedSuffixColor = Color.Red,
-                    unfocusedSuffixColor = Color.Red,
-                    disabledSuffixColor = Color.Red,
-                    errorSuffixColor = Color.Red
-                ),
+                colors = colors,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = if (isPassword && passwordVisible) {
                     keyboardOptions.copy(keyboardType = KeyboardType.Text)

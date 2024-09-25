@@ -13,11 +13,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +34,6 @@ import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange28
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BongaSearchBar(
     query: String,
@@ -42,7 +41,20 @@ fun BongaSearchBar(
     onSearchClick: () -> Unit,
     active: Boolean,
     onActiveChange: (Boolean) -> Unit,
-    searchResults: List<Item>
+    searchResults: List<Item>,
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        unfocusedIndicatorColor = Color.Gray,
+        focusedIndicatorColor = Color.Transparent,
+        disabledIndicatorColor = Color.Transparent,
+        errorIndicatorColor = Color.Transparent,
+        focusedContainerColor = gray01,
+        unfocusedContainerColor = gray01,
+        disabledContainerColor = gray01,
+        errorContainerColor = gray01,
+        focusedTextColor = Color.Black,
+        unfocusedTextColor = Color.Black,
+        disabledTextColor = Color.Black,
+    )
 ){
     val showClearIcon = remember {
         mutableStateOf(query.isNotEmpty())
@@ -51,6 +63,7 @@ fun BongaSearchBar(
     val keyboardController = LocalSoftwareKeyboardController.current
     Column{
         OutlinedTextField(
+            colors = colors,
             shape = RoundedCornerShape(12.dp),
             value = query,
             onValueChange = {
@@ -93,14 +106,7 @@ fun BongaSearchBar(
                     }
                 }
             },
-            colors = TextFieldDefaults.outlinedTextFieldColors(
-                unfocusedBorderColor = gray01,
-                focusedBorderColor = Color.Gray,
-                containerColor = Color.White,
-                cursorColor = orange28,
-                focusedLabelColor = Color.Gray,
-                unfocusedLabelColor = Color.Gray
-            )
+
         )
         if (active) {
             LazyColumn(

@@ -44,6 +44,8 @@ import dev.korryr.bongesha.screens.BongaCategory
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.Screen
 import dev.korryr.bongesha.screens.category.screens.Beverages
+import dev.korryr.bongesha.screens.willbedeleted.ProductListScreen
+import dev.korryr.bongesha.screens.willbedeleted.ProductViewModel
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthViewModelMail
@@ -96,7 +98,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController = navController,
-                        startDestination = if (isUserSignedIn()) Route.Home.Category else Route.Home.SignUp
+                        startDestination = if (isUserSignedIn()) Route.Home.Product else Route.Home.SignUp
                     ) {
                         composable(Route.Home.SignUp) {
                             BongaSignUp(
@@ -191,11 +193,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(Route.Home.Category) {
-                            BongaCategory(
-                                navController = navController,
-                                currentScreen = Screen.Home,
-                                onScreenSelected = {}
+//                        composable(Route.Home.Category) {
+//                            BongaCategory(
+//                                navController = navController,
+//                                currentScreen = Screen.Home,
+//                                onScreenSelected = {}
+//                            )
+//                        }
+                        composable(Route.Home.Product){
+                            ProductListScreen(
+                                viewModel = ProductViewModel()
                             )
                         }
 
