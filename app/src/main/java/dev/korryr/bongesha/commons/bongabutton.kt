@@ -31,13 +31,13 @@ fun BongaButton(
     color: Color? = null,
     buttonColor: Color,
     showArrow: Boolean = false,
-    onClick: () -> Unit,
-    //enable: Boolean = false,
+    onClick: (() -> Unit) = {},
+    enabled: Boolean = false,
 ){
     Button(
         border = BorderStroke(1.dp, color = orange28),
         shape = MaterialTheme.shapes.large.copy(all = CornerSize(16.dp)),
-        onClick = onClick,
+        onClick = { onClick() },
         colors = ButtonDefaults.buttonColors(
             containerColor = buttonColor
         ),

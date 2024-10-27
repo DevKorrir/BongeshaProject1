@@ -83,7 +83,7 @@ fun ItemDetailsScreen(
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var isInCart by remember { mutableStateOf(false) }  // New state to track if item is in the cart
-    var itemCount by remember { mutableIntStateOf(0) }
+    var itemCount by remember { mutableIntStateOf(product.itemCount) }
 
     Scaffold (
         containerColor = gray01,
@@ -226,14 +226,22 @@ fun ItemDetailsScreen(
                         label = if (isInCart)"In Cart" else "Buy Now",
                         color = Color.White,
                         buttonColor = if (isInCart) Color.Gray else orange28,
-                    ) {
-                        itemCount++
-                        cartViewModel.addToCart(product)
-                        isInCart = true
-                        Toast
-                            .makeText(context, "Added to Cart", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                        enabled = !isInCart,
+                        onClick = {
+                            if (quantity <= itemCount) {
+                                cartViewModel.addToCart(
+                                    product.copy(quantity = quantity),
+                                    quantity = 0
+                                )
+                                isInCart = true
+                                itemCount -= quantity
+                                Toast.makeText(context, "Added to Cart", Toast.LENGTH_SHORT).show()
+                                cartViewModel.saveProductToUserAccount(context, product, quantity)
+                            } else {
+                                Toast.makeText(context, "Only $itemCount items available", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
                 }
             }
         },

@@ -234,19 +234,21 @@ fun BongaSignUp(
             label = "Create an account",
             color = Color.White,
             modifier = Modifier.fillMaxWidth(),
-            buttonColor = orange28
-        ) {
-            if (!isValidPassword(password)) {
-                showPasswordError = true
-                errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
-            } else if (password != confirmPassword) {
-                showPasswordError = true
-                errorMessage = "Password does not match."
-            } else {
-                authViewModel.signUp(email, password, displayName)
-                navController.navigate(Route.Home.Verification)
+            buttonColor = orange28,
+            enabled = false,
+            onClick = {
+                if (!isValidPassword(password)) {
+                    showPasswordError = true
+                    errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
+                } else if (password != confirmPassword) {
+                    showPasswordError = true
+                    errorMessage = "Password does not match."
+                } else {
+                    authViewModel.signUp(email, password, displayName)
+                    navController.navigate(Route.Home.Verification)
+                }
             }
-        }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
