@@ -11,6 +11,11 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlin.math.roundToInt
 
+
+data class CartItem(
+    val product: Product,
+    var quantity: Int
+)
 class CartViewModel : ViewModel() {
     private val _cart = mutableStateListOf<CartItem>()
     val cart: List<CartItem> get() = _cart
@@ -75,8 +80,11 @@ class CartViewModel : ViewModel() {
         updateItemCount()
     }
 
+    var deliveryFee: Int = 0
+
     fun calculateTotalPrice(): Int {
-        return _cart.sumOf { (it.product.price * it.quantity).roundToInt() }
+        val carTotal = _cart.sumOf { (it.product.price.toDouble() * it.quantity).roundToInt() }
+        return carTotal + deliveryFee
     }
 
     fun saveProductToUserAccount(context: Context, product: Product, quantity: Int) {
@@ -104,10 +112,41 @@ class CartViewModel : ViewModel() {
             }
     }
 
+    private val firestore = Firebase.firestore
+    private val userId = "userID" // Replace with the actual user ID from authentication
+
+    init {
+        fetchCartItems()
+    }
+
+    private fun fetchCartItems() {
+        firestore.collection("users")
+            .document(userId)
+            .collection("cart")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    return@addSnapshotListener
+                }
+                _cart.clear()
+
+                snapshot?.documents?.forEach { document ->
+                    val product = Product(
+                        id = document.getString("id") ?: "",
+                        name = document.getString("name") ?: "",
+                        price = (document.getDouble("price") ?: 0.0).toFloat(),
+                        images = (document.get("images") as? List<String>) ?: listOf(document.getString("images") ?: ""),
+                        itemCount = document.getLong("quantity")?.toInt() ?: 0,
+                    )
+                    val quantity = document.getLong("quantity")?.toInt() ?: 1
+                    _cart.add(CartItem(product, quantity))
+                }
+                updateItemCount()
+            }
+    }
 
 }
 
-data class CartItem(
-    val product: Product,
-    var quantity: Int
-)
+//data class CartItem(
+//    val product: Product,
+//    var quantity: Int
+//)
