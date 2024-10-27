@@ -26,6 +26,7 @@ class Route {
         const val Payment = "/payment/"
         const val Order= "/order/"
         const val Wishlist = "/wishlist/"
+        const val Verification = "/verification/"
 
     }
 }

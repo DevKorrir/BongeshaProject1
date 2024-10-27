@@ -1,3 +1,5 @@
+package dev.korryr.bongesha.screens
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -26,16 +28,17 @@ import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.AuthState
-import dev.korryr.bongesha.viewmodels.AuthViewModelMail
-import kotlinx.coroutines.Job
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 
 @Composable
 fun BongaSignUp(
     navController: NavController,
-    authViewModel: AuthViewModelMail = viewModel(),
-    function: () -> Job
+    authViewModel: AuthViewModel = viewModel(),
+    onGoogleSignIn: () -> Unit,
+    onSignIn: (String, String) -> Unit,
+    onFacebookSignInClick: (() -> Unit)? = null
 ) {
-    var yourname by rememberSaveable { mutableStateOf("") }
+    var displayName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -56,7 +59,7 @@ fun BongaSignUp(
             text = "Register",
             fontWeight = FontWeight.ExtraBold,
             fontStyle = FontStyle.Normal,
-            fontSize = 56.sp,
+            fontSize = 46.sp,
             textAlign = TextAlign.Center,
             color = orange28
         )
@@ -68,11 +71,11 @@ fun BongaSignUp(
             isPassword = false,
             fieldDescription = "",
             isValid = true,
-            input = yourname,
+            input = displayName,
             trailing = null,
             leading = painterResource(id = R.drawable.user_person),
             hint = "Username",
-            onChange = { yourname = it },
+            onChange = { displayName = it },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
@@ -137,6 +140,13 @@ fun BongaSignUp(
                 imeAction = ImeAction.Done
             )
         )
+        if (showPasswordError) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -175,13 +185,14 @@ fun BongaSignUp(
             //google button
             BongaBox(
                 modifier = Modifier
-                    .clickable {  },
+                    .clickable { onGoogleSignIn() },
                 painter = painterResource(id = R.drawable.google_icons)
             )
 
             //facebook button
             BongaBox(
-                modifier = Modifier,
+                modifier = Modifier
+                    .clickable { onFacebookSignInClick?.invoke() },
                 painter = painterResource(id = R.drawable.facebook_icon)
             )
 
@@ -192,13 +203,6 @@ fun BongaSignUp(
             )
         }
 
-        if (showPasswordError) {
-            Text(
-                text = errorMessage,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
 
         if (authState is AuthState.Loading) {
             CircularProgressIndicator(
@@ -239,8 +243,8 @@ fun BongaSignUp(
                 showPasswordError = true
                 errorMessage = "Password does not match."
             } else {
-                authViewModel.signUp(email, password)
-                //navController.navigate(Route.Home.SignIn)
+                authViewModel.signUp(email, password, displayName)
+                navController.navigate(Route.Home.Verification)
             }
         }
 
@@ -265,8 +269,8 @@ fun BongaSignUp(
     }
 }
 
-private fun isValidPassword(password: String): Boolean {
-    val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$"
-    val pattern = Regex(passwordPattern)
-    return pattern.matches(password)
-}
+//private fun isValidPassword(password: String): Boolean {
+//    val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$"
+//    val pattern = Regex(passwordPattern)
+//    return pattern.matches(password)
+//}

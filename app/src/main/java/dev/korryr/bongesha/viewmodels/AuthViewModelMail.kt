@@ -1,97 +1,271 @@
 package dev.korryr.bongesha.viewmodels
 
+import android.app.Application
+import android.content.Context
+import android.content.SharedPreferences
+import android.provider.Settings.Global.putString
+import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginResult
+import com.facebook.login.widget.LoginButton
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
 import dev.korryr.bongesha.commons.Route
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class AuthViewModelMail : ViewModel() {
+
+class AuthViewModel(application: Application) : AndroidViewModel(application) {
+    private lateinit var sharedPreferences: SharedPreferences
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> get() = _authState
 
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
+    private val callbackManager = CallbackManager.Factory.create()
+    private val context = getApplication<Application>().applicationContext
+    private val _isSignedIn = MutableStateFlow(false)
+    val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
 
-    fun signUp(email: String, password: String) {
+    init {
+        checkSignInStatus()
+    }
+
+    private fun checkSignInStatus() {
+        _isSignedIn.value = FirebaseAuth.getInstance().currentUser != null
+    }
+
+    fun signUp(email: String, password: String, displayName: String) {
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            try {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            // send verification email
-                            val user = auth.currentUser
-                            user?.sendEmailVerification()
-                                ?.addOnCompleteListener { verificationTask ->
-                                    if (verificationTask.isSuccessful) {
-                                        _authState.value =
-                                            AuthState.Success("Verification email sent")
-                                    } else {
-                                        _authState.value = AuthState.Error(
-                                            verificationTask.exception?.message
-                                                ?: "Verification email failed"
-                                        )
-                                    }
+            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    val profileUpdates = UserProfileChangeRequest.Builder()
+                        .setDisplayName(displayName)
+                        .build()
+
+                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
+                        if (profileUpdateTask.isSuccessful) {
+                            // Generate and store a 6-digit verification code
+                            val verificationCode = generateVerificationCode()
+                            storeVerificationCode(user.uid, verificationCode)
+
+                            // Send the email verification
+                            user.sendEmailVerification().addOnCompleteListener { verificationTask ->
+                                if (verificationTask.isSuccessful) {
+                                    saveUserToFirestore(user)
+                                    _authState.value = AuthState.Success("Verification email sent to your email address.")
+                                } else {
+                                    _authState.value = AuthState.Error(
+                                        verificationTask.exception?.message ?: "Failed to send verification email"
+                                    )
                                 }
-                            //_authState.value = AuthState.Success("Sign up successful")
+                            }
                         } else {
-                            _authState.value =
-                                AuthState.Error(task.exception?.message ?: "Sign up failed")
+                            _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
                         }
                     }
-            } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Sign up failed")
+                } else {
+                    _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
+                }
             }
         }
     }
 
 
-    fun signIn(
-        email: String,
-        password: String,
-        navController: NavController
-    ) {
+    private fun generateVerificationCode(): String {
+        val random = java.util.Random()
+        return (100000 + random.nextInt(900000)).toString()  // Generates a random 6-digit number
+    }
+
+    // Stores the verification code and expiry time in Firestore
+    private fun storeVerificationCode(userId: String, code: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val verificationData = mapOf(
+            "code" to code,
+            "expiry" to System.currentTimeMillis() + 600_000, // 10-minute expiry
+            "verified" to false
+        )
+
+        firestore.collection("verificationCodes").document(userId)
+            .set(verificationData)
+            .addOnSuccessListener { Log.d("Firestore", "Verification code stored") }
+            .addOnFailureListener { e -> Log.e("Firestore", "Error storing verification code", e) }
+    }
+
+    // Function to send an email (simplified, typically use an email service for this)
+
+    // Placeholder example, replace with actual API request to send an email
+    private fun sendVerificationEmail(email: String, code: String) {
+        // Call your backend or third-party API to send email
+        println("Sending verification code $code to email: $email")
+    }
+
+
+    fun verifyCode(uid: String, inputCode: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+
+        firestore.collection("verificationCodes").document(uid)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    val storedCode = document.getString("code")
+                    val expiry = document.getLong("expiry") ?: 0
+                    val verified = document.getBoolean("verified") ?: false
+
+                    if (verified) {
+                        onFailure("Email already verified.")
+                    } else if (System.currentTimeMillis() > expiry) {
+                        onFailure("Code expired.")
+                    } else if (inputCode == storedCode) {
+                        firestore.collection("verificationCodes").document(uid)
+                            .update("verified", true)
+                            .addOnSuccessListener {
+                                onSuccess()
+                            }
+                            .addOnFailureListener { e ->
+                                onFailure("Failed to update verification status: ${e.message}")
+                            }
+                    } else {
+                        onFailure("Invalid code.")
+                    }
+                } else {
+                    onFailure("Invalid code request.")
+                }
+            }
+            .addOnFailureListener { e ->
+                onFailure("Verification failed: ${e.message}")
+            }
+    }
+
+
+    fun signIn(email: String, password: String, navController: NavController) {
+
+        if (email.isEmpty() || password.isEmpty()) {
+            _authState.value = AuthState.Error("Email or password cannot be empty")
+            return
+        }
+
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            try {
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null && user.isEmailVerified) {
-                                //saveUserDetails(user.email, user.displayName)
-                                // Email is verified, proceed with sign-in
-                                //saveUserSignInState()
-                                _authState.value = AuthState.Success("Sign in successful")
-                                navController.navigate(Route.Home.Category)
-                            } else {
-                                // Email is not verified, show an error message
-                                _authState.value = AuthState.Error("Please verify your email first")
-                                auth.signOut()
-                            }
-
-                            //_authState.value = AuthState.Success("Sign in successful")
-                        } else {
-                            // Handle sign-in failure
-                            _authState.value = AuthState.Error(
-                                task.exception?.message ?: "Enter correct credentials"
-                            )
-                        }
+            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = auth.currentUser
+                    if (user?.isEmailVerified == true) {
+                        //saveUserDetails(user.email, user.displayName)
+                        _authState.value = AuthState.Success("Sign in successful")
+                        navController.navigate(Route.Home.Category)
+                    } else {
+                        _authState.value = AuthState.Error("Please verify your email first")
+                        auth.signOut()
                     }
-            } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Sign inn failed")
+                } else {
+                    val errorMessage = when (task.exception) {
+                        is FirebaseAuthInvalidCredentialsException -> "Incorrect email or password."
+                        is FirebaseAuthInvalidUserException -> "User not found. Please sign up first."
+                        else -> task.exception?.message ?: "Sign in failed. Please try again."
+                    }
+                    _authState.value = AuthState.Error(errorMessage)
+                }
             }
+        }
+    }
+
+
+    fun signInWithEmail(email: String, password: String, navController: NavController, context: Context) {
+        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    // Navigate to home after successful login
+                    navController.navigate(Route.Home.Category)
+                } else {
+                    Toast.makeText(context, "Sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                }
+            }
+    }
+
+
+    fun signInWithGoogle(idToken: String, navController: NavController) {
+        viewModelScope.launch {
+            _authState.value = AuthState.Loading
+            val credential = GoogleAuthProvider.getCredential(idToken, null)
+            auth.signInWithCredential(credential).addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    saveUserToFirestore(auth.currentUser)
+                    _authState.value = AuthState.Success("Google Sign in successful")
+                    navController.navigate(Route.Home.Category)
+                } else {
+                    _authState.value = AuthState.Error(task.exception?.message ?: "Google Sign in failed")
+                }
+            }
+        }
+    }
+
+    fun signInWithFacebook(navController: NavController) {
+        val loginButton = LoginButton(context) // Dynamically creating a LoginButton
+        loginButton.setPermissions("email", "public_profile")
+        loginButton.registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+            override fun onSuccess(result: LoginResult) {
+                val credential = FacebookAuthProvider.getCredential(result.accessToken.token)
+                auth.signInWithCredential(credential).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        saveUserToFirestore(auth.currentUser)
+                        _authState.value = AuthState.Success("Facebook sign-in successful")
+                        navController.navigate(Route.Home.Category)
+                    } else {
+                        _authState.value = AuthState.Error(task.exception?.message ?: "Facebook sign-in failed")
+                    }
+                }
+            }
+
+            override fun onCancel() {
+                _authState.value = AuthState.Error("Facebook sign-in canceled")
+            }
+
+            override fun onError(error: FacebookException) {
+                _authState.value = AuthState.Error("Error: ${error.message}")
+            }
+        })
+    }
+
+
+    private fun saveUserToFirestore(user: FirebaseUser?) {
+        user?.let {
+            val userData = mapOf(
+                "uid" to it.uid,
+                "email" to it.email,
+                "displayName" to it.displayName
+            )
+            firestore.collection("users").document(it.uid).set(userData)
+                .addOnSuccessListener {
+                    Log.d("Firestore", "User data saved successfully")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("Firestore", "Error saving user data", e)
+                }
         }
     }
 }
 
-
 sealed class AuthState {
-    data object Idle : AuthState()
-    data object Loading : AuthState()
+    object Idle : AuthState()
+    object Loading : AuthState()
     data class Success(val message: String) : AuthState()
     data class Error(val message: String) : AuthState()
 }

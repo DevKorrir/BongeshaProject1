@@ -1,10 +1,16 @@
 package dev.korryr.bongesha.screens
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,9 +19,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,15 +33,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,9 +57,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,33 +68,47 @@ import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaSearchBar
 import dev.korryr.bongesha.commons.BottomNavigationItem
-import dev.korryr.bongesha.commons.Category
 import dev.korryr.bongesha.commons.ItemRow
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.CartViewModel
+import dev.korryr.bongesha.viewmodels.Category
+import dev.korryr.bongesha.viewmodels.CategoryUiState
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.NotificationViewModel
-import dev.korryr.bongesha.viewmodels.SearchViewModel
-import dev.korryr.bongesha.viewmodels.WishlistViewModel
 
+
+@SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
 fun BongaCategory(
-    currentScreen: Screen,
-    onScreenSelected: (Screen) -> Unit,
-    categoryViewModel: CategoryViewModel = viewModel(),
+    categoryViewModel: CategoryViewModel,
     navController: NavController,
     notificationViewModel: NotificationViewModel = viewModel(),
     cartViewModel: CartViewModel = viewModel(),
-    //onClick: (Int) -> Unit,
-    viewModel: SearchViewModel = viewModel()
 ) {
-    val categories by categoryViewModel.categories.collectAsState()
-    val cartItems by cartViewModel.cartItems.collectAsState()
-    val wishlistViewModel = viewModel<WishlistViewModel>()
-    var selectedCategory by remember { mutableStateOf<Category?>(categories.firstOrNull()) }
-    val context = LocalContext.current
+    //val uiState by categoryViewModel.uiState.collectAsState()
+    // Observe products and loading state from ViewModel
+    val products by remember { mutableStateOf(categoryViewModel.products) }
+    val isLoading by remember { mutableStateOf(categoryViewModel.isLoading) }
+    val categories = listOf(
+        //Category("Electronics", R.drawable.heart_icon),
+        "Audio & Sound Systems",
+        "Phones & Accessories",
+        "Computers & Accessories",
+        "Home Appliances",
+        "Lighting & Electrical",
+        "Televisions & Accessories",
+        "Portable Electronics",
+        "Mobile Network Accessories",
+        "Cables & Connectors",
+        "Office & Stationery Electronics",
+        "Smart Home & Security",
+        "Gaming & Entertainment",
+        "Energy & Power Solutions"
+    )
+    var selectedCategory by remember { mutableStateOf(categories[0]) }
+    val cartItemsCount = cartViewModel.itemCount
 
     // State variables to track icon clicks
     var isHomeClicked by remember { mutableStateOf(true) }
@@ -86,9 +116,14 @@ fun BongaCategory(
     var isFavoriteClicked by remember { mutableStateOf(false) }
     var isProfileClicked by remember { mutableStateOf(false) }
     var isOrderClicked by remember { mutableStateOf(false) }
-    var isChatsClicked by remember { mutableStateOf(false) }
+    //var isChatsClicked by remember { mutableStateOf(false) }
     val unreadCount by notificationViewModel.unreadCount.collectAsState()
     var showNotifications by remember { mutableStateOf(false) }
+    var itemCount by remember { mutableStateOf(0) }
+
+    LaunchedEffect(selectedCategory) {
+        categoryViewModel.fetchProductsForCategory(selectedCategory.toString())
+    }
 
 
     Box(
@@ -184,7 +219,6 @@ fun BongaCategory(
 
             var active by remember { mutableStateOf(false) }
             var query by remember { mutableStateOf("") }
-            val searchResults by viewModel.searchResults.collectAsState()
 
             Row (
                 modifier = Modifier
@@ -194,28 +228,28 @@ fun BongaCategory(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                BongaSearchBar(
-                    query = query,
-                    onQueryChange = { newQuery ->
-                        query = newQuery
-                        viewModel.searchItems(newQuery)
-                                    },
-                    onSearchClick = {
-                        viewModel.searchItems(query)
-                        active = true
-                    },
-                    active = active,
-                    onActiveChange = { newActive ->
-                        active = newActive
-                    },
-                    searchResults = searchResults,
-                )
+//                BongaSearchBar(
+//                    query = query,
+//                    onQueryChange = { newQuery ->
+//                        query = newQuery
+//                        viewModel.searchItems(newQuery)
+//                                    },
+//                    onSearchClick = {
+//                        viewModel.searchItems(query)
+//                        active = true
+//                    },
+//                    active = active,
+//                    onActiveChange = { newActive ->
+//                        active = newActive
+//                    },
+//                    searchResults = searchResults,
+//                )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            //Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Category",
+                text = "Categories",
                 fontSize = 36.sp,
                 fontWeight = FontWeight.W700
             )
@@ -223,80 +257,104 @@ fun BongaCategory(
             Spacer(modifier = Modifier.height(8.dp))
 
             Column {
-                Row(
-                    modifier = Modifier
-                        .horizontalScroll(rememberScrollState())
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
+                var textOffset by remember { mutableFloatStateOf(0f) }
+                val animatedOffset by animateFloatAsState(
+                    targetValue = textOffset,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(3000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ), label = ""
+                )
 
-                    //Beginning of the category ui boxes
+                LaunchedEffect(Unit) {
+                    textOffset = -100f  // Adjust this value based on the width of the text box
+                }
 
 
-                    categories.forEach { category ->
-                        Box(
+//                when (uiState) {
+//                    is CategoryUiState.Loading -> CircularProgressIndicator()
+//                    is CategoryUiState.Error -> Text((uiState as CategoryUiState.Error).message)
+//                    is CategoryUiState.Success -> {
+//                        val categories = (uiState as CategoryUiState.Success).categories
+                        LazyRow(
                             modifier = Modifier
-                                .clip(
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .border(
-                                    1.dp,
-                                    if (selectedCategory == category) orange28 else Color.White,
-                                    shape = RoundedCornerShape(12.dp)
-
-                                )
-                                .background(
-                                    if (selectedCategory == category) orange28 else Color.White,
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                .padding(8.dp)
-                                .clickable {
-                                    selectedCategory = category
-                                },
-                            contentAlignment = Alignment.Center
-                        ){
-
-                            Column(
-                                modifier = Modifier
-                                    .padding(4.dp)
-//                                    .clickable {
-//                                        selectedCategory =
-//                                            if (selectedCategory == category) null else category
-//                                    }
-                                    .background(
-                                        if (selectedCategory == category) orange28 else Color.White,
-                                        shape = RoundedCornerShape(12.dp)
-                                    ),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
+                        ) {
+                            //Beginning of the category ui boxes
+                            items(categories) { category ->
+                                // Display each category as a button
                                 Box(
                                     modifier = Modifier
-                                        .size(64.dp)
                                         .clip(
-                                            RoundedCornerShape(12.dp)
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.Transparent,
+
+                                            //if (selectedCategory == category) orange28 else Color.White,
+                                            shape = RoundedCornerShape(12.dp)
+
                                         )
                                         .background(
-                                            if (selectedCategory == category) Color.White else Color.Transparent,
+                                            if (selectedCategory == category) orange28 else Color.White,
                                             shape = RoundedCornerShape(12.dp)
-                                        ),
+                                        )
+                                        .padding(8.dp)
+                                        .clickable {
+                                            categoryViewModel.fetchProductsForCategory(category)
+                                            selectedCategory = category
+                                        },
                                     contentAlignment = Alignment.Center
                                 ){
-                                    Image(
-                                        painter = painterResource(id = category.icon),
-                                        contentDescription = category.name,
-                                        modifier = Modifier
-                                            .size(64.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(text = category.name)
-                            }
 
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                            .background(
+                                                if (selectedCategory == category) orange28 else Color.White,
+                                                shape = RoundedCornerShape(12.dp)
+                                            ),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(64.dp)
+                                                .clip(
+                                                    RoundedCornerShape(12.dp)
+                                                )
+                                                .background(
+                                                    if (selectedCategory == category) Color.White else Color.Transparent,
+                                                    shape = RoundedCornerShape(12.dp)
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ){
+                                            Image(
+                                                painter = painterResource(id = R.drawable.baby),
+                                                contentDescription = category,
+                                                modifier = Modifier
+                                                    .size(64.dp),
+                                                contentScale = ContentScale.FillBounds
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        // Display the category name
+                                        Text(
+                                            text = category,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .offset(x = animatedOffset.dp)
+                                                .width(90.dp),
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                    }
-                }
+
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -305,37 +363,40 @@ fun BongaCategory(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Loading indicator
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        color = orange28
+                    )
+                }
+            }
+
 
             //beginning of item row ui
 
-            selectedCategory?.let { category ->
+            selectedCategory.let { category ->
                 Column(
                     modifier = Modifier
                         .padding(bottom = 60.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
                     Text(
-                        text = category.name,
+                        text = category,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.W700
                     )
+
                     Spacer(modifier = Modifier.height(8.dp))
-                    category.items.forEach { item ->
+
+                    //loop through items in the category
+                    for (product in products) {
                         ItemRow(
-                            modifier = Modifier,
-                            item = item,
-                            viewModel = CartViewModel(),
-                            navController = navController,
-                            wishlistViewModel = viewModel(),
-                            onAddToCart = {
-                                cartViewModel.addToCart(item)
-                            },
-//                            onRemoveFromCart = {
-//                                viewModel.removeFromCart(item)
-//
-//                            }
+                            product = product,
+                            navController = navController
                         )
                     }
+
                 }
             }
         }
@@ -369,114 +430,90 @@ fun BongaCategory(
                             )
                         },
                         label = "Home",
-                        isSelected = currentScreen == Screen.Home,
-                        onClick = {
-                            onScreenSelected(Screen.Home)
-                        }
+                        isSelected = false,
+                        onClick = {}
                     )
 
                     //cart icon
-
-                    BottomNavigationItem(
-                        icon = {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(
-                                        Color.Transparent,
-                                        shape = CircleShape
-                                    )
-                            ){
-                            Image(
-                                modifier = Modifier
-                                    .size(24.dp),
-                                painter = painterResource(id = R.drawable.checkout_icon),
-                                contentDescription = "Cart",
-                                colorFilter = ColorFilter.tint(if (isCartClicked) Color.Black else Color.Gray)
-                            )
-                            if (cartItems.isNotEmpty()) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(14.dp)
-                                        .background(
-                                            orange28,
-                                            shape = CircleShape
-                                        )
-                                        .align(
-                                            Alignment.TopEnd
-                                        )
+                        BottomNavigationItem(
+                            icon = {
+                                // Badge with item count
+                                BadgedBox(
+                                    badge = {
+                                        // Only show the badge if cart has items
+                                        if (cartItemsCount > 0) {
+                                            Badge(
+                                                containerColor = Color.Red,
+                                                contentColor = Color.White
+                                            ) {
+                                                Text(text = cartItemsCount.toString())
+                                            }
+                                        }
+                                    }
                                 ) {
-                                    Text(
-                                        text = cartItems.size.toString(),
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        modifier = Modifier.align(Alignment.Center)
+                                    // Cart Icon with conditional color based on whether the item is in the cart
+                                    Image(
+                                        modifier = Modifier.size(24.dp),
+                                        painter = painterResource(id = R.drawable.checkout_icon),
+                                        contentDescription = "Cart",
+                                        colorFilter = ColorFilter.tint(if (isCartClicked) Color.Black else Color.Gray)
                                     )
                                 }
-                            }}
-                        },
-                        label ="Cart",
-                        isSelected = currentScreen == Screen.Cart,
-                        onClick = {
-                            onScreenSelected(Screen.Cart)
-                            navController.navigate(Route.Home.Cart)
-                        }
-                    )
+                            },
+                            label = "Cart",
+                            isSelected = false,
+                            onClick = {
+                                isCartClicked = !isCartClicked
+                                navController.navigate(Route.Home.Cart)
+                            }
+                        )
 
 
                     //wishlist icon
                     BottomNavigationItem(
                         icon = {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(70.dp)
-                                    .background(
-                                        Color.Transparent,
-                                        shape = CircleShape
-                                    )
-                            ){
-                                Image(
-                                    modifier = Modifier
-                                        .size(24.dp),
-                                    painter = painterResource(id = R.drawable.shopping_wishlish),
-                                    contentDescription = "wishlist",
-                                    colorFilter = ColorFilter.tint(if (isFavoriteClicked) Color.Black else Color.Gray)
-                                )
-
-                                val wishlistCount = wishlistViewModel.wishlistItems.collectAsState()
-                                if (wishlistCount.value.isNotEmpty()) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(14.dp)
-                                            .background(
-                                                orange28,
-                                                shape = CircleShape
-                                            )
-                                            .align(
-                                                Alignment.TopEnd
-                                            ),
-                                        contentAlignment = Alignment.Center
-
-                                    ){
-                                        Text(
-                                            text = wishlistCount.value.size.toString(),
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            modifier = Modifier.align(Alignment.Center)
-                                            )
+                            BadgedBox(
+                                badge = {
+                                    if (itemCount > 0) {
+                                        Badge(
+                                            containerColor = orange28,
+                                            contentColor = Color.White
+                                        ) {
+                                            Text(text = itemCount.toString())
+                                        }
                                     }
                                 }
+                            ) {
+                                Image(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(R.drawable.shopping_wishlish),
+                                    contentDescription = null,
+                                    colorFilter = ColorFilter.tint( if (isFavoriteClicked) Color.Black else Color.Gray)
+                                )
                             }
                         },
-                        label = "WishList",
-                        isSelected = currentScreen == Screen.Favourite,
+                        label = "Wishlist",
+                        isSelected = true,
                         onClick = {
+                            isFavoriteClicked = !isFavoriteClicked
                             navController.navigate(Route.Home.Wishlist)
-                            onScreenSelected(Screen.Favourite)
                         }
                     )
+//                        label = {
+//                            Text("WishList")
+//                        },
+//                        selected = currentScreen == Screen.Favourite,
+//                        onClick = {
+//                            // Toggle the item in the cart
+//                            cartViewModel.toggleItemInCart(item)
+//
+//                            // Navigate to Wishlist Screen if desired
+//                            navController.navigate(Route.Home.Wishlist)
+//                            onScreenSelected(Screen.Favourite)
+//                        }
+//                    )
+
+                    //orders icon
                     BottomNavigationItem(
                         icon = {
                             Image(
@@ -488,9 +525,9 @@ fun BongaCategory(
                             )
                         },
                         label ="Orders",
-                        isSelected = currentScreen == Screen.Order,
+                        isSelected = false,
                         onClick = {
-                            onScreenSelected(Screen.Order)
+
                             navController.navigate(Route.Home.Order)
                         }
                     )
@@ -506,11 +543,10 @@ fun BongaCategory(
                             )
                         },
                         label ="Profile",
-                        isSelected = currentScreen == Screen.Profile,
                         onClick = {
-                            onScreenSelected(Screen.Profile)
                             navController.navigate(Route.Home.Profile)
-                        }
+                        },
+                        isSelected = true
                     )
                 }
             }
@@ -518,14 +554,12 @@ fun BongaCategory(
     }
 }
 
-enum class Screen {
-    Home,
-    Cart,
-    Favourite,
-    Order,
-    Profile,
 
-}
+data class Categoryyyy(
+    val category: String,
+    val imageResId: Int
+)
+
 
 
 

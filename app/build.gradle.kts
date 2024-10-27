@@ -53,36 +53,46 @@ android {
 
 dependencies {
 
+//    val credentialsManagerVersion = "1.5.0-alpha05"
+//    implementation("androidx.credentials:credentials-bom:$credentialsManagerVersion")
+//    //noinspection GradleDependency
+//    implementation("androidx.credentials:credentials-play-services-auth:$credentialsManagerVersion")
+//    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.test.espresso:espresso-core:3.6.1@aar")
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation(platform("androidx.compose:compose-bom:2024.09.02"))
+    implementation("androidx.activity:activity-compose:1.9.3")
+    implementation(platform("androidx.compose:compose-bom:2024.10.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3:1.3.0")
-    implementation("com.google.firebase:firebase-auth:23.0.0")
+    implementation("com.google.firebase:firebase-auth:23.1.0")
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
-    implementation("androidx.activity:activity-ktx:1.9.2")
+    implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.lifecycle:lifecycle-runtime-compose-android:2.8.6")
     implementation("com.google.android.engage:engage-core:1.5.5")
-    implementation("com.google.firebase:firebase-firestore:25.1.0")
-    implementation("com.google.firebase:firebase-storage:21.0.0")
-    implementation("androidx.compose.runtime:runtime-livedata:1.7.2")
+    implementation("com.google.firebase:firebase-firestore:25.1.1")
+    implementation("com.google.firebase:firebase-storage:21.0.1")
+    implementation("androidx.compose.runtime:runtime-livedata:1.7.4")
+    implementation("com.google.ai.edge.litert:litert-support-api:1.0.1")
+    implementation("androidx.compose.runtime:runtime-android:1.7.4")
+    implementation("androidx.navigation:navigation-runtime-ktx:2.8.3")
+    implementation("com.google.android.gms:play-services-instantapps:18.1.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2024.09.02"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2024.10.00"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation("androidx.navigation:navigation-compose:2.8.1")
+    implementation("androidx.navigation:navigation-compose:2.8.3")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
-    implementation(platform("com.google.firebase:firebase-bom:33.3.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
@@ -90,8 +100,11 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    //implementation("com.facebook.android:facebook-android-sdk:16.1.0")
-    implementation ("com.facebook.android:facebook-login:11.0.0")
+    implementation("com.facebook.android:facebook-android-sdk:17.0.2")
+    implementation ("com.facebook.android:facebook-login:17.0.2")
+    implementation ("com.facebook.android:facebook-android-sdk:latest.release")
+    implementation ("com.google.android.gms:play-services-auth:21.2.0") // Check for the latest version
+
 
 
 }

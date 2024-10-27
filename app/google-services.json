@@ -1,18 +1,24 @@
 {
   "project_info": {
     "project_number": "863305767590",
+    "firebase_url": "https://bongesha-36512-default-rtdb.firebaseio.com",
     "project_id": "bongesha-36512",
     "storage_bucket": "bongesha-36512.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:863305767590:android:42376022364c7a3015f267",
+        "mobilesdk_app_id": "1:863305767590:android:2107f40d8f2989f515f267",
         "android_client_info": {
-          "package_name": "dev.korryr.bongesha"
+          "package_name": "com.example.productsadder"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "863305767590-anrmms8ehin6evlakhg0f3vavk9fqg3f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDxAqOGF4wt4fGFcHUIKHqNYsPzjORuCYI"
@@ -20,7 +26,136 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "863305767590-9rpce1744sd196ttvf5q8j1j9apiutbj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863305767590:android:42376022364c7a3015f267",
+        "android_client_info": {
+          "package_name": "dev.korryr.bongesha"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "863305767590-i2dg2sj4s8gtc04pg5mih9uctrd4qok0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.korryr.bongesha",
+            "certificate_hash": "7266f5b0525ed35d7c90ee6235733dba3894f7ad"
+          }
+        },
+        {
+          "client_id": "863305767590-anrmms8ehin6evlakhg0f3vavk9fqg3f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxAqOGF4wt4fGFcHUIKHqNYsPzjORuCYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "863305767590-9rpce1744sd196ttvf5q8j1j9apiutbj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863305767590:android:ebba2f36a0be17ff15f267",
+        "android_client_info": {
+          "package_name": "dev.korryr.bongeshastore"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "863305767590-anrmms8ehin6evlakhg0f3vavk9fqg3f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxAqOGF4wt4fGFcHUIKHqNYsPzjORuCYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "863305767590-9rpce1744sd196ttvf5q8j1j9apiutbj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863305767590:android:c590e7fa3c6e603f15f267",
+        "android_client_info": {
+          "package_name": "dev.korryr.juploads"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "863305767590-anrmms8ehin6evlakhg0f3vavk9fqg3f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxAqOGF4wt4fGFcHUIKHqNYsPzjORuCYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "863305767590-9rpce1744sd196ttvf5q8j1j9apiutbj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:863305767590:android:d81a628b7abee54015f267",
+        "android_client_info": {
+          "package_name": "dev.korryr.uitest"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "863305767590-anrmms8ehin6evlakhg0f3vavk9fqg3f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxAqOGF4wt4fGFcHUIKHqNYsPzjORuCYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "863305767590-9rpce1744sd196ttvf5q8j1j9apiutbj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

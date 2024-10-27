@@ -63,7 +63,6 @@ fun BongaSearchBar(
     val keyboardController = LocalSoftwareKeyboardController.current
     Column{
         OutlinedTextField(
-            colors = colors,
             shape = RoundedCornerShape(12.dp),
             value = query,
             onValueChange = {

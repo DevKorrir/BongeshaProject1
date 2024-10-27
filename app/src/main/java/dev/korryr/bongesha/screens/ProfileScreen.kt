@@ -1,6 +1,7 @@
 package dev.korryr.bongesha.screens
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,12 +41,12 @@ import dev.korryr.bongesha.ui.theme.orange100
 @Composable
 fun UserProfile(
     navController: NavController,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
     val email = sharedPreferences.getString("userEmail", "No email")
-    val userName = sharedPreferences.getString("userName", "User")
+    val displayName = sharedPreferences.getString("userDisplayName", "User")
 
     Column(
         modifier = Modifier
@@ -76,7 +77,7 @@ fun UserProfile(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Welcome $userName!",
+                    text = "Welcome $displayName!",
                     color = orange100
                 )
 

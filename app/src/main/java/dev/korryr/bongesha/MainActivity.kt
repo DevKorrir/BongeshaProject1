@@ -1,8 +1,9 @@
 package dev.korryr.bongesha
 
-import BongaSignUp
+
 import WishlistScreen
 import android.annotation.SuppressLint
+import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -15,6 +16,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,61 +26,60 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.android.gms.auth.api.identity.Identity
+import com.facebook.CallbackManager
+import com.facebook.FacebookSdk
+import com.facebook.appevents.AppEventsLogger
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.commons.presentation.sign_in.GoogleAuthUiClient
-import dev.korryr.bongesha.commons.presentation.sign_in.SignInViewModel
 import dev.korryr.bongesha.screens.BongaAccSettings
+import dev.korryr.bongesha.screens.BongaCategory
 import dev.korryr.bongesha.screens.BongaForgotPassword
 import dev.korryr.bongesha.screens.BongaHelp
 import dev.korryr.bongesha.screens.BongaSignIn
+import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
 import dev.korryr.bongesha.screens.CartScreen
 import dev.korryr.bongesha.screens.ChatScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
-import dev.korryr.bongesha.screens.UserProfile
-import dev.korryr.bongesha.screens.BongaCategory
 import dev.korryr.bongesha.screens.OrdersScreen
-import dev.korryr.bongesha.screens.Screen
+import dev.korryr.bongesha.screens.UserProfile
+import dev.korryr.bongesha.screens.VerifyEmailScreen
 import dev.korryr.bongesha.screens.category.screens.Beverages
-import dev.korryr.bongesha.screens.willbedeleted.ProductListScreen
-import dev.korryr.bongesha.screens.willbedeleted.ProductViewModel
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
-import dev.korryr.bongesha.viewmodels.AuthViewModelMail
-import dev.korryr.bongesha.viewmodels.CartViewModel
+import dev.korryr.bongesha.viewmodels.AuthViewModel
+import dev.korryr.bongesha.viewmodels.AuthState
+import dev.korryr.bongesha.viewmodels.CategoryViewModel
+import dev.korryr.bongesha.viewmodels.Product
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private val googleAuthUiClient by lazy {
-        GoogleAuthUiClient(
-            context = applicationContext,
-            oneTapClient = Identity.getSignInClient(applicationContext)
-        )
-    }
-    private lateinit var auth: FirebaseAuth
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var callbackManager: CallbackManager
+    private lateinit var auth: FirebaseAuth
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         auth = Firebase.auth
+
+        //FacebookSdk.sdkInitialize(applicationContext)
+        AppEventsLogger.activateApp(application)
         sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
         setContent {
             val navController = rememberNavController()
-            val viewModel = viewModel<SignInViewModel>()
+            val authViewModel: AuthViewModel = viewModel()
             val context = LocalContext.current
-            val currentSignInState = rememberUpdatedState(viewModel.state.value.isSignInSuccessful)
-
+            val currentSignInState = rememberUpdatedState(authViewModel.authState.value)
 
             BongeshaTheme {
-
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = gray01
@@ -87,43 +89,64 @@ class MainActivity : ComponentActivity() {
                         onResult = { result ->
                             if (result.resultCode == RESULT_OK) {
                                 lifecycleScope.launch {
-                                    val signInResult = googleAuthUiClient.signInWithIntent(
-                                        intent = result.data ?: return@launch
-                                    )
-                                    viewModel.onSignInResult(signInResult)
+                                    result.data?.let { data ->
+                                        val account = GoogleSignIn.getSignedInAccountFromIntent(data).result
+                                        account?.let {
+                                            authViewModel.signInWithGoogle(it.idToken ?: "", navController)
+                                        }
+                                    }
                                 }
                             }
                         }
                     )
 
+                    //callbackManager = CallbackManager.Factory.create()
+                    val isUserSignedIn by authViewModel.isSignedIn.collectAsState()
+                    val startDestination = if (isUserSignedIn) Route.Home.Category else Route.Home.SignUp
+
                     NavHost(
                         navController = navController,
-                        startDestination = if (isUserSignedIn()) Route.Home.Product else Route.Home.SignUp
+                        startDestination = startDestination
                     ) {
                         composable(Route.Home.SignUp) {
                             BongaSignUp(
                                 navController = navController,
-                                authViewModel = AuthViewModelMail()
-                            ) {
-                                lifecycleScope.launch {
-                                    val signInIntentSender = googleAuthUiClient.signIn()
-                                    launcher.launch(
-                                        IntentSenderRequest.Builder(
-                                            signInIntentSender ?: return@launch
-                                        ).build()
+                                authViewModel = authViewModel,
+                                onGoogleSignIn = {
+                                    val googleSignInClient = GoogleSignIn.getClient(
+                                    context,
+                                    GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                        .requestIdToken(getString(R.string.web_client_id))
+                                        .requestEmail()
+                                        .build()
+                                )
+
+                                    val signInIntent = googleSignInClient.signInIntent
+                                    val pendingIntent = PendingIntent.getActivity(
+                                        context, 0, signInIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
                                     )
+
+                                    launcher.launch(
+                                        IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                                    )
+                                },
+                                onFacebookSignInClick = {
+                                    authViewModel.signInWithFacebook(navController)
+                                },
+                                onSignIn = { email, password ->
+                                    authViewModel.signIn(email, password, navController)
                                 }
-                            }
+                            )
+
                             LaunchedEffect(key1 = currentSignInState.value) {
-                                if (currentSignInState.value) {
+                                if (currentSignInState.value is AuthState.Success) {
                                     Toast.makeText(
                                         this@MainActivity,
-                                        "Account Created successful",
+                                        (currentSignInState.value as AuthState.Success).message,
                                         Toast.LENGTH_LONG
                                     ).show()
                                     saveUserSignInState()
                                     navController.navigate(Route.Home.Category)
-                                    viewModel.resetState()
                                 }
                             }
                         }
@@ -131,78 +154,32 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.SignIn) {
                             BongaSignIn(
                                 navController = navController,
-                                onClick = {
-                                    lifecycleScope.launch {
-                                        val signInIntentSender = googleAuthUiClient.signIn()
-                                        launcher.launch(
-                                            IntentSenderRequest.Builder(
-                                                signInIntentSender ?: return@launch
-                                            ).build()
-                                        )
-                                    }
-                                },
                                 onForgotPassword = { email ->
-                                    auth.sendPasswordResetEmail(email)
+                                    Firebase.auth.sendPasswordResetEmail(email)
                                         .addOnCompleteListener { task ->
                                             if (task.isSuccessful) {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Password reset email sent.",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
+                                                Toast.makeText(context, "Password reset email sent.", Toast.LENGTH_LONG).show()
                                             } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Error sending reset email.",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
+                                                Toast.makeText(context, "Error sending reset email.", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                 },
                                 onSignIn = { email, password ->
-                                    auth.signInWithEmailAndPassword(email, password)
-                                        .addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                val user = auth.currentUser
-                                                if (user != null && user.isEmailVerified) {
-                                                    saveUserDetails(user.email, user.displayName)
-                                                    saveUserSignInState()
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Sign in successful",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                    navController.navigate(Route.Home.Category)
-                                                } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Please verify your email first",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                    auth.signOut()
-                                                }
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Sign in failed",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
-                                            }
-                                        }
+                                    authViewModel.signIn(email, password, navController)  // Handle email/password sign-in
+                                },
+                                authViewModel = authViewModel,
+                                onGoogleSignIn = { idToken ->
+                                    authViewModel.signInWithGoogle(idToken, navController) // Handle Google sign-in
+                                    Toast.makeText(context, "Google sign-in failed: ID token is null.", Toast.LENGTH_LONG).show()
                                 }
                             )
                         }
 
-//                        composable(Route.Home.Category) {
-//                            BongaCategory(
-//                                navController = navController,
-//                                currentScreen = Screen.Home,
-//                                onScreenSelected = {}
-//                            )
-//                        }
-                        composable(Route.Home.Product){
-                            ProductListScreen(
-                                viewModel = ProductViewModel()
+
+                        composable(Route.Home.Category) {
+                            BongaCategory(
+                                navController = navController,
+                                categoryViewModel = CategoryViewModel()
                             )
                         }
 
@@ -219,16 +196,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.Cart) {
-                            CartScreen(
-                                navController = navController,
-                            )
+                            CartScreen(navController = navController)
                         }
 
                         composable(Route.Home.ItemDetails) {
                             ItemDetailsScreen(
-                                navController = navController,
-                                itemId = it.arguments?.getString("itemId") ?: "",
-                                onClick = {}
+                                onClick = {},
+                                product = Product()
                             )
                         }
 
@@ -241,36 +215,45 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.Profile) {
-                            UserProfile(navController = navController) {
-                                auth.signOut()
+                            UserProfile(
+                                navController = navController,
+                            ) {
+                                Firebase.auth.signOut()
                                 clearUserSignInState()
                                 navController.navigate(Route.Home.SignIn)
                             }
                         }
 
                         composable(Route.Home.HelpSupport) {
-                            BongaHelp(
-                                navController = navController
-                            )
+                            BongaHelp(navController = navController)
                         }
 
                         composable(Route.Home.AccountSettings) {
-                            BongaAccSettings(
-                                navController = navController
-                            )
+                            BongaAccSettings(navController = navController)
                         }
 
-                        composable(Route.Home.Order){
+                        composable(Route.Home.Order) {
                             OrdersScreen()
                         }
 
-                        composable(Route.Home.Wishlist){
-                            WishlistScreen()
+                        composable(Route.Home.Wishlist) {
+                            WishlistScreen(
+                                product = Product(),
+                            )
                         }
 
-
-
-
+                        composable(Route.Home.Verification) { backStackEntry ->
+                            val userId = authViewModel.auth.currentUser?.uid ?: ""
+                            VerifyEmailScreen(
+                                userId = userId,
+                                authViewModel = authViewModel,
+                                onVerified = {
+                                    navController.navigate(Route.Home.SignIn) {
+                                        popUpTo(Route.Home.Verification) { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
 
 
                     }
@@ -287,13 +270,14 @@ class MainActivity : ComponentActivity() {
         sharedPreferences.edit().putBoolean("isSignedIn", true).apply()
     }
 
-    private fun saveUserDetails(email: String?, displayName: String?) {
+    fun saveUserDetails(email: String?, displayName: String?) {
         sharedPreferences.edit().apply {
             putString("userEmail", email)
             putString("userDisplayName", displayName)
             apply()
         }
     }
+
 
     private fun clearUserSignInState() {
         sharedPreferences.edit().apply {

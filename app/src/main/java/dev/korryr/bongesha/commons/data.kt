@@ -1,24 +1,27 @@
 package dev.korryr.bongesha.commons
 
-data class Category(
-    val id: String,
+data class Categoryr(
     val name: String,
-    val items: List<Item>,
-    val icon: Int
+    val imageRes: Int
 )
 
 data class Item(
     val id: String,
     val name: String,
     val description: String,
-    val image: Int,
+    val image: String,
     val price: Double,
     val imageUrl: String = ""
     //val variations: List<Variation>
 )
 
 
-data class CartItem(
+///////////////////////////////////////////////////////////////////////////
+// non functional downwards
+///////////////////////////////////////////////////////////////////////////
+
+
+data class CartItemr(
     val item: Item,
     var quantity: Int,
 )
@@ -30,10 +33,10 @@ data class VerificationCode(
     val verified: Boolean = false
 )
 
-data class WishlistItems(
+data class WishlistItemsw(
     val id: String,
     val name: String,
     val description: String,
-    val image: Int,
+    val image: String,
     val price: Double,
 )

@@ -31,7 +31,8 @@ fun BongaButton(
     color: Color? = null,
     buttonColor: Color,
     showArrow: Boolean = false,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    //enable: Boolean = false,
 ){
     Button(
         border = BorderStroke(1.dp, color = orange28),
