@@ -313,7 +313,7 @@ fun ItemDetailsScreen(
                     Spacer(Modifier.weight(1f))
 
                     Text(
-                        text = "KSH. 520",
+                        text = "Ksh ${product.markPrice}",
                         textDecoration = TextDecoration.LineThrough
                     )
 
@@ -324,6 +324,20 @@ fun ItemDetailsScreen(
                             text = "Offer: $it% off",
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.Black
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                color = Color.White,
+                                shape = CircleShape
+                            )
+                    ){
+                        Text(
+                            text = "${product.itemCount}",
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
                 }

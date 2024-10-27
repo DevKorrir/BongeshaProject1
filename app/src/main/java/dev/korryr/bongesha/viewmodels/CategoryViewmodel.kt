@@ -32,7 +32,9 @@ data class Product(
     val sizes: List<String> = emptyList(),
     val images: List<String> = emptyList(),
     val product: Product? = null,
-    var quantity: Int = 1
+    var quantity: Int = 1,
+    var itemCount: Int = 0,
+    var markPrice: Float = 0f
 )
 
 data class Category(
