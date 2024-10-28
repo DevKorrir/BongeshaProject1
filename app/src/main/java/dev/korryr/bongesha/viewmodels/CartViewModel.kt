@@ -1,14 +1,19 @@
 package dev.korryr.bongesha.viewmodels
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Location
 import android.widget.Toast
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 
@@ -16,13 +21,59 @@ data class CartItem(
     val product: Product,
     var quantity: Int
 )
+
 class CartViewModel : ViewModel() {
     private val _cart = mutableStateListOf<CartItem>()
     val cart: List<CartItem> get() = _cart
-
-    // Track the total number of items in the cart
     var itemCount by mutableStateOf(0)
     private set
+    var deliveryFee: Int by mutableStateOf(0)
+    private set
+    private val firestore = Firebase.firestore
+    private val userId = "userID" // Replace with the actual user ID from authentication
+    //private val locationProvider = LocationProvider(context)
+
+    init {
+        fetchCartItems()
+        //fetchDeliveryFee()
+    }
+
+    fun updateDeliveryFee(fee: Int) {
+        deliveryFee = fee
+    }
+
+//    private fun fetchDeliveryFee() {
+//        viewModelScope.launch {
+//            val userLocation = locationProvider.getCurrentLocation()
+//            deliveryFee = calculateDeliveryFee(userLocation)
+//        }
+//    }
+
+    fun calculateDeliveryFee(location: Location?): Int {
+        // Define a base location, such as the warehouse/store location
+        val baseLatitude = -0.64
+        val baseLongitude = 35.18
+        val baseLocation = Location("base").apply {
+            latitude = baseLatitude
+            longitude = baseLongitude
+        }
+
+        return if (location != null) {
+            // Calculate distance in kilometers
+            val distanceInKm = location.distanceTo(baseLocation) / 1000
+
+            // Calculate fee based on distance with a base and cap
+            when {
+                distanceInKm <= 10 -> 50 // Base fee for short distances
+                distanceInKm <= 50 -> (distanceInKm * 1.5).toInt() // Medium distance fee
+                else -> 300 // Cap fee for long distances
+            }
+        } else {
+            // Default fee if location is unavailable
+            100
+        }
+    }
+
 
     fun addToCart(product: Product, quantity: Int) {
         val existingItem = _cart.find { it.product.id == product.id }
@@ -80,8 +131,6 @@ class CartViewModel : ViewModel() {
         updateItemCount()
     }
 
-    var deliveryFee: Int = 0
-
     fun calculateTotalPrice(): Int {
         val carTotal = _cart.sumOf { (it.product.price.toDouble() * it.quantity).roundToInt() }
         return carTotal + deliveryFee
@@ -112,12 +161,9 @@ class CartViewModel : ViewModel() {
             }
     }
 
-    private val firestore = Firebase.firestore
-    private val userId = "userID" // Replace with the actual user ID from authentication
-
-    init {
-        fetchCartItems()
-    }
+//    init {
+//        fetchCartItems()
+//    }
 
     private fun fetchCartItems() {
         firestore.collection("users")
@@ -143,10 +189,5 @@ class CartViewModel : ViewModel() {
                 updateItemCount()
             }
     }
-
 }
 
-//data class CartItem(
-//    val product: Product,
-//    var quantity: Int
-//)

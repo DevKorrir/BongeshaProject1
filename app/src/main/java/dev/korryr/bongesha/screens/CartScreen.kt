@@ -1,5 +1,6 @@
 package dev.korryr.bongesha.screens
 
+import android.location.Location
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,34 +18,36 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
@@ -53,14 +56,28 @@ import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
+import dev.korryr.bongesha.viewmodels.LocationProvider
+import dev.korryr.bongesha.viewmodels.fetchUserLocation
 
 @Composable
 fun CartScreen(
-    cartViewModel: CartViewModel = viewModel(),
+    //cartViewModel: CartViewModel = viewModel(),
     navController: NavController
 ) {
+    val context = LocalContext.current
+    val locationProvider = LocationProvider(context)
+    val cartViewModel: CartViewModel = viewModel()
     val items = cartViewModel.cart
     val totalPrice = cartViewModel.calculateTotalPrice()
+    var userLocation by remember { mutableStateOf<Location?>(null) }
+    val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
+    val coroutineScope = rememberCoroutineScope()
+
+    // Update the delivery fee in ViewModel
+    LaunchedEffect(Unit) {
+        userLocation = fetchUserLocation(context)
+        cartViewModel.updateDeliveryFee(deliveryFee)
+    }
 
     Column(
         modifier = Modifier
@@ -183,7 +200,7 @@ fun CartScreen(
                         Spacer(Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh 100",
+                            text = "Ksh $deliveryFee",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.DarkGray,
@@ -395,3 +412,17 @@ fun CartItemRow(
 
     }
 }
+
+//fun calculateDeliveryFeeBasedOnLocation(location: Location?): Int {
+//    // Example calculation logic here
+//    return if (location != null) {
+//        val distanceInKm = /* calculate distance */
+//            when {
+//                distanceInKm <= 10 -> 50
+//                distanceInKm <= 50 -> (distanceInKm * 1.5).toInt()
+//                else -> 300
+//            }
+//    } else {
+//        100 // Default fee
+//    }
+//}

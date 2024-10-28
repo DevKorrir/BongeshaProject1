@@ -81,6 +81,8 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-android:1.7.4")
     implementation("androidx.navigation:navigation-runtime-ktx:2.8.3")
     implementation("com.google.android.gms:play-services-instantapps:18.1.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("androidx.databinding:compilerCommon:3.2.0-alpha11")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
