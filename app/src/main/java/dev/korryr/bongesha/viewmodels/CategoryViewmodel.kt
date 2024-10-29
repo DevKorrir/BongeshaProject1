@@ -20,6 +20,7 @@ import dev.korryr.bongesha.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 
 data class Product(
@@ -53,14 +54,16 @@ class CategoryViewModel : ViewModel() {
     private val firestore = Firebase.firestore
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
+    private val _products = MutableStateFlow<List<Product>>(emptyList())
+    val products: StateFlow<List<Product>> = _products.asStateFlow()
 
     // Holds the currently selected category
     var selectedCategory by mutableStateOf<String?>(null)
         private set
 
     // Holds the list of products for the selected category
-    var products = mutableStateListOf<Product>()
-        private set
+//    var products = mutableStateListOf<Product>()
+//        private set
 
     // Loading state
     var isLoading by mutableStateOf(false)
@@ -137,21 +140,19 @@ class CategoryViewModel : ViewModel() {
 
         // Function to fetch products for a selected category
         fun fetchProductsForCategory(category: String) {
-            if (isLoading) return
-            isLoading = true
+            _uiState.update { CategoryUiState.Loading }
 
             firestore.collection("categories")
                 .document(category)
                 .collection("items")
                 .get()
                 .addOnSuccessListener { snapshot ->
-                    isLoading = false
-                    products.clear()
-                    snapshot.documents.mapNotNullTo(products) { it.toObject(Product::class.java) }
+                    val products = snapshot.documents.mapNotNull { it.toObject(Product::class.java) }
+                    _products.update { products }
                 }
                 .addOnFailureListener { error ->
-                    isLoading = false
                     Log.e("CategoryViewModel", "Error fetching products", error)
+                    _uiState.update { CategoryUiState.Error("Error loading products") }
                 }
         }
 

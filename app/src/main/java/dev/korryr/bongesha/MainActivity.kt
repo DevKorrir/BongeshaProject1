@@ -27,7 +27,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.facebook.CallbackManager
-import com.facebook.FacebookSdk
 import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -52,8 +51,8 @@ import dev.korryr.bongesha.screens.VerifyEmailScreen
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
-import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.AuthState
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
 import kotlinx.coroutines.launch
@@ -78,6 +77,8 @@ class MainActivity : ComponentActivity() {
             val authViewModel: AuthViewModel = viewModel()
             val context = LocalContext.current
             val currentSignInState = rememberUpdatedState(authViewModel.authState.value)
+
+
 
             BongeshaTheme {
                 Surface(

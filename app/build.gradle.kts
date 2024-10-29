@@ -83,6 +83,8 @@ dependencies {
     implementation("com.google.android.gms:play-services-instantapps:18.1.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("androidx.databinding:compilerCommon:3.2.0-alpha11")
+    implementation("androidx.room:room-common:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

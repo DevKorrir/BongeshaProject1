@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -70,6 +71,7 @@ import dev.korryr.bongesha.commons.BongaSearchBar
 import dev.korryr.bongesha.commons.BottomNavigationItem
 import dev.korryr.bongesha.commons.ItemRow
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.commons.TopBar
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.CartViewModel
@@ -79,7 +81,7 @@ import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.NotificationViewModel
 
 
-@SuppressLint("UseOfNonLambdaOffsetOverload")
+//@SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
 fun BongaCategory(
     categoryViewModel: CategoryViewModel,
@@ -87,10 +89,22 @@ fun BongaCategory(
     notificationViewModel: NotificationViewModel = viewModel(),
     cartViewModel: CartViewModel = viewModel(),
 ) {
-    //val uiState by categoryViewModel.uiState.collectAsState()
-    // Observe products and loading state from ViewModel
-    val products by remember { mutableStateOf(categoryViewModel.products) }
+    // State variables to track icon clicks
+    var isHomeClicked by remember { mutableStateOf(true) }
+    var isCartClicked by remember { mutableStateOf(false) }
+    var isFavoriteClicked by remember { mutableStateOf(false) }
+    var isProfileClicked by remember { mutableStateOf(false) }
+    var isOrderClicked by remember { mutableStateOf(false) }
+    val unreadCount by notificationViewModel.unreadCount.collectAsState()
+    var showNotifications by remember { mutableStateOf(false) }
+    var itemCount by remember { mutableStateOf(0) }
+    val uiState by categoryViewModel.uiState.collectAsState()
+    val products by categoryViewModel.products.collectAsState()
+    //val products by remember { mutableStateOf(categoryViewModel.products) }
     val isLoading by remember { mutableStateOf(categoryViewModel.isLoading) }
+
+    val cartItemsCount = cartViewModel.itemCount
+
     val categories = listOf(
         //Category("Electronics", R.drawable.heart_icon),
         "Audio & Sound Systems",
@@ -108,21 +122,13 @@ fun BongaCategory(
         "Energy & Power Solutions"
     )
     var selectedCategory by remember { mutableStateOf(categories[0]) }
-    val cartItemsCount = cartViewModel.itemCount
-
-    // State variables to track icon clicks
-    var isHomeClicked by remember { mutableStateOf(true) }
-    var isCartClicked by remember { mutableStateOf(false) }
-    var isFavoriteClicked by remember { mutableStateOf(false) }
-    var isProfileClicked by remember { mutableStateOf(false) }
-    var isOrderClicked by remember { mutableStateOf(false) }
-    //var isChatsClicked by remember { mutableStateOf(false) }
-    val unreadCount by notificationViewModel.unreadCount.collectAsState()
-    var showNotifications by remember { mutableStateOf(false) }
-    var itemCount by remember { mutableStateOf(0) }
 
     LaunchedEffect(selectedCategory) {
-        categoryViewModel.fetchProductsForCategory(selectedCategory.toString())
+        if (selectedCategory.isNotEmpty()) {
+            categoryViewModel.fetchProductsForCategory(selectedCategory)
+        } else {
+            println("Selected category is empty.")
+        }
     }
 
 
@@ -305,7 +311,7 @@ fun BongaCategory(
                                             selectedCategory = category
                                         },
                                     contentAlignment = Alignment.Center
-                                ){
+                                ) {
 
                                     Column(
                                         modifier = Modifier
@@ -327,7 +333,7 @@ fun BongaCategory(
                                                     shape = RoundedCornerShape(12.dp)
                                                 ),
                                             contentAlignment = Alignment.Center
-                                        ){
+                                        ) {
                                             Image(
                                                 painter = painterResource(id = R.drawable.baby),
                                                 contentDescription = category,
@@ -340,6 +346,7 @@ fun BongaCategory(
                                         // Display the category name
                                         Text(
                                             text = category,
+                                            color = if (selectedCategory == category) Color.White else Color.Black,
                                             textAlign = TextAlign.Center,
                                             modifier = Modifier
                                                 .offset(x = animatedOffset.dp)
@@ -355,50 +362,93 @@ fun BongaCategory(
                             }
                         }
 
-            }
-
             Spacer(modifier = Modifier.height(8.dp))
 
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Loading indicator
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                // Display Products or Loading Spinner
+                if (categoryViewModel.isLoading) {
                     CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
                         color = orange28
                     )
-                }
-            }
+                } else {
+                    if (products.isEmpty()){
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Out Of Stock, Wait for Updates...",
+                                fontSize = 18.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(bottom = 60.dp)
+                            //.verticalScroll(rememberScrollState())
+                    ) {
+                        item {
+                            Text(
+                                text = selectedCategory,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.W700,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
 
-
-            //beginning of item row ui
-
-            selectedCategory.let { category ->
-                Column(
-                    modifier = Modifier
-                        .padding(bottom = 60.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        text = category,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.W700
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    //loop through items in the category
-                    for (product in products) {
-                        ItemRow(
-                            product = product,
-                            navController = navController
-                        )
+                        items(products) { product ->
+                            ItemRow(
+                                product = product,
+                                navController = navController
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
-
+                    }
                 }
-            }
+
+
+//            // Loading indicator
+//            if (isLoading) {
+//                    CircularProgressIndicator(
+//                        modifier = Modifier.align(Alignment.CenterHorizontally),
+//                        color = orange28
+//                    )
+//            } else {
+//
+//            }
+//            //beginning of itemrow ui
+//            selectedCategory.let { category ->
+//                Column(
+//                    modifier = Modifier
+//                        .padding(bottom = 60.dp)
+//                        .verticalScroll(rememberScrollState())
+//                ) {
+//                    Text(
+//                        text = category,
+//                        fontSize = 24.sp,
+//                        fontWeight = FontWeight.W700
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(8.dp))
+//
+//                    //loop through items in the category
+//                    items(products) { product ->
+//                        ItemRow(
+//                            product = product,
+//                            navController = navController
+//                        )
+//                    }
+//
+//                }
+//            }
+           }
         }
 
 ///////////////////////////////////////////////////////////////////////////
