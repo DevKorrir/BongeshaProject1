@@ -1,6 +1,5 @@
 package dev.korryr.bongesha.screens
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,7 +28,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.ui.theme.gray01
@@ -83,7 +79,7 @@ fun ItemDetailsScreen(
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var isInCart by remember { mutableStateOf(false) }  // New state to track if item is in the cart
-    var itemCount by remember { mutableIntStateOf(product.itemCount) }
+    var quantityCount by remember { mutableIntStateOf(product.quantityCount) }
 
     Scaffold (
         containerColor = gray01,
@@ -172,7 +168,6 @@ fun ItemDetailsScreen(
                             contentDescription = "wishlist",
                             contentScale = ContentScale.Fit,
                             colorFilter = ColorFilter.tint(
-                                //if (isFavorite) Color.Red else Color.Gray,
                                 if (isInWishlist) Color.Red else Color.Gray
                             )
                         )
@@ -180,14 +175,7 @@ fun ItemDetailsScreen(
                 }
             }
         },
-//        floatingActionButton = {
-//            // Optional FAB
-//            IconButton(onClick = {
-//                Toast.makeText(context, "FAB Clicked", Toast.LENGTH_SHORT).show()
-//            }) {
-//                Icon(imageVector = Icons.Default.Add, contentDescription = "FAB Icon")
-//            }
-//        },
+
         bottomBar = {
             BottomAppBar (
                 containerColor = gray01,
@@ -228,17 +216,21 @@ fun ItemDetailsScreen(
                         buttonColor = if (isInCart) Color.Gray else orange28,
                         enabled = !isInCart,
                         onClick = {
-                            if (quantity <= itemCount) {
-                                cartViewModel.addToCart(
-                                    product.copy(quantity = quantity),
-                                    quantity = 0
-                                )
-                                isInCart = true
-                                itemCount -= quantity
-                                Toast.makeText(context, "Added to Cart", Toast.LENGTH_SHORT).show()
-                                cartViewModel.saveProductToUserAccount(context, product, quantity)
-                            } else {
-                                Toast.makeText(context, "Only $itemCount items available", Toast.LENGTH_SHORT).show()
+                            if (!isInCart) {
+                                if (quantity <= quantityCount) {
+                                    cartViewModel.addToCart(
+                                        product.copy(quantityCount = quantity), // Ensure the quantity matches
+                                        quantity = quantity // Correctly pass the quantity
+                                    )
+                                    isInCart = true
+                                    quantityCount -= quantity
+                                    Toast.makeText(context, "Added to Cart", Toast.LENGTH_SHORT).show()
+
+                                    // Save product to Firestore under the user's account
+                                    cartViewModel.saveProductToUserAccount(context, product, quantity)
+                                } else {
+                                    Toast.makeText(context, "Only $quantityCount items available", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         }
                     )
@@ -344,7 +336,7 @@ fun ItemDetailsScreen(
                             )
                     ){
                         Text(
-                            text = "${product.itemCount}",
+                            text = "${product.quantityCount}",
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }

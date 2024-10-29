@@ -94,7 +94,7 @@ fun BongaCategory(
     //val products by remember { mutableStateOf(categoryViewModel.products) }
     val isLoading by remember { mutableStateOf(categoryViewModel.isLoading) }
 
-    val cartItemsCount = cartViewModel.itemCount
+    val cartItemsCount = cartViewModel.quantityCount
 
     val categories = listOf(
         //Category("Electronics", R.drawable.heart_icon),

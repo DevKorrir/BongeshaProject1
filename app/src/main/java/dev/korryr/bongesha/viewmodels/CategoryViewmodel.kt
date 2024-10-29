@@ -34,7 +34,7 @@ data class Product(
     val images: List<String> = emptyList(),
     val product: Product? = null,
     var quantity: Int = 1,
-    var itemCount: Int = 0,
+    var quantityCount: Int = 0,
     var markPrice: Float = 0f
 )
 

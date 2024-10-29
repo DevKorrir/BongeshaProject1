@@ -14,20 +14,20 @@ import com.google.firebase.ktx.Firebase
 import kotlin.math.roundToInt
 
 
-data class CartItem(
-    val product: Product,
-    var quantity: Int
-)
+//data class iProduct(
+//    val product: Product,
+//    var quantity: Int,
+//    var quantityCount: Int = 0
+//)
 
 class CartViewModel : ViewModel() {
-    private val _cart = mutableStateListOf<CartItem>()
-    val cart: List<CartItem> get() = _cart
-    var itemCount by mutableStateOf(0)
+    private val _cart = mutableStateListOf<Product>()
+    val cart: List<Product> get() = _cart
+    var quantityCount by mutableStateOf(0)
     private set
     var deliveryFee: Int by mutableStateOf(0)
     private set
     private val firestore = Firebase.firestore
-    private val userId = "userID"
 
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
@@ -66,63 +66,67 @@ class CartViewModel : ViewModel() {
 
 
     fun addToCart(product: Product, quantity: Int) {
-        val existingItem = _cart.find { it.product.id == product.id }
-        if (existingItem ==null) {
-            if (quantity <= product.itemCount) {
-                _cart.add(CartItem(product, quantity))
+        val existingItem = _cart.find { it.id  == product.id }
+        if (existingItem != null) {
+            // If the product is already in the cart, update the quantity
+            val newQuantity = existingItem.quantity + quantity
+            if (newQuantity <= product.quantityCount) {
+                existingItem.quantity = newQuantity
+            } else {
+                // Optional: Handle case if newQuantity exceeds available stock
             }
         } else {
-            val newQuantity = existingItem.quantity + quantity
-            if (newQuantity <= product.itemCount) {
-                existingItem.quantity = newQuantity
+            // If the product is not in the cart, add it as a new item
+            if (quantity <= product.quantityCount) {
+                _cart.add(product.copy(quantity = quantity))
             }
         }
-        updateItemCount()
-     }
+        updateProductCount()
+    }
 
     fun removeFromCart(product: Product) {
-        val existingItem = _cart.find { it.product.id == product.id }
+        val existingItem = _cart.find { it.id == product.id }
         if (existingItem != null) {
             _cart.remove(existingItem)
         }
-        updateItemCount()
+        updateProductCount()
     }
 
     // Toggle item in the cart (add or remove)
     fun toggleItemInCart(product: Product) {
-        val existingItem = _cart.find { it.product.id == product.id }
+        val existingItem = _cart.find { it.id == product.id }
         if (existingItem != null) {
             _cart.remove(existingItem)
         } else {
-            _cart.add(CartItem(product, 1)) // Add new product with quantity 1
+            _cart.add(product.copy(quantity = 1)) // Add new product with quantity 1
         }
-        updateItemCount()
+        updateProductCount()
     }
 
     // Check if item is already in the cart
     fun isInCart(product: Product): Boolean {
-        return _cart.any { it.product.id == product.id }
+        return _cart.any { it.id == product.id }
     }
 
-    private fun updateItemCount() {
-        itemCount = _cart.sumOf { it.quantity }
+    private fun updateProductCount() {
+        quantityCount = _cart.sumOf { it.quantity }
     }
 
     fun updateQuantity(product: Product, newQuantity: Int) {
-        val cartItem = _cart.find { it.product.id == product.id }
+        val cartItem = _cart.find { it.id == product.id }
         cartItem?.let {
-            if (newQuantity <= product.itemCount) {
+            if (newQuantity <= product.quantityCount) {
                 it.quantity = newQuantity
             }
             if (it.quantity <= 0) {
                 _cart.remove(it) // so item be remove if it is 0
             }
         }
-        updateItemCount()
+        updateProductCount()
     }
 
     fun calculateTotalPrice(): Int {
-        val carTotal = _cart.sumOf { (it.product.price.toDouble() * it.quantity).roundToInt() }
+        val carTotal = _cart.sumOf { (it.price.toDouble() * it.quantity).roundToInt() }
         return carTotal + deliveryFee
     }
 
@@ -176,13 +180,14 @@ class CartViewModel : ViewModel() {
                             id = document.getString("id") ?: "",
                             name = document.getString("name") ?: "",
                             price = (document.getDouble("price") ?: 0.0).toFloat(),
-                            images = (document.get("images") as? List<String>) ?: listOf(document.getString("images") ?: ""),
-                            itemCount = document.getLong("quantity")?.toInt() ?: 0,
+                            images = (document.get("images") as? List<String>) ?: listOf(),
+                            quantity = document.getLong("quantity")?.toInt() ?: 1,
+                            quantityCount = document.getLong("quantityAvailable")?.toInt() ?: 0
                         )
-                        val quantity = document.getLong("quantity")?.toInt() ?: 1
-                        _cart.add(CartItem(product, quantity))
+                        //val quantity = document.getLong("quantity")?.toInt() ?: 1
+                        _cart.add(product)
                     }
-                    updateItemCount()
+                    updateProductCount()
                 }
         }
 

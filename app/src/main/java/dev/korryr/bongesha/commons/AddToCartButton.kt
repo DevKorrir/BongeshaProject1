@@ -16,7 +16,7 @@ fun AddToCartButton(
     quantity: Int =1
 ) {
     val isInCart by remember { derivedStateOf { cartViewModel.isInCart(product) } }
-    val itemCount = product.itemCount
+    val itemCount = product.quantityCount
 
     BongaButton(
         label = if (isInCart) "In Cart" else "Add to Cart",

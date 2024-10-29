@@ -34,7 +34,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,25 +52,23 @@ import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
+import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
-import dev.korryr.bongesha.viewmodels.CartItem
+import dev.korryr.bongesha.viewmodels.Product
 import dev.korryr.bongesha.viewmodels.CartViewModel
-import dev.korryr.bongesha.viewmodels.LocationProvider
 import dev.korryr.bongesha.viewmodels.fetchUserLocation
 
 @Composable
 fun CartScreen(
-    //cartViewModel: CartViewModel = viewModel(),
     navController: NavController
 ) {
     val context = LocalContext.current
-    val locationProvider = LocationProvider(context)
     val cartViewModel: CartViewModel = viewModel()
-    val items = cartViewModel.cart
+    val cartItems = cartViewModel.cart
     val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
-    val coroutineScope = rememberCoroutineScope()
+
 
     // Update the delivery fee in ViewModel
     LaunchedEffect(Unit) {
@@ -128,16 +125,16 @@ fun CartScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        if (items.isNotEmpty()) {
+        if (cartItems.isNotEmpty()) {
             LazyColumn(modifier = Modifier.weight(1f)) {
-                items(items) { item ->
+                items(cartItems) { cartItem ->
                     CartItemRow(
-                        item = item,
+                        product = cartItem,
                         onQuantityChange = { newQuantity ->
-                            cartViewModel.updateQuantity(item.product, newQuantity)
+                            cartViewModel.updateQuantity(cartItem, newQuantity)
                         },
                         onRemoveItem = {
-                            cartViewModel.removeFromCart(item.product)
+                            cartViewModel.removeFromCart(cartItem)
                         }
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -230,7 +227,7 @@ fun CartScreen(
 
 
                         Text(
-                            text = "Ksh. $totalPrice",
+                            text = "Ksh. ${totalPrice + deliveryFee}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = orange28,
@@ -250,46 +247,48 @@ fun CartScreen(
             )
 
         } else {
-            Column (
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ){
-                Text(
-                    text = "Your cart is empty",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 36.sp,
-                    modifier = Modifier.padding(8.dp)
-                )
+            EmptyCartView(navController)
 
-                Spacer(Modifier.height(24.dp))
-
-                Image(
-                    painter = painterResource(id = R.drawable.bongesha_sec_icon),
-                    contentDescription = "Empty cart",
-                    modifier = Modifier.size(200.dp)
-                )
-
-                Spacer(Modifier.height(24.dp))
-
-                BongaButton(
-                    label = "Continue Shopping now!",
-                    onClick = {
-                        navController.navigateUp()
-                    },
-                    color = Color.White,
-                    buttonColor = orange28
-                )
-            }
+//            Column (
+//                modifier = Modifier
+//                    .padding(24.dp)
+//                    .fillMaxSize(),
+//                verticalArrangement = Arrangement.SpaceEvenly,
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ){
+//                Text(
+//                    text = "Your cart is empty",
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 36.sp,
+//                    modifier = Modifier.padding(8.dp)
+//                )
+//
+//                Spacer(Modifier.height(24.dp))
+//
+//                Image(
+//                    painter = painterResource(id = R.drawable.bongesha_sec_icon),
+//                    contentDescription = "Empty cart",
+//                    modifier = Modifier.size(200.dp)
+//                )
+//
+//                Spacer(Modifier.height(24.dp))
+//
+//                BongaButton(
+//                    label = "Continue Shopping now!",
+//                    onClick = {
+//                        navController.navigateUp()
+//                    },
+//                    color = Color.White,
+//                    buttonColor = orange28
+//                )
+           // }
         }
     }
 }
 
 @Composable
 fun CartItemRow(
-    item: CartItem,
+    product: Product,
     onQuantityChange: (Int) -> Unit,
     onRemoveItem: () -> Unit
 ) {
@@ -322,10 +321,10 @@ fun CartItemRow(
                 .clip(RoundedCornerShape(12.dp)),
             //contentAlignment = Alignment.Center
         ) {
-            val imagePainter = rememberImagePainter(data = item.product.images.firstOrNull())
+            val imagePainter = rememberImagePainter(data = product.images.firstOrNull())
             Image(
                 painter = imagePainter,
-                contentDescription = item. product.name,
+                contentDescription = product.name,
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .size(100.dp),
@@ -339,12 +338,12 @@ fun CartItemRow(
             modifier = Modifier,
         ) {
             Text(
-                text = item.product.name,
+                text = product.name,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Ksh ${item.product.price}",
+                text = "Ksh ${product.price}",
                 color = green99
             )
         }
@@ -352,30 +351,52 @@ fun CartItemRow(
         Spacer(Modifier.weight(1f))
 
         Column(
-            modifier = Modifier,
+            modifier = Modifier
+                .fillMaxSize(),
             horizontalAlignment = Alignment.End
         ) {
-            IconButton(
-                onClick = onRemoveItem
+            Row(
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Remove item",
-                    tint = Color.Gray
-                )
+                Box(
+                    modifier = Modifier
+                ){
+                    Text(
+                        text = if (product.quantityCount > 0) "${product.quantityCount} available" else "Out of stock",
+                        color = if (product.quantityCount > 0) green99 else Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                IconButton(
+                    onClick = onRemoveItem
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Remove item",
+                        tint = Color.Gray
+                    )
+                }
+
             }
+            
+            Spacer(Modifier.height(10.dp))
+            
             Row(
                 modifier = Modifier
+                    .height(32.dp)
                     .padding(end = 4.dp)
                     .background(
-                        color = Color.Magenta,
+                        color = orange100,
                         shape = RoundedCornerShape(24.dp)
                     ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = {
-                        if (item.quantity > 1) onQuantityChange(item.quantity - 1)
+                        if (product.quantity > 1) onQuantityChange(product.quantity - 1)
                     }
                 ) {
                     Box{
@@ -388,14 +409,16 @@ fun CartItemRow(
                     }
                 }
                 Text(
-                    text = "${item.quantity}",
+                    text = "x${product.quantity}",
                     modifier = Modifier
                         //.padding(horizontal = 4.dp)
                 )
 
                 IconButton(
                     onClick = {
-                        onQuantityChange(item.quantity + 1)
+                        if (product.quantityCount > product.quantity) {
+                            onQuantityChange(product.quantity + 1)
+                        }
                     }
                 ) {
                     Box {
@@ -413,16 +436,40 @@ fun CartItemRow(
     }
 }
 
-//fun calculateDeliveryFeeBasedOnLocation(location: Location?): Int {
-//    // Example calculation logic here
-//    return if (location != null) {
-//        val distanceInKm = /* calculate distance */
-//            when {
-//                distanceInKm <= 10 -> 50
-//                distanceInKm <= 50 -> (distanceInKm * 1.5).toInt()
-//                else -> 300
-//            }
-//    } else {
-//        100 // Default fee
-//    }
-//}
+
+@Composable
+fun EmptyCartView(navController: NavController) {
+    Column(
+        modifier = Modifier
+            .padding(24.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Your cart is empty",
+            fontWeight = FontWeight.Bold,
+            fontSize = 36.sp,
+            modifier = Modifier.padding(8.dp)
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.bongesha_sec_icon),
+            contentDescription = "Empty cart",
+            modifier = Modifier.size(200.dp)
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        BongaButton(
+            label = "Continue Shopping now!",
+            onClick = {
+                navController.navigateUp()
+            },
+            color = Color.White,
+            buttonColor = orange28
+        )
+    }
+}
