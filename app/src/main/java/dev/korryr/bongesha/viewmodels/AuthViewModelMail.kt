@@ -62,14 +62,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
                     user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
                         if (profileUpdateTask.isSuccessful) {
-                            // Generate and store a 6-digit verification code
-//                            val verificationCode = generateVerificationCode()
-//                            storeVerificationCode(user.uid, verificationCode)
 
                             // Send the email verification
                             user.sendEmailVerification().addOnCompleteListener { verificationTask ->
                                 if (verificationTask.isSuccessful) {
-                                    saveUserToFirestore(user)
+                                    //saveUserToFirestore(user)
                                     _authState.value = AuthState.Success("Verification email sent to your email address.")
                                 } else {
                                     _authState.value = AuthState.Error(
@@ -101,7 +98,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     if (user?.isEmailVerified == true) {
-                        //saveUserDetails(user.email, user.displayName)
+                        saveUserToFirestore(user)
                         _authState.value = AuthState.Success("Sign in successful")
                         navController.navigate(Route.Home.Category)
                     } else {
@@ -180,14 +177,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun saveUserToFirestore(user: FirebaseUser?) {
         user?.let {
+            val userName = it.displayName ?: "@Anonymous"
+            //val userDocument = firestore.collection(userName).document("details")
+
             val userData = mapOf(
                 "uid" to it.uid,
                 "email" to it.email,
                 "displayName" to it.displayName
             )
-            firestore.collection("users").document(it.uid).set(userData)
+
+            firestore.collection("users").document(userName).set(userData)
                 .addOnSuccessListener {
-                    Log.d("Firestore", "User data saved successfully")
+                    Log.d("Firestore", "User data saved successfully with displayName as document ID")
                 }
                 .addOnFailureListener { e ->
                     Log.e("Firestore", "Error saving user data", e)
