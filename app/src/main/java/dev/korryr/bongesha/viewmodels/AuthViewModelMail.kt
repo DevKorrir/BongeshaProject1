@@ -177,7 +177,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun saveUserToFirestore(user: FirebaseUser?) {
         user?.let {
-            val userName = it.displayName ?: "@Anonymous"
+            val userName = it.displayName ?: "Anonymous-user"
             //val userDocument = firestore.collection(userName).document("details")
 
             val userData = mapOf(
@@ -188,10 +188,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
             firestore.collection("users").document(userName).set(userData)
                 .addOnSuccessListener {
-                    Log.d("Firestore", "User data saved successfully with displayName as document ID")
+                    Log.d("Firestore", "Account created successfully")
                 }
                 .addOnFailureListener { e ->
-                    Log.e("Firestore", "Error saving user data", e)
+                    Log.e("Firestore", "Error processing userData", e)
                 }
         }
     }

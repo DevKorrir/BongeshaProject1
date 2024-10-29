@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlin.math.roundToInt
@@ -27,6 +28,8 @@ class CartViewModel : ViewModel() {
     private set
     private val firestore = Firebase.firestore
     private val userId = "userID"
+
+    val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     init {
         fetchCartItems()
@@ -124,62 +127,66 @@ class CartViewModel : ViewModel() {
     }
 
     fun saveProductToUserAccount(context: Context, product: Product, quantity: Int) {
-        val firestore = Firebase.firestore
-        val userId = "userID" // Replace with the actual user ID from authentication
-        val cartItem = mapOf(
-            "id" to product.id,
-            "name" to product.name,
-            "price" to product.price,
-            "quantity" to quantity,
-            "totalPrice" to product.price * quantity,
-            "timestamp" to System.currentTimeMillis(),
-            "images" to product.images
-        )
+        val user = auth.currentUser
+        user?.let {
+            val userName = it.displayName ?: "unknown_user"
 
-        firestore.collection("users")
-            .document(userId)
-            .collection("cart")
-            .add(cartItem)
-            .addOnSuccessListener {
-                Toast.makeText(context, "Product saved to user account", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { e ->
-                Toast.makeText(context, "Failed to save product: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
+            val cartItem = mapOf(
+                "id" to product.id,
+                "name" to product.name,
+                "price" to product.price,
+                "quantity" to quantity,
+                "totalPrice" to product.price * quantity,
+                "timestamp" to System.currentTimeMillis(),
+                "images" to product.images
+            )
+
+            firestore.collection("users")
+                .document(userName)
+                .collection("cart")
+                .add(cartItem)
+                .addOnSuccessListener {
+                    //Toast.makeText(context, "Product saved to user account", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { e ->
+                    Toast.makeText(context, "Failed to add to cloud: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+        }
+
     }
 
 
 
     private fun fetchCartItems() {
-        firestore.collection("users")
-            .document(userId)
-            .collection("cart")
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    return@addSnapshotListener
+
+        val user = auth.currentUser
+        user?.let {
+            val userName = it.displayName ?: "Anonymous-user"
+
+            firestore.collection("users")
+                .document(userName)
+                .collection("cart")
+                .addSnapshotListener { snapshot, e ->
+                    if (e != null) {
+                        return@addSnapshotListener
+                    }
+                    _cart.clear()
+                    snapshot?.documents?.forEach { document ->
+                        val product = Product(
+                            id = document.getString("id") ?: "",
+                            name = document.getString("name") ?: "",
+                            price = (document.getDouble("price") ?: 0.0).toFloat(),
+                            images = (document.get("images") as? List<String>) ?: listOf(document.getString("images") ?: ""),
+                            itemCount = document.getLong("quantity")?.toInt() ?: 0,
+                        )
+                        val quantity = document.getLong("quantity")?.toInt() ?: 1
+                        _cart.add(CartItem(product, quantity))
+                    }
+                    updateItemCount()
                 }
-                _cart.clear()
-                snapshot?.documents?.forEach { document ->
-                    val product = Product(
-                        id = document.getString("id") ?: "",
-                        name = document.getString("name") ?: "",
-                        price = (document.getDouble("price") ?: 0.0).toFloat(),
-                        images = (document.get("images") as? List<String>) ?: listOf(document.getString("images") ?: ""),
-                        itemCount = document.getLong("quantity")?.toInt() ?: 0,
-                    )
-                    val quantity = document.getLong("quantity")?.toInt() ?: 1
-                    _cart.add(CartItem(product, quantity))
-                }
-                updateItemCount()
-            }
+        }
+
     }
-
-
-
-
-
-
-
 
 
 }
