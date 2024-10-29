@@ -15,6 +15,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
@@ -73,8 +75,12 @@ fun Bongatextfield(
         disabledTextColor = Color.Black,
         errorTextColor = Color.Black,
         errorIndicatorColor = Color.Red,
-        unfocusedIndicatorColor = Color.Gray,
-        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        focusedIndicatorColor = orange28,
+        focusedLeadingIconColor = orange28,
+        unfocusedLeadingIconColor = Color.Black,
+        cursorColor = orange28,
+        focusedLabelColor = orange28
     )
 ) {
     val current = LocalFocusManager.current
@@ -115,7 +121,8 @@ fun Bongatextfield(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (isLongText) 150.dp else TextFieldDefaults.MinHeight)
+                    .height(50.dp)
+                    //.height(if (isLongText) 50.dp else TextFieldDefaults.MinHeight)
                     .fillMaxWidth()
                     .testTag(label + "1"),
                 colors = colors,
@@ -151,6 +158,11 @@ fun Bongatextfield(
                 trailingIcon = if (isPassword) {
                     {
                         IconButton(
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = orange28,
+                                ),
+                            modifier = Modifier
+                                .size(24.dp),
                             onClick = {
                                 passwordVisible = !passwordVisible
                             }

@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -26,6 +27,7 @@ import dev.korryr.bongesha.commons.BongaBox
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.AuthState
 import dev.korryr.bongesha.viewmodels.AuthViewModel
@@ -45,12 +47,17 @@ fun BongaSignUp(
     var showPasswordError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    var displayNameError by remember { mutableStateOf("") }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+    var confirmPasswordError by remember { mutableStateOf("") }
+
     val authState by authViewModel.authState.collectAsState()
 
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(24.dp))
@@ -70,17 +77,27 @@ fun BongaSignUp(
             label = "Your name",
             isPassword = false,
             fieldDescription = "",
-            isValid = true,
+            //isValid = displayName.isNotEmpty(),
             input = displayName,
             trailing = null,
             leading = painterResource(id = R.drawable.user_person),
-            hint = "Username",
-            onChange = { displayName = it },
+            hint = "Full Name",
+            onChange = {
+                displayName = it.capitalize()
+                displayNameError = if (displayName.isBlank()) "Name cannot be empty" else ""
+                       },
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Text,
                 imeAction = ImeAction.Next
             )
         )
+        if (displayNameError.isNotEmpty()) {
+            Text(
+                text = displayNameError,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -88,18 +105,28 @@ fun BongaSignUp(
             label = "E-mail address",
             isPassword = false,
             fieldDescription = "",
-            isValid = true,
             input = email,
             trailing = null,
             leading = painterResource(id = R.drawable.image_sec_icon),
             hint = "bongesha@gmail.com",
-            onChange = { email = it },
+            onChange = {
+                email = it
+                emailError = if (email.isBlank()) "Email cannot be empty" else ""
+                       },
             enabled = true,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
-            )
+            ),
+            //isValid = email.isNotEmpty(),
         )
+        if (email.isNotEmpty()){
+            Text(
+                text = emailError,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -113,13 +140,22 @@ fun BongaSignUp(
             hint = "Enter your password",
             onChange = {
                 password = it
-                showPasswordError = false
+                passwordError = if (!isValidPassword(password)) {
+                    "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
+                } else ""
             },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Next
             )
         )
+        if (passwordError.isNotEmpty()){
+            Text(
+                text = passwordError,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 
@@ -133,22 +169,81 @@ fun BongaSignUp(
             hint = "Confirm your password",
             onChange = {
                 confirmPassword = it
-                showPasswordError = false
+                confirmPasswordError = if (confirmPassword != password) "Passwords do not match." else ""
             },
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Password,
                 imeAction = ImeAction.Done
             )
         )
-        if (showPasswordError) {
+        if (confirmPasswordError.isNotEmpty()) {
             Text(
-                text = errorMessage,
+                text = confirmPasswordError,
                 color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        } else if (confirmPassword.isNotEmpty() && confirmPassword == password) {
+            Text(
+                text = "Correct",
+                color = green99,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        BongaButton(
+            label = "Create an account",
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth(),
+            buttonColor = orange28,
+            enabled = displayName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty(),
+            onClick = {
+                when {
+                    displayName.isBlank() -> {
+                        displayNameError = "Name cannot be empty"
+                    }
+
+                    email.isBlank() -> {
+                        emailError = "Email cannot be empty"
+                    }
+
+                    !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                        emailError = "Enter a valid email address"
+                    }
+
+                    password.isBlank() -> {
+                        passwordError = "Password cannot be empty"
+                    }
+
+                    !isValidPassword(password) -> {
+                        passwordError =
+                            "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
+                    }
+
+                    password != confirmPassword -> {
+                        confirmPasswordError = "Passwords do not match."
+                    }
+
+                    else -> {
+                        authViewModel.signUp(email, password, displayName)
+                        navController.navigate(Route.Home.SignIn)
+                    }
+                }
+//                if (!isValidPassword(password)) {
+//                    showPasswordError = true
+//                    errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
+//                } else if (password != confirmPassword) {
+//                    showPasswordError = true
+//                    errorMessage = "Password does not match."
+//                } else {
+//                    authViewModel.signUp(email, password, displayName)
+//                    navController.navigate(Route.Home.Verification)
+//                }
+            }
+        )
+
+        Spacer(Modifier.height(10.dp))
 
         Row(
             modifier = Modifier
@@ -195,12 +290,6 @@ fun BongaSignUp(
                     .clickable { onFacebookSignInClick?.invoke() },
                 painter = painterResource(id = R.drawable.facebook_icon)
             )
-
-            //apple button
-            BongaBox(
-                modifier = Modifier,
-                painter = painterResource(id = R.drawable.apple_icon)
-            )
         }
 
 
@@ -213,14 +302,14 @@ fun BongaSignUp(
             )
         }
 
-        if (authState is AuthState.Error) {
-            Text(
-                text = (authState as AuthState.Error).message,
-                color = Color.Red,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-        }
+//        if (authState is AuthState.Error) {
+//            Text(
+//                text = (authState as AuthState.Error).message,
+//                color = Color.Red,
+//                style = MaterialTheme.typography.bodyMedium,
+//                modifier = Modifier.padding(vertical = 8.dp)
+//            )
+//        }
 
         if (authState is AuthState.Success) {
             LaunchedEffect(Unit) {
@@ -230,29 +319,8 @@ fun BongaSignUp(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        BongaButton(
-            label = "Create an account",
-            color = Color.White,
-            modifier = Modifier.fillMaxWidth(),
-            buttonColor = orange28,
-            enabled = false,
-            onClick = {
-                if (!isValidPassword(password)) {
-                    showPasswordError = true
-                    errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
-                } else if (password != confirmPassword) {
-                    showPasswordError = true
-                    errorMessage = "Password does not match."
-                } else {
-                    authViewModel.signUp(email, password, displayName)
-                    navController.navigate(Route.Home.Verification)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -260,19 +328,19 @@ fun BongaSignUp(
                 text = "Already have an account? ",
                 style = MaterialTheme.typography.bodyMedium
             )
-            Text(
-                text = "Sign in",
-                style = MaterialTheme.typography.bodyMedium.copy(color = orange28),
-                modifier = Modifier.clickable {
+
+            TextButton(
+                onClick = {
                     navController.navigate(Route.Home.SignIn)
                 }
-            )
+            ) {
+                Text(
+                    text = "Login",
+                    fontSize = 15.sp,
+                    color = orange28
+                )
+            }
         }
     }
 }
 
-//private fun isValidPassword(password: String): Boolean {
-//    val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$"
-//    val pattern = Regex(passwordPattern)
-//    return pattern.matches(password)
-//}

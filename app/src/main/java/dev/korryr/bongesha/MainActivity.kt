@@ -47,7 +47,6 @@ import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.UserProfile
-import dev.korryr.bongesha.screens.VerifyEmailScreen
 import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
@@ -243,18 +242,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        composable(Route.Home.Verification) { backStackEntry ->
-                            val userId = authViewModel.auth.currentUser?.uid ?: ""
-                            VerifyEmailScreen(
-                                userId = userId,
-                                authViewModel = authViewModel,
-                                onVerified = {
-                                    navController.navigate(Route.Home.SignIn) {
-                                        popUpTo(Route.Home.Verification) { inclusive = true }
-                                    }
-                                }
-                            )
-                        }
 
 
                     }

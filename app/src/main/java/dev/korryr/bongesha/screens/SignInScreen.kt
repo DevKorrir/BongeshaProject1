@@ -17,18 +17,23 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -102,56 +107,57 @@ fun BongaSignIn(
         }
     }
 
-
     Column(
         modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .clickable {
-                    navController.navigateUp()
-                }
-                .border(
-                    1.dp,
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color.Transparent
-                )
-                .background(
-                    Color.Transparent,
-                    shape = RoundedCornerShape(24.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                tint = Color.Gray,
-                contentDescription = ""
-            )
-        }
-    }
-
-
-    Column(
-        modifier = Modifier
-            .padding(24.dp)
-            .fillMaxWidth(),
+            .padding(10.dp)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ){
+            Box(
+                modifier = Modifier
+                    .size(35.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable {
+                        navController.navigate(Route.Home.SignUp)
+                    }
+                    .border(
+                        1.dp,
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.LightGray
+                    )
+                    .background(
+                        Color.Transparent,
+                        shape = RoundedCornerShape(24.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .size(30.dp),
+                    contentDescription = ""
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(50.dp))
 
         Text(
-            text = "Welcome back!",
+            text = "Welcome back",
             color = Color.Black,
             fontSize = 36.sp,
             fontWeight = FontWeight.ExtraBold
         )
 
+        Spacer(modifier = Modifier.height(10.dp))
+
         Text(
-            text = "Sign in to continue",
+            text = "Login in to your account",
             color = Color.Gray,
             fontSize = 24.sp,
             fontWeight = FontWeight.Normal
@@ -201,8 +207,6 @@ fun BongaSignIn(
             )
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
         // Forgot password link
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -230,18 +234,43 @@ fun BongaSignIn(
             )
 
             Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = "Forgot password?",
-                fontSize = 16.sp,
-                color = orange28,
-                style = TextStyle(textDecoration = TextDecoration.Underline),
-                modifier = Modifier.clickable {
+
+            TextButton(
+                onClick = {
                     navController.navigate(Route.Home.ForgotPassword)
                 }
-            )
+            ) {
+                Text(
+                    text = "Forgot password?",
+                    fontSize = 16.sp,
+                    color = orange28,
+                    style = TextStyle(textDecoration = TextDecoration.Underline),
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Email/Password sign-in button
+        BongaButton(
+            modifier = Modifier.fillMaxWidth(),
+            label = "Sign In",
+            color = Color.White,
+            buttonColor = orange28,
+            onClick = {
+                // Validate that both fields are not empty
+                if (email.isBlank()) {
+                    Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                } else if (password.isBlank()) {
+                    Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Proceed with sign-in
+                    onSignIn(email, password)
+                }
+            }
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         Row(
             modifier = Modifier
@@ -348,45 +377,29 @@ fun BongaSignIn(
 
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Email/Password sign-in button
-        BongaButton(
-            modifier = Modifier.fillMaxWidth(),
-            label = "Sign In",
-            color = Color.White,
-            buttonColor = orange28,
-            onClick = {
-                // Validate that both fields are not empty
-                if (email.isBlank()) {
-                    Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
-                } else if (password.isBlank()) {
-                    Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
-                } else {
-                    // Proceed with sign-in
-                    onSignIn(email, password)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
         // Link to Sign Up
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = "Don't have an account? ",
-                style = MaterialTheme.typography.bodyMedium
+                fontSize = 16.sp,
             )
-            Text(
-                text = "Sign up",
-                style = MaterialTheme.typography.bodyMedium.copy(color = orange28),
-                modifier = Modifier.clickable {
+            TextButton(
+                onClick = {
                     navController.navigate(Route.Home.SignUp)
                 }
-            )
+            ) {
+                Text(
+                    text = "Sign Up",
+                    fontSize = 15.sp,
+                    color = orange28,
+                )
+            }
         }
     }
 }

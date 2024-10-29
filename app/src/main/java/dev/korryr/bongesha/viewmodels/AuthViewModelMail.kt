@@ -63,8 +63,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
                         if (profileUpdateTask.isSuccessful) {
                             // Generate and store a 6-digit verification code
-                            val verificationCode = generateVerificationCode()
-                            storeVerificationCode(user.uid, verificationCode)
+//                            val verificationCode = generateVerificationCode()
+//                            storeVerificationCode(user.uid, verificationCode)
 
                             // Send the email verification
                             user.sendEmailVerification().addOnCompleteListener { verificationTask ->
@@ -87,73 +87,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
-
-    private fun generateVerificationCode(): String {
-        val random = java.util.Random()
-        return (100000 + random.nextInt(900000)).toString()  // Generates a random 6-digit number
-    }
-
-    // Stores the verification code and expiry time in Firestore
-    private fun storeVerificationCode(userId: String, code: String) {
-        val firestore = FirebaseFirestore.getInstance()
-        val verificationData = mapOf(
-            "code" to code,
-            "expiry" to System.currentTimeMillis() + 600_000, // 10-minute expiry
-            "verified" to false
-        )
-
-        firestore.collection("verificationCodes").document(userId)
-            .set(verificationData)
-            .addOnSuccessListener { Log.d("Firestore", "Verification code stored") }
-            .addOnFailureListener { e -> Log.e("Firestore", "Error storing verification code", e) }
-    }
-
-    // Function to send an email (simplified, typically use an email service for this)
-
-    // Placeholder example, replace with actual API request to send an email
-    private fun sendVerificationEmail(email: String, code: String) {
-        // Call your backend or third-party API to send email
-        println("Sending verification code $code to email: $email")
-    }
-
-
-    fun verifyCode(uid: String, inputCode: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
-        val firestore = FirebaseFirestore.getInstance()
-
-        firestore.collection("verificationCodes").document(uid)
-            .get()
-            .addOnSuccessListener { document ->
-                if (document != null && document.exists()) {
-                    val storedCode = document.getString("code")
-                    val expiry = document.getLong("expiry") ?: 0
-                    val verified = document.getBoolean("verified") ?: false
-
-                    if (verified) {
-                        onFailure("Email already verified.")
-                    } else if (System.currentTimeMillis() > expiry) {
-                        onFailure("Code expired.")
-                    } else if (inputCode == storedCode) {
-                        firestore.collection("verificationCodes").document(uid)
-                            .update("verified", true)
-                            .addOnSuccessListener {
-                                onSuccess()
-                            }
-                            .addOnFailureListener { e ->
-                                onFailure("Failed to update verification status: ${e.message}")
-                            }
-                    } else {
-                        onFailure("Invalid code.")
-                    }
-                } else {
-                    onFailure("Invalid code request.")
-                }
-            }
-            .addOnFailureListener { e ->
-                onFailure("Verification failed: ${e.message}")
-            }
-    }
-
 
     fun signIn(email: String, password: String, navController: NavController) {
 
