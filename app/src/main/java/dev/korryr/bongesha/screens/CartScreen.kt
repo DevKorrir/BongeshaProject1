@@ -50,6 +50,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
+import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange100
@@ -466,7 +467,7 @@ fun EmptyCartView(navController: NavController) {
         BongaButton(
             label = "Continue Shopping now!",
             onClick = {
-                navController.navigateUp()
+                navController.navigate(Route.Home.Category)
             },
             color = Color.White,
             buttonColor = orange28

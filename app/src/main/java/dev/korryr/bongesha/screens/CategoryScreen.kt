@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BottomNavigationItem
 import dev.korryr.bongesha.commons.ItemRow
@@ -80,7 +82,6 @@ fun BongaCategory(
     notificationViewModel: NotificationViewModel = viewModel(),
     cartViewModel: CartViewModel = viewModel(),
 ) {
-    // State variables to track icon clicks
     var isHomeClicked by remember { mutableStateOf(true) }
     var isCartClicked by remember { mutableStateOf(false) }
     var isFavoriteClicked by remember { mutableStateOf(false) }
@@ -91,9 +92,6 @@ fun BongaCategory(
     var itemCount by remember { mutableStateOf(0) }
     val uiState by categoryViewModel.uiState.collectAsState()
     val products by categoryViewModel.products.collectAsState()
-    //val products by remember { mutableStateOf(categoryViewModel.products) }
-    val isLoading by remember { mutableStateOf(categoryViewModel.isLoading) }
-
     val cartItemsCount = cartViewModel.quantityCount
 
     val categories = listOf(
@@ -113,6 +111,7 @@ fun BongaCategory(
         "Energy & Power Solutions"
     )
     var selectedCategory by remember { mutableStateOf(categories[0]) }
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = categoryViewModel.isLoading)
 
     LaunchedEffect(selectedCategory) {
         if (selectedCategory.isNotEmpty()) {
@@ -120,6 +119,10 @@ fun BongaCategory(
         } else {
             println("Selected category is empty.")
         }
+    }
+
+    LaunchedEffect(Unit) {
+        categoryViewModel.fetchProductsForCategory(selectedCategory)
     }
 
 
@@ -134,6 +137,10 @@ fun BongaCategory(
             //.background(color = Color.DarkGray)
             .fillMaxSize()
     ) {
+        SwipeRefresh(
+            state = swipeRefreshState,
+            onRefresh = { categoryViewModel.fetchProductsForCategory(selectedCategory)}
+        ){
         Column(
             modifier = Modifier
         ) {
@@ -298,8 +305,8 @@ fun BongaCategory(
                                         )
                                         .padding(8.dp)
                                         .clickable {
-                                            categoryViewModel.fetchProductsForCategory(category)
                                             selectedCategory = category
+                                            categoryViewModel.fetchProductsForCategory(category)
                                         },
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -365,19 +372,21 @@ fun BongaCategory(
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         color = orange28
                     )
-                } else {
-                    if (products.isEmpty()){
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Out Of Stock, Wait for Updates...",
-                                fontSize = 18.sp,
-                                color = Color.Gray
-                            )
-                        }
-                    } else {
+                }
+//                else {
+//                    if (products.isEmpty()){
+//                        Box(
+//                            modifier = Modifier.fillMaxSize(),
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            Text(
+//                                text = "Out Of Stock, Wait for Updates...",
+//                                fontSize = 18.sp,
+//                                color = Color.Gray
+//                            )
+//                        }
+//                    }
+                    else {
                     LazyColumn(
                         modifier = Modifier
                             .padding(bottom = 60.dp)

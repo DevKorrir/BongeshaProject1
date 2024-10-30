@@ -53,12 +53,6 @@ android {
 
 dependencies {
 
-//    val credentialsManagerVersion = "1.5.0-alpha05"
-//    implementation("androidx.credentials:credentials-bom:$credentialsManagerVersion")
-//    //noinspection GradleDependency
-//    implementation("androidx.credentials:credentials-play-services-auth:$credentialsManagerVersion")
-//    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.test.espresso:espresso-core:3.6.1@aar")
     implementation("androidx.activity:activity-compose:1.9.3")
@@ -107,7 +101,12 @@ dependencies {
     implementation("com.facebook.android:facebook-android-sdk:17.0.2")
     implementation ("com.facebook.android:facebook-login:17.0.2")
     implementation ("com.facebook.android:facebook-android-sdk:latest.release")
-    implementation ("com.google.android.gms:play-services-auth:21.2.0") // Check for the latest version
+    implementation ("com.google.android.gms:play-services-auth:21.2.0")
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.24.13-rc")
+
+    //implementation ("com.google.accompanist:accompanist-swiperefresh:1.5.4")
+
+
 
 
 
