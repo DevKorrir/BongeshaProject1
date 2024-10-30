@@ -101,8 +101,8 @@ fun BongaSignIn(
     if (isSignedIn) {
         // Navigate to the home screen if the user is already signed in
         LaunchedEffect(Unit) {
-            navController.navigate(Route.Home.Category) {
-                popUpTo(Route.Home.SignIn) { inclusive = true }
+            navController.navigate(Route.Home.HOME) {
+                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
             }
         }
     }
@@ -122,7 +122,7 @@ fun BongaSignIn(
                     .size(35.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .clickable {
-                        navController.navigate(Route.Home.SignUp)
+                        navController.navigate(Route.Home.SIGN_UP)
                     }
                     .border(
                         1.dp,
@@ -237,7 +237,7 @@ fun BongaSignIn(
 
             TextButton(
                 onClick = {
-                    navController.navigate(Route.Home.ForgotPassword)
+                    navController.navigate(Route.Home.FORGOT_PASSWORD)
                 }
             ) {
                 Text(
@@ -353,7 +353,7 @@ fun BongaSignIn(
                             FirebaseAuth.getInstance().signInWithCredential(credential)
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
-                                        navController.navigate(Route.Home.Category)
+                                        navController.navigate(Route.Home.HOME)
                                     } else {
                                         Toast.makeText(context, "Facebook sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
                                     }
@@ -391,7 +391,7 @@ fun BongaSignIn(
             )
             TextButton(
                 onClick = {
-                    navController.navigate(Route.Home.SignUp)
+                    navController.navigate(Route.Home.SIGN_UP)
                 }
             ) {
                 Text(

@@ -4,8 +4,8 @@ import android.content.Context
 import android.location.Location
 import android.widget.Toast
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -14,22 +14,16 @@ import com.google.firebase.ktx.Firebase
 import kotlin.math.roundToInt
 
 
-//data class iProduct(
-//    val product: Product,
-//    var quantity: Int,
-//    var quantityCount: Int = 0
-//)
-
 class CartViewModel : ViewModel() {
     private val _cart = mutableStateListOf<Product>()
     val cart: List<Product> get() = _cart
-    var quantityCount by mutableStateOf(0)
+    var quantityCount by mutableIntStateOf(0)
     private set
-    var deliveryFee: Int by mutableStateOf(0)
-    private set
+    private var deliveryFee: Int by mutableIntStateOf(0)
+
     private val firestore = Firebase.firestore
 
-    val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
     init {
         fetchCartItems()
@@ -64,8 +58,26 @@ class CartViewModel : ViewModel() {
         }
     }
 
-
     fun addToCart(product: Product, quantity: Int) {
+        val existingItem = _cart.find { it.id == product.id }
+        if (product.quantityCount <= 0) {
+            // Item is out of stock; skip adding to cart and display an appropriate message in the UI.
+            return
+        }
+        if (existingItem != null) {
+            // Update the quantity only if it won't exceed available stock
+            val newQuantity = (existingItem.quantity + quantity).coerceAtMost(product.quantityCount)
+            existingItem.quantity = newQuantity
+        } else {
+            // Add the item if not already in cart
+            _cart.add(product.copy(quantity = quantity.coerceAtMost(product.quantityCount)))
+        }
+        updateProductCount()
+    }
+
+
+
+    fun addToCartttttt(product: Product, quantity: Int) {
         val existingItem = _cart.find { it.id  == product.id }
         if (existingItem != null) {
             // If the product is already in the cart, update the quantity

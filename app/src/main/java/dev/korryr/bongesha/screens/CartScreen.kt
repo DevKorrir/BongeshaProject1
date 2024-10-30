@@ -1,6 +1,7 @@
 package dev.korryr.bongesha.screens
 
 import android.location.Location
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -63,13 +64,17 @@ import dev.korryr.bongesha.viewmodels.fetchUserLocation
 fun CartScreen(
     navController: NavController
 ) {
+    BackHandler {
+        navController.navigate(Route.Home.HOME) {
+            popUpTo(Route.Home.CART) { inclusive = true }
+        }
+    }
     val context = LocalContext.current
     val cartViewModel: CartViewModel = viewModel()
     val cartItems = cartViewModel.cart
     val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
-
 
     // Update the delivery fee in ViewModel
     LaunchedEffect(Unit) {
@@ -79,7 +84,6 @@ fun CartScreen(
 
     Column(
         modifier = Modifier
-            //.verticalScroll(rememberScrollState())
             .padding(8.dp)
             .fillMaxSize()
     ) {
@@ -104,7 +108,7 @@ fun CartScreen(
             ){
                 IconButton(
                     onClick = {
-                        navController.navigateUp()
+                        navController.navigate(Route.Home.HOME)
                     }
                 ) {
                     Icon(
@@ -363,10 +367,20 @@ fun CartItemRow(
                     modifier = Modifier
                 ){
                     Text(
-                        text = if (product.quantityCount > 0) "${product.quantityCount} available" else "Out of stock",
-                        color = if (product.quantityCount > 0) green99 else Color.Red,
-                        fontSize = 12.sp
+                        text = "${product.quantityCount}",
+                        modifier = Modifier.align(Alignment.Center)
                     )
+//                    if (product.quantityCount <= 10) {
+//                        Text(
+//                            text = when {
+//                                product.quantityCount > 0 -> "${product.quantityCount} available"
+//                                else -> "Out of stock"
+//                            },
+//                            color = if (product.quantityCount > 0) green99 else Color.Red,
+//                            fontSize = 12.sp
+//                        )
+//                    }
+
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -467,7 +481,7 @@ fun EmptyCartView(navController: NavController) {
         BongaButton(
             label = "Continue Shopping now!",
             onClick = {
-                navController.navigate(Route.Home.Category)
+                navController.navigate(Route.Home.HOME)
             },
             color = Color.White,
             buttonColor = orange28

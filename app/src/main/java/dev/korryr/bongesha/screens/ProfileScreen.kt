@@ -90,6 +90,8 @@ fun UserProfile(
 
                 Text(
                     text = "$greeting, $displayName!",
+                    fontWeight = FontWeight.W700,
+                    fontSize = 16.sp,
                     color = orange100,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -150,7 +152,7 @@ fun UserProfile(
                 modifier = Modifier
                     .clickable(
                         onClick = {
-                            navController.navigate(Route.Home.Inbox)
+                            navController.navigate(Route.Home.INBOX)
                         }
                     )
                     .padding(16.dp)
@@ -206,7 +208,7 @@ fun UserProfile(
                     )
                     .clickable(
                         onClick = {
-                            navController.navigate(Route.Home.HelpSupport)
+                            navController.navigate(Route.Home.HELP_SUPPORT)
                         }
                     )
                     .padding(16.dp)

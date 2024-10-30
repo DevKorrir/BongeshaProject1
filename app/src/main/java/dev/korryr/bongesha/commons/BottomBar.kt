@@ -1,12 +1,15 @@
 package dev.korryr.bongesha.commons
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -26,9 +29,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import dev.korryr.bongesha.R
+import dev.korryr.bongesha.screens.BottomTab
+import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
 fun BottomNavigationItem(
@@ -37,9 +45,10 @@ fun BottomNavigationItem(
     shape: Shape = CircleShape,
     painter: Painter? = null,
     label: String,
+    badgeCount: Int = 0,
     isSelected: Boolean,
     onClick: () -> Unit,
-    selectedColor: Color = Color.Black, // Replace ani tyme
+    selectedColor: Color = orange28,
     unselectedColor: Color = Color.Gray
 ) {
     Box(
@@ -57,25 +66,34 @@ fun BottomNavigationItem(
                 shape = CircleShape
             )
             .padding(8.dp)
-            .clickable(onClick = onClick),
-    ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            //.padding(8.dp)
             .clickable(onClick = onClick)
+            .size(52.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            contentAlignment = Alignment.Center
+        BadgedBox(
+            badge = {
+                // Only show the badge if cart has items
+                if (badgeCount > 0) {
+                    Badge(
+                        containerColor = selectedColor,
+                        contentColor = Color.White
+                    ) {
+                        Text(text = badgeCount.toString())
+                    }
+                }
+            }
         ) {
-            icon()
         }
-        //Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            color = if (isSelected) selectedColor else unselectedColor
-        )
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            ){
+            icon()
+            Text(
+                text = label,
+                color = if (isSelected) selectedColor else unselectedColor
+            )
+        }
     }
 }
-}
+

@@ -227,7 +227,7 @@ fun BongaSignUp(
 
                     else -> {
                         authViewModel.signUp(email, password, displayName)
-                        navController.navigate(Route.Home.SignIn)
+                        navController.navigate(Route.Home.SIGN_IN)
                     }
                 }
 //                if (!isValidPassword(password)) {
@@ -313,7 +313,7 @@ fun BongaSignUp(
 
         if (authState is AuthState.Success) {
             LaunchedEffect(Unit) {
-                navController.navigate(Route.Home.SignIn)
+                navController.navigate(Route.Home.SIGN_IN)
             }
         }
 
@@ -331,7 +331,7 @@ fun BongaSignUp(
 
             TextButton(
                 onClick = {
-                    navController.navigate(Route.Home.SignIn)
+                    navController.navigate(Route.Home.SIGN_IN)
                 }
             ) {
                 Text(

@@ -100,7 +100,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     if (user?.isEmailVerified == true) {
                         saveUserToFirestore(user)
                         _authState.value = AuthState.Success("Sign in successful")
-                        navController.navigate(Route.Home.Category)
+                        navController.navigate(Route.Home.HOME)
                     } else {
                         _authState.value = AuthState.Error("Please verify your email first")
                         auth.signOut()
@@ -118,17 +118,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun signInWithEmail(email: String, password: String, navController: NavController, context: Context) {
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    // Navigate to home after successful login
-                    navController.navigate(Route.Home.Category)
-                } else {
-                    Toast.makeText(context, "Sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                }
-            }
-    }
+//    fun signInWithEmail(email: String, password: String, navController: NavController, context: Context) {
+//        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+//            .addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    // Navigate to home after successful login
+//                    navController.navigate(Route.Home.Category)
+//                } else {
+//                    Toast.makeText(context, "Sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+//                }
+//            }
+//    }
 
 
     fun signInWithGoogle(idToken: String, navController: NavController) {
@@ -139,7 +139,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (task.isSuccessful) {
                     saveUserToFirestore(auth.currentUser)
                     _authState.value = AuthState.Success("Google Sign in successful")
-                    navController.navigate(Route.Home.Category)
+                    navController.navigate(Route.Home.HOME)
                 } else {
                     _authState.value = AuthState.Error(task.exception?.message ?: "Google Sign in failed")
                 }
@@ -157,7 +157,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     if (task.isSuccessful) {
                         saveUserToFirestore(auth.currentUser)
                         _authState.value = AuthState.Success("Facebook sign-in successful")
-                        navController.navigate(Route.Home.Category)
+                        navController.navigate(Route.Home.HOME)
                     } else {
                         _authState.value = AuthState.Error(task.exception?.message ?: "Facebook sign-in failed")
                     }

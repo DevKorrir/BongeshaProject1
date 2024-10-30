@@ -35,12 +35,13 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.BongaAccSettings
-import dev.korryr.bongesha.screens.BongaCategory
+import dev.korryr.bongesha.screens.BongaHome
 import dev.korryr.bongesha.screens.BongaForgotPassword
 import dev.korryr.bongesha.screens.BongaHelp
 import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
+import dev.korryr.bongesha.screens.BottomTab
 import dev.korryr.bongesha.screens.CartScreen
 import dev.korryr.bongesha.screens.ChatScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
@@ -102,13 +103,13 @@ class MainActivity : ComponentActivity() {
 
                     //callbackManager = CallbackManager.Factory.create()
                     val isUserSignedIn by authViewModel.isSignedIn.collectAsState()
-                    val startDestination = if (isUserSignedIn) Route.Home.Category else Route.Home.SignUp
+                    val startDestination = if (isUserSignedIn) Route.Home.HOME else Route.Home.SIGN_UP
 
                     NavHost(
                         navController = navController,
                         startDestination = startDestination
                     ) {
-                        composable(Route.Home.SignUp) {
+                        composable(Route.Home.SIGN_UP) {
                             BongaSignUp(
                                 navController = navController,
                                 authViewModel = authViewModel,
@@ -146,12 +147,12 @@ class MainActivity : ComponentActivity() {
                                         Toast.LENGTH_LONG
                                     ).show()
                                     saveUserSignInState()
-                                    navController.navigate(Route.Home.Category)
+                                    navController.navigate(Route.Home.HOME)
                                 }
                             }
                         }
 
-                        composable(Route.Home.SignIn) {
+                        composable(Route.Home.SIGN_IN) {
                             BongaSignIn(
                                 navController = navController,
                                 onForgotPassword = { email ->
@@ -176,67 +177,67 @@ class MainActivity : ComponentActivity() {
                         }
 
 
-                        composable(Route.Home.Category) {
-                            BongaCategory(
-                                navController = navController,
-                                categoryViewModel = CategoryViewModel()
+                        composable(Route.Home.HOME) {
+                            BongaHome(
+                                categoryViewModel = CategoryViewModel(),
+                                navController = navController
                             )
                         }
 
-                        composable(Route.Home.ForgotPassword) {
+                        composable(Route.Home.FORGOT_PASSWORD) {
                             BongaForgotPassword(navController)
                         }
 
-                        composable(Route.Home.Welcome) {
+                        composable(Route.Home.WELCOME) {
                             BongaWelcome(navController = navController)
                         }
 
-                        composable(Route.Home.Beverage) {
+                        composable(Route.Home.BEVERAGE) {
                             Beverages()
                         }
 
-                        composable(Route.Home.Cart) {
+                        composable(Route.Home.CART) {
                             CartScreen(navController = navController)
                         }
 
-                        composable(Route.Home.ItemDetails) {
+                        composable(Route.Home.ITEM_DETAILS) {
                             ItemDetailsScreen(
                                 onClick = {},
                                 product = Product()
                             )
                         }
 
-                        composable(Route.Home.Inbox) {
+                        composable(Route.Home.INBOX) {
                             ChatScreen()
                         }
 
-                        composable(Route.Home.Notification) {
+                        composable(Route.Home.NOTIFICATION) {
                             NotificationScreen()
                         }
 
-                        composable(Route.Home.Profile) {
+                        composable(Route.Home.PROFILE) {
                             UserProfile(
                                 navController = navController,
                             ) {
                                 Firebase.auth.signOut()
                                 clearUserSignInState()
-                                navController.navigate(Route.Home.SignIn)
+                                navController.navigate(Route.Home.SIGN_IN)
                             }
                         }
 
-                        composable(Route.Home.HelpSupport) {
+                        composable(Route.Home.HELP_SUPPORT) {
                             BongaHelp(navController = navController)
                         }
 
-                        composable(Route.Home.AccountSettings) {
+                        composable(Route.Home.ACCOUNT_SETTINGS) {
                             BongaAccSettings(navController = navController)
                         }
 
-                        composable(Route.Home.Order) {
+                        composable(Route.Home.ORDER) {
                             OrdersScreen()
                         }
 
-                        composable(Route.Home.Wishlist) {
+                        composable(Route.Home.WISHLIST) {
                             WishlistScreen(
                                 product = Product(),
                             )

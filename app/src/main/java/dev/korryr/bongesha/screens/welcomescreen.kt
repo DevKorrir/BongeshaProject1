@@ -169,7 +169,7 @@ fun BongaWelcome(
                                 modifier = Modifier
                                     .width(176.dp),
                                 onClick = {
-                                    navController.navigate(Route.Home.SignIn)
+                                    navController.navigate(Route.Home.SIGN_IN)
                                 }
                             )
 
