@@ -50,9 +50,11 @@ import androidx.navigation.NavController
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BottomNavigationItem
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.repositories.ProductRepository
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 
@@ -68,6 +70,7 @@ fun BongaHome(
     var selectedTab by remember { mutableStateOf(BottomTab.Home) }
     var itemCount by remember { mutableIntStateOf(0) }
     val cartItemsCount = cartViewModel.quantityCount
+    val authViewModel: AuthViewModel = viewModel()
 
     Scaffold(
         containerColor = gray01,
@@ -303,7 +306,11 @@ fun BongaHome(
                     )
 
                 BottomTab.Cart ->
-                    CartScreen(navController)
+                    CartScreen(
+                        navController,
+                        productRepository = ProductRepository(),
+                        authViewModel = authViewModel
+                    )
 
                 BottomTab.Wishlist -> Text("Wishlist Content")
 
@@ -312,7 +319,7 @@ fun BongaHome(
                 BottomTab.Profile ->
                         UserProfile(
                             navController,
-                            onSignOut = {}
+                            authViewModel = authViewModel
                         )
 
 

@@ -39,12 +39,13 @@ import dev.korryr.bongesha.commons.BongaRow
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.blue88
 import dev.korryr.bongesha.ui.theme.orange100
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 import java.util.Calendar
 
 @Composable
 fun UserProfile(
     navController: NavController,
-    onSignOut: () -> Unit,
+    authViewModel: AuthViewModel,
 ) {
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
@@ -54,10 +55,10 @@ fun UserProfile(
 
     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
     val greeting = when (currentHour) {
-        in 0..11 -> "Good morning"
+        in 2..11 -> "Good morning"
         in 12..15 -> "Good afternoon"
         in 16..20 -> "Good evening"
-        else -> "Good evening"
+        else -> "Good night😴"
     }
 
     Column(
@@ -253,7 +254,9 @@ fun UserProfile(
                     ),
                     modifier = Modifier
                         .padding(12.dp),
-                    onClick = onSignOut
+                    onClick = {
+                        authViewModel.signOut()
+                    }
                 ) {
                     Text(
                         text = "logout".uppercase(),

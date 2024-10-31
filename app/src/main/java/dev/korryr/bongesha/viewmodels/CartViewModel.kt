@@ -8,11 +8,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import dev.korryr.bongesha.repositories.ProductRepository
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-
 
 class CartViewModel : ViewModel() {
     private val _cart = mutableStateListOf<Product>()
@@ -204,6 +206,39 @@ class CartViewModel : ViewModel() {
         }
 
     }
+
+    // Function to observe changes in products and update the cart accordingly
+    private fun observeProductUpdates() {
+        firestore.collection("products")
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    return@addSnapshotListener
+                }
+
+                snapshot?.documents?.forEach { document ->
+                    val updatedProduct = Product(
+                        id = document.getString("id") ?: "",
+                        name = document.getString("name") ?: "",
+                        price = (document.getDouble("price") ?: 0.0).toFloat(),
+                        images = (document.get("images") as? List<String>) ?: listOf(),
+                        quantityCount = document.getLong("quantityCount")?.toInt() ?: 0
+                    )
+
+                    // Update product information in cart if it exists
+                    val cartItem = _cart.find { it.id == updatedProduct.id }
+                    cartItem?.let {
+                        it.name = updatedProduct.name
+                        it.price = updatedProduct.price
+                        it.quantityCount = updatedProduct.quantityCount
+                    }
+                }
+
+                updateProductCount()
+            }
+    }
+
+
+
 
 
 }

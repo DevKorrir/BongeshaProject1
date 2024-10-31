@@ -23,7 +23,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.UserProfileChangeRequest
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,6 +36,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private lateinit var sharedPreferences: SharedPreferences
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> get() = _authState
+    private val _isUserSignedIn = MutableStateFlow(Firebase.auth.currentUser != null)
+    val isUserSignedIn: StateFlow<Boolean> = _isUserSignedIn
 
     val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
@@ -195,6 +199,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
         }
     }
+
+    fun signOut() {
+        Firebase.auth.signOut()
+        _isUserSignedIn.value = false
+    }
+
+
+
+
+
+
 }
 
 sealed class AuthState {

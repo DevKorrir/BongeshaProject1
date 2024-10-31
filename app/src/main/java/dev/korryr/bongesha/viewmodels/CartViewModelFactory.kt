@@ -2,12 +2,16 @@
 //
 //import androidx.lifecycle.ViewModel
 //import androidx.lifecycle.ViewModelProvider
-//import dev.korryr.bongesha.repositories.CartRepository
+//import dev.korryr.bongesha.repositories.ProductRepository
 //
-//class CartViewModelFactory(private val cartRepository: CartRepository) : ViewModelProvider.Factory {
+//class CartViewModelFactory(
+//    private val productRepository: ProductRepository,
+//    private val authViewModel: AuthViewModel
+//) : ViewModelProvider.Factory {
 //    override fun <T : ViewModel> create(modelClass: Class<T>): T {
 //        if (modelClass.isAssignableFrom(CartViewModel::class.java)) {
-//            return CartViewModel(cartRepository) as T
+//            @Suppress("UNCHECKED_CAST")
+//            return CartViewModel(productRepository, authViewModel) as T
 //        }
 //        throw IllegalArgumentException("Unknown ViewModel class")
 //    }

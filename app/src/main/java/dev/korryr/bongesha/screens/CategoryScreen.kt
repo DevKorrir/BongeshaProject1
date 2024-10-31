@@ -9,15 +9,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -64,9 +56,9 @@ fun CategoryTab(
     cartViewModel: CartViewModel = viewModel(),
 ) {
     val products by categoryViewModel.products.collectAsState()
+    val isLoading by categoryViewModel.isLoading.collectAsState()
 
     val categories = listOf(
-        //Category("Electronics", R.drawable.heart_icon),
         "Audio & Sound Systems",
         "Phones & Accessories",
         "Computers & Accessories",
@@ -82,8 +74,7 @@ fun CategoryTab(
         "Energy & Power Solutions"
     )
     var selectedCategory by remember { mutableStateOf(categories[0]) }
-    val swipeRefreshState =
-        rememberSwipeRefreshState(isRefreshing = categoryViewModel.isLoading)
+    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoading)
 
     LaunchedEffect(selectedCategory) {
         if (selectedCategory.isNotEmpty()) {
@@ -93,208 +84,143 @@ fun CategoryTab(
         }
     }
 
-    LaunchedEffect(Unit) {
-        categoryViewModel.fetchProductsForCategory(selectedCategory)
-    }
-
     SwipeRefresh(
         state = swipeRefreshState,
         onRefresh = {
-            categoryViewModel.fetchProductsForCategory(
-                selectedCategory
-            )
+            categoryViewModel.fetchProductsForCategory(selectedCategory)
         }
     ) {
-        Column (
-            modifier = Modifier
-                .padding(8.dp)
-        ){
-        var textOffset by remember { mutableFloatStateOf(0f) }
-        val animatedOffset by animateFloatAsState(
-            targetValue = textOffset,
-            animationSpec = infiniteRepeatable(
-                animation = tween(3000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ), label = ""
-        )
-
-        LaunchedEffect(Unit) {
-            textOffset =
-                -100f  // Adjust this value based on the width of the text box
-        }
-
-        Text(
-            text = "Categories",
-            fontSize = 36.sp,
-            fontWeight = FontWeight.W700
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LazyRow(
-            modifier = Modifier
+        Column(
+            modifier = Modifier.padding(8.dp)
         ) {
-            //Beginning of the category ui boxes
-            items(categories) { category ->
-                // Display each category as a button
-                Box(
-                    modifier = Modifier
-                        .clip(
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .border(
-                            width = 1.dp,
-                            color = Color.Transparent,
+            var textOffset by remember { mutableFloatStateOf(0f) }
+            val animatedOffset by animateFloatAsState(
+                targetValue = textOffset,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(3000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ), label = ""
+            )
 
-                            //if (selectedCategory == category) orange28 else Color.White,
-                            shape = RoundedCornerShape(12.dp)
+            LaunchedEffect(Unit) {
+                textOffset = -100f
+            }
 
-                        )
-                        .background(
-                            if (selectedCategory == category) orange28 else Color.White,
-                            shape = RoundedCornerShape(12.dp)
-                        )
-                        .padding(8.dp)
-                        .clickable {
-                            selectedCategory = category
-                            categoryViewModel.fetchProductsForCategory(
-                                category
-                            )
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
+            Text(
+                text = "Categories",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.W700
+            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-                    Column(
+            LazyRow(
+                modifier = Modifier
+            ) {
+                items(categories) { category ->
+                    Box(
                         modifier = Modifier
-                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                width = 1.dp,
+                                color = Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
                             .background(
                                 if (selectedCategory == category) orange28 else Color.White,
                                 shape = RoundedCornerShape(12.dp)
-                            ),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            )
+                            .padding(8.dp)
+                            .clickable {
+                                selectedCategory = category
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
+                        Column(
                             modifier = Modifier
-                                .size(64.dp)
-                                .clip(
-                                    RoundedCornerShape(12.dp)
-                                )
+                                .padding(4.dp)
                                 .background(
-                                    if (selectedCategory == category) Color.White else Color.Transparent,
+                                    if (selectedCategory == category) orange28 else Color.White,
                                     shape = RoundedCornerShape(12.dp)
                                 ),
-                            contentAlignment = Alignment.Center
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.baby),
-                                contentDescription = category,
+                            Box(
                                 modifier = Modifier
-                                    .size(64.dp),
-                                contentScale = ContentScale.FillBounds
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (selectedCategory == category) Color.White else Color.Transparent,
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.baby),
+                                    contentDescription = category,
+                                    modifier = Modifier.size(64.dp),
+                                    contentScale = ContentScale.FillBounds
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = category,
+                                color = if (selectedCategory == category) Color.White else Color.Black,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .offset(x = animatedOffset.dp)
+                                    .width(90.dp),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                fontSize = 12.sp
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        // Display the category name
-                        Text(
-                            text = category,
-                            color = if (selectedCategory == category) Color.White else Color.Black,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .offset(x = animatedOffset.dp)
-                                .width(90.dp),
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSize = 12.sp
-                        )
                     }
-
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
-                Spacer(modifier = Modifier.width(8.dp))
             }
-        }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(12.dp))
 
-        HorizontalDivider()
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Display Products or Loading Spinner
-        if (categoryViewModel.isLoading) {
-            CircularProgressIndicator(
-                //modifier = Modifier.align(Alignment.CenterHorizontally),
-                color = orange28
-            )
-        } else {
-            if (products.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "Pull down to refresh",
-                        fontSize = 18.sp,
-                        color = Color.Gray
-                    )
-                }
+            if (isLoading) {
+                CircularProgressIndicator(color = orange28)
             } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(bottom = 60.dp)
-                    //.verticalScroll(rememberScrollState())
-                ) {
-                    item {
+                if (products.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            text = selectedCategory,
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.W700,
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                            text = "Pull down to refresh",
+                            fontSize = 18.sp,
+                            color = Color.Gray
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
                     }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.padding(bottom = 60.dp)
+                    ) {
+                        item {
+                            Text(
+                                text = selectedCategory,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.W700,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
 
-                    items(products) { product ->
-                        ItemRow(
-                            product = product,
-                            navController = navController
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        items(products) { product ->
+                            ItemRow(
+                                product = product,
+                                navController = navController
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
             }
         }
-    }
-
-
-
-
-
-
-
-
-    }
-
-
-}
-
-@Composable
-fun Categoryexample() {
-    Column (
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                color = blue88
-            )
-    ){
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column {
-
-            }
-
     }
 }

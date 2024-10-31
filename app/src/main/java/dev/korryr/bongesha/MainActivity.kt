@@ -34,6 +34,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.repositories.ProductRepository
 import dev.korryr.bongesha.screens.BongaAccSettings
 import dev.korryr.bongesha.screens.BongaHome
 import dev.korryr.bongesha.screens.BongaForgotPassword
@@ -77,8 +78,15 @@ class MainActivity : ComponentActivity() {
             val authViewModel: AuthViewModel = viewModel()
             val context = LocalContext.current
             val currentSignInState = rememberUpdatedState(authViewModel.authState.value)
+            val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
 
-
+            LaunchedEffect(isUserSignedIn) {
+                if (!isUserSignedIn) {
+                    navController.navigate("SignInScreen") {
+                        popUpTo(0) { inclusive = true }  // Clear back stack
+                    }
+                }
+            }
 
             BongeshaTheme {
                 Surface(
@@ -197,7 +205,11 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.CART) {
-                            CartScreen(navController = navController)
+                            CartScreen(
+                                navController = navController,
+                                productRepository = ProductRepository(),
+                                authViewModel = authViewModel
+                            )
                         }
 
                         composable(Route.Home.ITEM_DETAILS) {
@@ -216,13 +228,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.PROFILE) {
+                            //val authViewModel: AuthViewModel = viewModel()
                             UserProfile(
                                 navController = navController,
-                            ) {
-                                Firebase.auth.signOut()
-                                clearUserSignInState()
-                                navController.navigate(Route.Home.SIGN_IN)
-                            }
+                                authViewModel = authViewModel
+
+                            )
                         }
 
                         composable(Route.Home.HELP_SUPPORT) {

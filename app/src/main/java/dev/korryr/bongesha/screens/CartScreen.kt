@@ -52,23 +52,30 @@ import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.repositories.ProductRepository
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.Product
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.fetchUserLocation
 
 @Composable
 fun CartScreen(
-    navController: NavController
+    navController: NavController,
+    productRepository: ProductRepository,
+    authViewModel: AuthViewModel
 ) {
+    //val factory = CartViewModelFactory(productRepository, authViewModel)
+    //val cartViewModel: CartViewModel = viewModel(factory = factory)
     BackHandler {
         navController.navigate(Route.Home.HOME) {
             popUpTo(Route.Home.CART) { inclusive = true }
         }
     }
+
     val context = LocalContext.current
     val cartViewModel: CartViewModel = viewModel()
     val cartItems = cartViewModel.cart
@@ -87,11 +94,11 @@ fun CartScreen(
             .padding(8.dp)
             .fillMaxSize()
     ) {
-        Row (
+        Row(
             modifier = Modifier
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-        ){
+        ) {
             Box(
                 modifier = Modifier
                     .size(30.dp)
@@ -105,7 +112,7 @@ fun CartScreen(
                         color = Color.LightGray,
                         shape = CircleShape
                     )
-            ){
+            ) {
                 IconButton(
                     onClick = {
                         navController.navigate(Route.Home.HOME)
@@ -162,13 +169,12 @@ fun CartScreen(
                         shape = RoundedCornerShape(12.dp)
                     )
                     .padding(8.dp),
-
-            ){
+            ) {
                 Column {
-                    Row (
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
                         Text(
                             text = "Total",
                             style = MaterialTheme.typography.bodyLarge,
@@ -188,10 +194,10 @@ fun CartScreen(
 
                     Spacer(Modifier.height(4.dp))
 
-                    Row (
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
                         Text(
                             text = "Delivery Fee",
                             style = MaterialTheme.typography.bodyLarge,
@@ -199,7 +205,7 @@ fun CartScreen(
                             color = Color.DarkGray,
                         )
 
-                        Spacer(Modifier.weight(1f))
+                        Spacer(modifier = Modifier.weight(1f))
 
                         Text(
                             text = "Ksh $deliveryFee",
@@ -218,18 +224,17 @@ fun CartScreen(
 
                     Spacer(Modifier.height(4.dp))
 
-                    Row (
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
-                    ){
+                    ) {
                         Text(
                             text = "Amount Payable",
                             color = orange28,
                             fontWeight = FontWeight.W700
                         )
 
-                        Spacer(Modifier.weight(1f))
-
+                        Spacer(modifier = Modifier.weight(1f))
 
                         Text(
                             text = "Ksh. ${totalPrice + deliveryFee}",
@@ -250,43 +255,8 @@ fun CartScreen(
                 onClick = {},
                 buttonColor = orange28
             )
-
         } else {
             EmptyCartView(navController)
-
-//            Column (
-//                modifier = Modifier
-//                    .padding(24.dp)
-//                    .fillMaxSize(),
-//                verticalArrangement = Arrangement.SpaceEvenly,
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ){
-//                Text(
-//                    text = "Your cart is empty",
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = 36.sp,
-//                    modifier = Modifier.padding(8.dp)
-//                )
-//
-//                Spacer(Modifier.height(24.dp))
-//
-//                Image(
-//                    painter = painterResource(id = R.drawable.bongesha_sec_icon),
-//                    contentDescription = "Empty cart",
-//                    modifier = Modifier.size(200.dp)
-//                )
-//
-//                Spacer(Modifier.height(24.dp))
-//
-//                BongaButton(
-//                    label = "Continue Shopping now!",
-//                    onClick = {
-//                        navController.navigateUp()
-//                    },
-//                    color = Color.White,
-//                    buttonColor = orange28
-//                )
-           // }
         }
     }
 }
@@ -324,7 +294,6 @@ fun CartItemRow(
                 )
                 .size(100.dp)
                 .clip(RoundedCornerShape(12.dp)),
-            //contentAlignment = Alignment.Center
         ) {
             val imagePainter = rememberImagePainter(data = product.images.firstOrNull())
             Image(
@@ -339,9 +308,7 @@ fun CartItemRow(
 
         Spacer(Modifier.width(6.dp))
 
-        Column(
-            modifier = Modifier,
-        ) {
+        Column {
             Text(
                 text = product.name,
                 fontWeight = FontWeight.Bold
@@ -365,22 +332,11 @@ fun CartItemRow(
             ) {
                 Box(
                     modifier = Modifier
-                ){
+                ) {
                     Text(
                         text = "${product.quantityCount}",
                         modifier = Modifier.align(Alignment.Center)
                     )
-//                    if (product.quantityCount <= 10) {
-//                        Text(
-//                            text = when {
-//                                product.quantityCount > 0 -> "${product.quantityCount} available"
-//                                else -> "Out of stock"
-//                            },
-//                            color = if (product.quantityCount > 0) green99 else Color.Red,
-//                            fontSize = 12.sp
-//                        )
-//                    }
-
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -394,11 +350,10 @@ fun CartItemRow(
                         tint = Color.Gray
                     )
                 }
-
             }
-            
+
             Spacer(Modifier.height(10.dp))
-            
+
             Row(
                 modifier = Modifier
                     .height(32.dp)
@@ -414,11 +369,10 @@ fun CartItemRow(
                         if (product.quantity > 1) onQuantityChange(product.quantity - 1)
                     }
                 ) {
-                    Box{
+                    Box {
                         Image(
-                            modifier = Modifier
-                                .size(16.dp),
-                            painter = painterResource( id = R.drawable.minus),
+                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(id = R.drawable.minus),
                             contentDescription = "Decrease quantity"
                         )
                     }
@@ -426,7 +380,6 @@ fun CartItemRow(
                 Text(
                     text = "x${product.quantity}",
                     modifier = Modifier
-                        //.padding(horizontal = 4.dp)
                 )
 
                 IconButton(
@@ -438,8 +391,7 @@ fun CartItemRow(
                 ) {
                     Box {
                         Icon(
-                            modifier = Modifier
-                                .size(16.dp),
+                            modifier = Modifier.size(16.dp),
                             imageVector = Icons.Default.Add,
                             contentDescription = "Increase quantity"
                         )
@@ -447,10 +399,8 @@ fun CartItemRow(
                 }
             }
         }
-
     }
 }
-
 
 @Composable
 fun EmptyCartView(navController: NavController) {
