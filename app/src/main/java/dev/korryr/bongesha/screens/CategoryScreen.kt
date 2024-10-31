@@ -211,7 +211,8 @@ fun CategoryTab(
                             Spacer(modifier = Modifier.height(8.dp))
                         }
 
-                        items(products) { product ->
+                        items(products) { productState ->
+                            val product = productState.value
                             ItemRow(
                                 product = product,
                                 navController = navController

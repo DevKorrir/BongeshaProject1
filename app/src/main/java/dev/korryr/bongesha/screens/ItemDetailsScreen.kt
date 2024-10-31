@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,7 +59,6 @@ import dev.korryr.bongesha.viewmodels.Product
 import dev.korryr.bongesha.viewmodels.WishlistItems
 import dev.korryr.bongesha.viewmodels.WishlistViewModel
 
-//import dev.korryr.bongesha.viewmodels.WishlistViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,10 +75,11 @@ fun ItemDetailsScreen(
     // Check if the current product is in the wishlist
     val isInWishlist = wishlistItems.any { it.id == product.id }
 
-    var quantity by remember { mutableIntStateOf(1) }
+    //var quantity by remember { mutableIntStateOf(1) }
+    var quantity by remember { mutableIntStateOf(cartViewModel.getCartItemQuantity(product).takeIf { it > 0 } ?: 1) }
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    var isInCart by remember { mutableStateOf(false) }  // New state to track if item is in the cart
+    var isInCart by remember { mutableStateOf(cartViewModel.isItemInCart(product)) }  // New state to track if item is in the cart
     var quantityCount by remember { mutableIntStateOf(product.quantityCount) }
 
     Scaffold (
@@ -217,22 +218,23 @@ fun ItemDetailsScreen(
                         enabled = !isInCart,
                         onClick = {
                             if (!isInCart) {
-                                if (quantity <= quantityCount) {
+                                if (quantity <= product.quantityCount) {
+                                    // Add the product to the cart with the specified quantity
                                     cartViewModel.addToCart(
-                                        product.copy(quantityCount = quantity), // Ensure the quantity matches
-                                        quantity = quantity // Correctly pass the quantity
+                                        product = product, // Keep the original product details intact
+                                        quantity = quantity // Pass the desired quantity to the ViewModel
                                     )
-                                    isInCart = true
-                                    quantityCount -= quantity
+
                                     Toast.makeText(context, "Added to Cart", Toast.LENGTH_SHORT).show()
 
                                     // Save product to Firestore under the user's account
                                     cartViewModel.saveProductToUserAccount(context, product, quantity)
                                 } else {
-                                    Toast.makeText(context, "Only $quantityCount items available", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Only ${product.quantityCount} items available", Toast.LENGTH_SHORT).show()
                                 }
                             }
                         }
+
                     )
                 }
             }
@@ -246,7 +248,6 @@ fun ItemDetailsScreen(
                 )
                 .verticalScroll(rememberScrollState())
                 .padding(innerPadding),
-                //.padding(top = 2.dp, start = 16.dp, end = 16.dp, bottom = 50.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
 
@@ -355,6 +356,7 @@ fun ItemDetailsScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    var showDeleteIcon by remember { mutableStateOf(false) }
                     IconButton(
                         modifier = Modifier
                             .background(
@@ -363,13 +365,34 @@ fun ItemDetailsScreen(
                             )
                             .size(50.dp),
                         onClick = {
-                            if (quantity > 0) quantity--
-                        }) {
+                            if (quantity > 0){
+                                quantity--
+                            } else {
+                                showDeleteIcon = quantity == 0
+                            }
+                        }
+                    ) {
                         Image(
                             modifier = Modifier.size(20.dp),
                             painter = painterResource(id = R.drawable.minus),
                             contentDescription = "Decrease"
                         )
+                    }
+                    if (showDeleteIcon) {
+                        IconButton(
+                            onClick = {
+                                // Handle delete action here (e.g., remove item from cart)
+                                cartViewModel.removeFromCart(product)
+                                Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
+                                showDeleteIcon = false  // Hide delete icon after deleting
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Remove item",
+                                tint = Color.Gray
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.padding(8.dp))
@@ -388,8 +411,13 @@ fun ItemDetailsScreen(
                             )
                             .size(50.dp),
                         onClick = {
-                            quantity++
-                        }) {
+                            if (quantity < quantityCount ){
+                                quantity++
+                            } else {
+                                Toast.makeText(context, "Only ${product.quantityCount} items available", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Increase"

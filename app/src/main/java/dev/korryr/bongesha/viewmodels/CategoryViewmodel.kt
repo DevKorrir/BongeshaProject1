@@ -1,6 +1,7 @@
 package dev.korryr.bongesha.viewmodels
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -48,8 +49,9 @@ class CategoryViewModel : ViewModel() {
     private val firestore = Firebase.firestore
     private val _uiState = MutableStateFlow<CategoryUiState>(CategoryUiState.Loading)
     val uiState: StateFlow<CategoryUiState> = _uiState.asStateFlow()
-    private val _products = MutableStateFlow<List<Product>>(emptyList())
-    val products: StateFlow<List<Product>> = _products.asStateFlow()
+    private val _products = MutableStateFlow<List<MutableState<Product>>>(emptyList())
+    val products: StateFlow<List<MutableState<Product>>> = _products.asStateFlow()
+
 
     // Holds the currently selected category
     var selectedCategory by mutableStateOf<String?>(null)
@@ -106,6 +108,7 @@ class CategoryViewModel : ViewModel() {
     }
 
     fun fetchProductsForCategory(category: String) {
+        listenerRegistration?.remove()
         _isLoading.value = true
         _uiState.update { CategoryUiState.Loading }
 
@@ -121,7 +124,11 @@ class CategoryViewModel : ViewModel() {
                 }
 
                 if (snapshot != null) {
-                    val products = snapshot.documents.mapNotNull { it.toObject(Product::class.java) }
+                    val products = snapshot.documents.mapNotNull { document ->
+                        document.toObject(Product::class.java)?.let { product ->
+                            mutableStateOf(product) // Convert to MutableState<Product>
+                        }
+                    }
                     _products.update { products }
                 } else {
                     _products.update { emptyList() }

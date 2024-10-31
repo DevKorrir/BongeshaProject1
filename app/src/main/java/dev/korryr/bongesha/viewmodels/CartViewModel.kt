@@ -118,8 +118,12 @@ class CartViewModel : ViewModel() {
     }
 
     // Check if item is already in the cart
-    fun isInCart(product: Product): Boolean {
+    fun isItemInCart(product: Product): Boolean {
         return _cart.any { it.id == product.id }
+    }
+
+    fun getCartItemQuantity(product: Product): Int {
+        return _cart.find { it.id == product.id }?.quantity ?: 0
     }
 
     private fun updateProductCount() {

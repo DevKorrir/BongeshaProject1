@@ -160,7 +160,7 @@ fun ItemRow(
         ){
             Column (
                 modifier = Modifier
-                    .heightIn(max = 550.dp)
+                    .heightIn(max = 650.dp)
                     .fillMaxWidth()
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally

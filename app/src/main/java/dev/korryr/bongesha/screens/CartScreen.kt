@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -64,12 +65,12 @@ import dev.korryr.bongesha.viewmodels.fetchUserLocation
 
 @Composable
 fun CartScreen(
+    product: Product,
     navController: NavController,
     productRepository: ProductRepository,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    cartViewModel: CartViewModel
 ) {
-    //val factory = CartViewModelFactory(productRepository, authViewModel)
-    //val cartViewModel: CartViewModel = viewModel(factory = factory)
     BackHandler {
         navController.navigate(Route.Home.HOME) {
             popUpTo(Route.Home.CART) { inclusive = true }
@@ -82,6 +83,9 @@ fun CartScreen(
     val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
+    val isInCart by remember { mutableStateOf(cartViewModel.isItemInCart(product)) }
+    var quantity by remember { mutableIntStateOf(cartViewModel.getCartItemQuantity(product).takeIf { it > 0 } ?: 1) }
+
 
     // Update the delivery fee in ViewModel
     LaunchedEffect(Unit) {
@@ -318,6 +322,12 @@ fun CartItemRow(
                 text = "Ksh ${product.price}",
                 color = green99
             )
+
+            Text(
+                text = "Total: ${product.price * product.quantity}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Black
+            )
         }
 
         Spacer(Modifier.weight(1f))
@@ -332,6 +342,12 @@ fun CartItemRow(
             ) {
                 Box(
                     modifier = Modifier
+                        .border(
+                            width = 1.dp,
+                            color = Color.LightGray,
+                            shape = CircleShape
+                        )
+                        .size(36.dp),
                 ) {
                     Text(
                         text = "${product.quantityCount}",

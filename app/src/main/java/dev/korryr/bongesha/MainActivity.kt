@@ -35,6 +35,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.repositories.ProductRepository
+import dev.korryr.bongesha.screens.AllProductsScreen
 import dev.korryr.bongesha.screens.BongaAccSettings
 import dev.korryr.bongesha.screens.BongaHome
 import dev.korryr.bongesha.screens.BongaForgotPassword
@@ -42,7 +43,6 @@ import dev.korryr.bongesha.screens.BongaHelp
 import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
-import dev.korryr.bongesha.screens.BottomTab
 import dev.korryr.bongesha.screens.CartScreen
 import dev.korryr.bongesha.screens.ChatScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
@@ -54,6 +54,7 @@ import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthState
 import dev.korryr.bongesha.viewmodels.AuthViewModel
+import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
 import kotlinx.coroutines.launch
@@ -80,13 +81,13 @@ class MainActivity : ComponentActivity() {
             val currentSignInState = rememberUpdatedState(authViewModel.authState.value)
             val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
 
-            LaunchedEffect(isUserSignedIn) {
-                if (!isUserSignedIn) {
-                    navController.navigate("SignInScreen") {
-                        popUpTo(0) { inclusive = true }  // Clear back stack
-                    }
-                }
-            }
+//            LaunchedEffect(isUserSignedIn) {
+//                if (!isUserSignedIn) {
+//                    navController.navigate(Route.Home.SIGN_IN) {
+//                        popUpTo(0) { inclusive = true }  // Clear back stack
+//                    }
+//                }
+//            }
 
             BongeshaTheme {
                 Surface(
@@ -169,7 +170,7 @@ class MainActivity : ComponentActivity() {
                                             if (task.isSuccessful) {
                                                 Toast.makeText(context, "Password reset email sent.", Toast.LENGTH_LONG).show()
                                             } else {
-                                                Toast.makeText(context, "Error sending reset email.", Toast.LENGTH_LONG).show()
+                                                Toast.makeText(context, task.exception?.localizedMessage ?:"Error sending reset email.", Toast.LENGTH_LONG).show()
                                             }
                                         }
                                 },
@@ -208,7 +209,9 @@ class MainActivity : ComponentActivity() {
                             CartScreen(
                                 navController = navController,
                                 productRepository = ProductRepository(),
-                                authViewModel = authViewModel
+                                authViewModel = authViewModel,
+                                product = Product(),
+                                cartViewModel = CartViewModel()
                             )
                         }
 
@@ -225,6 +228,12 @@ class MainActivity : ComponentActivity() {
 
                         composable(Route.Home.NOTIFICATION) {
                             NotificationScreen()
+                        }
+
+                        composable(Route.Home.CATEGORY) {
+                            AllProductsScreen(
+                                navController
+                            )
                         }
 
                         composable(Route.Home.PROFILE) {
