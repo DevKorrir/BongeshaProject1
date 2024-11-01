@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.screens.BottomTab
 import dev.korryr.bongesha.ui.theme.orange28
@@ -91,6 +92,7 @@ fun BottomNavigationItem(
             icon()
             Text(
                 text = label,
+                fontSize = 11.sp,
                 color = if (isSelected) selectedColor else unselectedColor
             )
         }

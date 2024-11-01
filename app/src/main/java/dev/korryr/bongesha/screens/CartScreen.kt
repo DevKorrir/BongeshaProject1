@@ -1,6 +1,7 @@
 package dev.korryr.bongesha.screens
 
 import android.location.Location
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -61,12 +63,14 @@ import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.Product
 import dev.korryr.bongesha.viewmodels.CartViewModel
+import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.fetchUserLocation
 
 @Composable
 fun CartScreen(
     product: Product,
     navController: NavController,
+    categoryViewModel: CategoryViewModel,
     productRepository: ProductRepository,
     authViewModel: AuthViewModel,
     cartViewModel: CartViewModel
@@ -77,8 +81,11 @@ fun CartScreen(
         }
     }
 
+    val productStates by categoryViewModel.products.collectAsState()
+    val products = productStates.map { it.value }
+
     val context = LocalContext.current
-    val cartViewModel: CartViewModel = viewModel()
+    //val cartViewModel: CartViewModel = viewModel()
     val cartItems = cartViewModel.cart
     val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
@@ -91,6 +98,12 @@ fun CartScreen(
     LaunchedEffect(Unit) {
         userLocation = fetchUserLocation(context)
         cartViewModel.updateDeliveryFee(deliveryFee)
+    }
+
+    LaunchedEffect(Unit) {
+        categoryViewModel.fetchProductsForCategory(
+            "Audio & Sound Systems"
+        )
     }
 
     Column(
@@ -146,12 +159,13 @@ fun CartScreen(
                 items(cartItems) { cartItem ->
                     CartItemRow(
                         product = cartItem,
-                        onQuantityChange = { newQuantity ->
-                            cartViewModel.updateQuantity(cartItem, newQuantity)
-                        },
+                        //onQuantityChange = { newQuantity ->
+                          //  cartViewModel.updateQuantity(cartItem, newQuantity)
+                        //},
                         onRemoveItem = {
                             cartViewModel.removeFromCart(cartItem)
-                        }
+                        },
+                        cartViewModel = CartViewModel()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -268,9 +282,11 @@ fun CartScreen(
 @Composable
 fun CartItemRow(
     product: Product,
-    onQuantityChange: (Int) -> Unit,
+    cartViewModel: CartViewModel,
     onRemoveItem: () -> Unit
 ) {
+    var quantity by remember { mutableIntStateOf(cartViewModel.getCartItemQuantity(product).takeIf { it > 0 } ?: 1) }
+    val context = LocalContext.current
     Row(
         modifier = Modifier
             .background(
@@ -324,7 +340,7 @@ fun CartItemRow(
             )
 
             Text(
-                text = "Total: ${product.price * product.quantity}",
+                text = "Total: ${product.price * quantity}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Black
             )
@@ -380,9 +396,14 @@ fun CartItemRow(
                     ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                var showDeleteIcon by remember { mutableStateOf(false) }
                 IconButton(
                     onClick = {
-                        if (product.quantity > 1) onQuantityChange(product.quantity - 1)
+                        if (quantity > 0){
+                            quantity--
+                        } else {
+                            showDeleteIcon = quantity == 0
+                        }
                     }
                 ) {
                     Box {
@@ -393,15 +414,35 @@ fun CartItemRow(
                         )
                     }
                 }
+                if (showDeleteIcon) {
+                    IconButton(
+                        onClick = {
+                            // Handle delete action here (e.g., remove item from cart)
+                            cartViewModel.removeFromCart(product)
+                            Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
+                            showDeleteIcon = false  // Hide delete icon after deleting
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Remove item",
+                            tint = Color.Gray
+                        )
+                    }
+                }
+
+
                 Text(
-                    text = "x${product.quantity}",
+                    text = "x${quantity}",
                     modifier = Modifier
                 )
 
                 IconButton(
                     onClick = {
-                        if (product.quantityCount > product.quantity) {
-                            onQuantityChange(product.quantity + 1)
+                        if (quantity < product.quantityCount ){
+                            quantity++
+                        } else {
+                            Toast.makeText(context, "Only ${product.quantityCount} items available", Toast.LENGTH_SHORT).show()
                         }
                     }
                 ) {

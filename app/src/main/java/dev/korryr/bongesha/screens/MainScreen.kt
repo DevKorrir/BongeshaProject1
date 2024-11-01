@@ -317,7 +317,8 @@ fun BongaHome(
                         productRepository = ProductRepository(),
                         authViewModel = authViewModel,
                         product = Product(),
-                        cartViewModel = CartViewModel()
+                        cartViewModel = CartViewModel(),
+                        categoryViewModel = CategoryViewModel()
                     )
 
                 BottomTab.Wishlist -> Text("Wishlist Content")

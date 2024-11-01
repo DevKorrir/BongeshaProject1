@@ -31,7 +31,7 @@ fun AllProductsScreen(
     categoryViewModel: CategoryViewModel = viewModel()
 ) {
     val productStates by categoryViewModel.products.collectAsState()
-    val products = productStates.map { it.value }  // Convert `MutableState<Product>` to `Product`
+    val products = productStates.map { it.value }
 
     val isLoading by categoryViewModel.isLoading.collectAsState()
 
