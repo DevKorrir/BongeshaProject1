@@ -10,6 +10,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
@@ -27,6 +29,8 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
+import dev.korryr.bongesha.screens.isValidEmail
+import dev.korryr.bongesha.screens.isValidPassword
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -47,7 +51,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
 
     init {
+        sharedPreferences = initEncryptedSharedPreferences()
         checkSignInStatus()
+    }
+
+    private fun initEncryptedSharedPreferences(): SharedPreferences {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        return EncryptedSharedPreferences.create(
+            context,
+            "user_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 
     private fun checkSignInStatus() {
@@ -55,6 +74,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun signUp(email: String, password: String, displayName: String) {
+        if (!isValidEmail(email) || !isValidPassword(password)) {
+            _authState.value = AuthState.Error("Invalid email or password format")
+            return
+        }
         viewModelScope.launch {
             _authState.value = AuthState.Loading
             auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
@@ -70,7 +93,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                             // Send the email verification
                             user.sendEmailVerification().addOnCompleteListener { verificationTask ->
                                 if (verificationTask.isSuccessful) {
-                                    //saveUserToFirestore(user)
                                     _authState.value = AuthState.Success("Verification email sent to your email address.")
                                 } else {
                                     _authState.value = AuthState.Error(
@@ -93,6 +115,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password cannot be empty")
+            return
+        }
+        if (!isValidEmail(email) || !isValidPassword(password)) {
+            _authState.value = AuthState.Error("Invalid email or password format")
             return
         }
 
@@ -120,19 +146,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-
-
-//    fun signInWithEmail(email: String, password: String, navController: NavController, context: Context) {
-//        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-//            .addOnCompleteListener { task ->
-//                if (task.isSuccessful) {
-//                    // Navigate to home after successful login
-//                    navController.navigate(Route.Home.Category)
-//                } else {
-//                    Toast.makeText(context, "Sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-//                }
-//            }
-//    }
 
 
     fun signInWithGoogle(idToken: String, navController: NavController) {
@@ -203,6 +216,16 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     fun signOut() {
         Firebase.auth.signOut()
         _isUserSignedIn.value = false
+        clearUserSignInState()
+    }
+
+    private fun clearUserSignInState() {
+        sharedPreferences.edit().apply {
+            putBoolean("isSignedIn", false)
+            remove("userEmail")
+            remove("userDisplayName")
+            apply()
+        }
     }
 
 

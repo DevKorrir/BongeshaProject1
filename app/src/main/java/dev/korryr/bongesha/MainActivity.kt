@@ -208,11 +208,8 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.CART) {
                             CartScreen(
                                 navController = navController,
-                                productRepository = ProductRepository(),
                                 authViewModel = authViewModel,
-                                product = Product(),
                                 cartViewModel = CartViewModel(),
-                                categoryViewModel = CategoryViewModel()
                             )
                         }
 
@@ -271,6 +268,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 
     private fun isUserSignedIn(): Boolean {
         return sharedPreferences.getBoolean("isSignedIn", false)

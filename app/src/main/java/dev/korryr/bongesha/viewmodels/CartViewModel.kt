@@ -8,15 +8,27 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.android.tools.build.jetifier.core.utils.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
-import dev.korryr.bongesha.repositories.ProductRepository
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlin.math.roundToInt
 
+data class CartItem(
+    val id: String = "",
+    val name: String = "",
+    val price: Float = 0f,
+    val quantity: Int = 0,
+    val quantityCount: Int = 0,
+    val totalPrice: Float = 0f,
+    val images: List<String> = emptyList()
+)
+
 class CartViewModel : ViewModel() {
+    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
+    val cartItems: StateFlow<List<CartItem>> get() = _cartItems
     private val _cart = mutableStateListOf<Product>()
     val cart: List<Product> get() = _cart
     var quantityCount by mutableIntStateOf(0)
@@ -158,6 +170,7 @@ class CartViewModel : ViewModel() {
                 "name" to product.name,
                 "price" to product.price,
                 "quantity" to quantity,
+                "quantityCount" to product.quantityCount,
                 "totalPrice" to product.price * quantity,
                 "timestamp" to System.currentTimeMillis(),
                 "images" to product.images
@@ -177,10 +190,8 @@ class CartViewModel : ViewModel() {
 
     }
 
-
-
-    private fun fetchCartItems() {
-
+    // Example function in your CartViewModel
+    fun fetchCartItems() {
         val user = auth.currentUser
         user?.let {
             val userName = it.displayName ?: "Anonymous-user"
@@ -190,26 +201,27 @@ class CartViewModel : ViewModel() {
                 .collection("cart")
                 .addSnapshotListener { snapshot, e ->
                     if (e != null) {
+                        Log.e("CartVieModel","listen Failed")
                         return@addSnapshotListener
                     }
-                    _cart.clear()
+                    val cartList = mutableListOf<CartItem>()
                     snapshot?.documents?.forEach { document ->
-                        val product = Product(
+                        val cartItem = CartItem(
                             id = document.getString("id") ?: "",
                             name = document.getString("name") ?: "",
-                            price = (document.getDouble("price") ?: 0.0).toFloat(),
-                            images = (document.get("images") as? List<String>) ?: listOf(),
-                            quantity = document.getLong("quantity")?.toInt() ?: 1,
-                            quantityCount = document.getLong("quantityAvailable")?.toInt() ?: 0
+                            price = document.getDouble("price")?.toFloat() ?: 0f,
+                            quantity = document.getLong("quantity")?.toInt() ?: 0,
+                            quantityCount = document.getLong("quantityCount")?.toInt() ?: 0,
+                            totalPrice = document.getDouble("totalPrice")?.toFloat() ?: 0f,
+                            images = (document.get("images") as? List<String>) ?: emptyList()
                         )
-                        //val quantity = document.getLong("quantity")?.toInt() ?: 1
-                        _cart.add(product)
+                        cartList.add(cartItem)
                     }
-                    updateProductCount()
+                    _cartItems.value = cartList // Ensure _cartItems is MutableLiveData<List<CartItem>> or StateFlow
                 }
         }
-
     }
+
 
     // Function to observe changes in products and update the cart accordingly
     private fun observeProductUpdates() {

@@ -49,31 +49,25 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.repositories.ProductRepository
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
 import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
 import dev.korryr.bongesha.viewmodels.AuthViewModel
-import dev.korryr.bongesha.viewmodels.Product
+import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
-import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.fetchUserLocation
 
 @Composable
 fun CartScreen(
-    product: Product,
     navController: NavController,
-    categoryViewModel: CategoryViewModel,
-    productRepository: ProductRepository,
-    authViewModel: AuthViewModel,
-    cartViewModel: CartViewModel
+    cartViewModel: CartViewModel,
+    authViewModel: AuthViewModel
 ) {
     BackHandler {
         navController.navigate(Route.Home.HOME) {
@@ -81,29 +75,22 @@ fun CartScreen(
         }
     }
 
-    val productStates by categoryViewModel.products.collectAsState()
-    val products = productStates.map { it.value }
+    //val productStates by categoryViewModel.products.collectAsState()
+    //val products = productStates.map { it.value }
 
     val context = LocalContext.current
+    val cartItems by cartViewModel.cartItems.collectAsState()
     //val cartViewModel: CartViewModel = viewModel()
-    val cartItems = cartViewModel.cart
+    //val cartItems = cartViewModel.cart
     val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
-    val isInCart by remember { mutableStateOf(cartViewModel.isItemInCart(product)) }
-    var quantity by remember { mutableIntStateOf(cartViewModel.getCartItemQuantity(product).takeIf { it > 0 } ?: 1) }
 
 
     // Update the delivery fee in ViewModel
     LaunchedEffect(Unit) {
         userLocation = fetchUserLocation(context)
         cartViewModel.updateDeliveryFee(deliveryFee)
-    }
-
-    LaunchedEffect(Unit) {
-        categoryViewModel.fetchProductsForCategory(
-            "Audio & Sound Systems"
-        )
     }
 
     Column(
@@ -158,14 +145,15 @@ fun CartScreen(
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(cartItems) { cartItem ->
                     CartItemRow(
-                        product = cartItem,
+                        cartItem = CartItem(),
                         //onQuantityChange = { newQuantity ->
                           //  cartViewModel.updateQuantity(cartItem, newQuantity)
                         //},
                         onRemoveItem = {
-                            cartViewModel.removeFromCart(cartItem)
+                            //cartViewModel.removeFromCart(cartItem)
+                            Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
                         },
-                        cartViewModel = CartViewModel()
+                        cartViewModel = cartViewModel,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
@@ -281,11 +269,11 @@ fun CartScreen(
 
 @Composable
 fun CartItemRow(
-    product: Product,
+    cartItem: CartItem,
     cartViewModel: CartViewModel,
     onRemoveItem: () -> Unit
 ) {
-    var quantity by remember { mutableIntStateOf(cartViewModel.getCartItemQuantity(product).takeIf { it > 0 } ?: 1) }
+    var quantity by remember { mutableIntStateOf(cartItem.quantity) }
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -315,10 +303,10 @@ fun CartItemRow(
                 .size(100.dp)
                 .clip(RoundedCornerShape(12.dp)),
         ) {
-            val imagePainter = rememberImagePainter(data = product.images.firstOrNull())
+            val imagePainter = rememberImagePainter(data = cartItem.images.firstOrNull())
             Image(
                 painter = imagePainter,
-                contentDescription = product.name,
+                contentDescription = cartItem.name,
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .size(100.dp),
@@ -330,17 +318,17 @@ fun CartItemRow(
 
         Column {
             Text(
-                text = product.name,
+                text = cartItem.name,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "Ksh ${product.price}",
+                text = "Ksh ${cartItem.price}",
                 color = green99
             )
 
             Text(
-                text = "Total: ${product.price * quantity}",
+                text = "Total: ${cartItem.price * quantity}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Black
             )
@@ -366,7 +354,7 @@ fun CartItemRow(
                         .size(36.dp),
                 ) {
                     Text(
-                        text = "${product.quantityCount}",
+                        text = "${cartItem.quantityCount}",
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -418,7 +406,7 @@ fun CartItemRow(
                     IconButton(
                         onClick = {
                             // Handle delete action here (e.g., remove item from cart)
-                            cartViewModel.removeFromCart(product)
+                            //cartViewModel.removeFromCart(cartItem)
                             Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
                             showDeleteIcon = false  // Hide delete icon after deleting
                         }
@@ -439,10 +427,10 @@ fun CartItemRow(
 
                 IconButton(
                     onClick = {
-                        if (quantity < product.quantityCount ){
+                        if (quantity < cartItem.quantityCount ){
                             quantity++
                         } else {
-                            Toast.makeText(context, "Only ${product.quantityCount} items available", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Only ${cartItem.quantityCount} items available", Toast.LENGTH_SHORT).show()
                         }
                     }
                 ) {

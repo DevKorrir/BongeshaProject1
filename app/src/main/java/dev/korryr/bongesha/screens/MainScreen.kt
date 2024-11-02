@@ -314,11 +314,8 @@ fun BongaHome(
                 BottomTab.Cart ->
                     CartScreen(
                         navController = navController,
-                        productRepository = ProductRepository(),
                         authViewModel = authViewModel,
-                        product = Product(),
                         cartViewModel = CartViewModel(),
-                        categoryViewModel = CategoryViewModel()
                     )
 
                 BottomTab.Wishlist -> Text("Wishlist Content")

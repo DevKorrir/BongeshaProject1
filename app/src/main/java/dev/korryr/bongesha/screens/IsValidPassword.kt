@@ -17,3 +17,7 @@ fun isValidPassword(password: String): Boolean {
             password.any { it.isLowerCase() } &&
             password.any { !it.isLetterOrDigit() }
 }
+
+fun isValidEmail(email: String): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+}
