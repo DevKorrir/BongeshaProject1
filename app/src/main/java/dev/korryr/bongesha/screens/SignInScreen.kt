@@ -304,7 +304,6 @@ fun BongaSignIn(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
 
-
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
             ) { result ->
@@ -335,8 +334,6 @@ fun BongaSignIn(
                             .build()
                     )
                     val signInIntent = googleSignInClient.signInIntent
-
-                    // Launch the Intent directly, not an IntentSenderRequest
                     launcher.launch(signInIntent)
                 },
                 painter = painterResource(id = R.drawable.google_icons)

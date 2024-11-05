@@ -148,21 +148,29 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    fun signInWithGoogle(idToken: String, navController: NavController) {
-        viewModelScope.launch {
-            _authState.value = AuthState.Loading
-            val credential = GoogleAuthProvider.getCredential(idToken, null)
-            auth.signInWithCredential(credential).addOnCompleteListener { task ->
+    fun signInWithGoogle(idToken: String?, navController: NavController) {
+        if (idToken == null) {
+            _authState.value = AuthState.Error("Google sign-in failed: Missing token")
+            return
+        }
+
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        Firebase.auth.signInWithCredential(credential)
+            .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    saveUserToFirestore(auth.currentUser)
-                    _authState.value = AuthState.Success("Google Sign in successful")
-                    navController.navigate(Route.Home.HOME)
+                    val user = Firebase.auth.currentUser
+                    user?.let {
+                        saveUserToFirestore(it)
+                        _authState.value = AuthState.Success("Google sign-in successful")
+                        navController.navigate(Route.Home.HOME)
+                    }
                 } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Google Sign in failed")
+                    _authState.value = AuthState.Error("Google sign-in failed: ${task.exception?.message}")
                 }
             }
-        }
     }
+
+
 
     fun signInWithFacebook(navController: NavController) {
         val loginButton = LoginButton(context) // Dynamically creating a LoginButton

@@ -76,12 +76,14 @@ dependencies {
     implementation("androidx.navigation:navigation-runtime-ktx:2.8.3")
     implementation("com.google.android.gms:play-services-instantapps:18.1.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-    implementation("androidx.databinding:compilerCommon:3.2.0-alpha11")
+    
     implementation("androidx.room:room-common:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
-    //implementation("androidx.security:security-crypto-ktx:1.0.0")
     implementation ("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("androidx.security:security-crypto-ktx:1.1.0-alpha06")
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -94,7 +96,6 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("androidx.biometric:biometric-ktx:1.2.0-alpha05")
     implementation("com.google.android.gms:play-services-auth:21.2.0")
@@ -104,9 +105,13 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.facebook.android:facebook-android-sdk:17.0.2")
     implementation ("com.facebook.android:facebook-login:17.0.2")
-    implementation ("com.facebook.android:facebook-android-sdk:latest.release")
-    implementation ("com.google.android.gms:play-services-auth:21.2.0")
+
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.24.13-rc")
+    implementation ("androidx.credentials:credentials:1.3.0")
+    implementation ("androidx.credentials:credentials-play-services-auth:1.3.0")
+
+
+
 
 
 

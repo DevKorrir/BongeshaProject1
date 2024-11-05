@@ -26,10 +26,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.facebook.CallbackManager
 import com.facebook.appevents.AppEventsLogger
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -58,6 +62,7 @@ import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
@@ -70,9 +75,9 @@ class MainActivity : ComponentActivity() {
 
         auth = Firebase.auth
 
-        //FacebookSdk.sdkInitialize(applicationContext)
         AppEventsLogger.activateApp(application)
-        sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+        sharedPreferences = initEncryptedSharedPreferences()
+        //sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
         setContent {
             val navController = rememberNavController()
@@ -95,20 +100,25 @@ class MainActivity : ComponentActivity() {
                     color = gray01
                 ) {
                     val launcher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.StartIntentSenderForResult(),
+                        contract = ActivityResultContracts.StartActivityForResult(),
                         onResult = { result ->
                             if (result.resultCode == RESULT_OK) {
-                                lifecycleScope.launch {
-                                    result.data?.let { data ->
-                                        val account = GoogleSignIn.getSignedInAccountFromIntent(data).result
-                                        account?.let {
-                                            authViewModel.signInWithGoogle(it.idToken ?: "", navController)
-                                        }
+                                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                                try {
+                                    val account = task.getResult(ApiException::class.java)
+                                    if (account != null) {
+                                        authViewModel.signInWithGoogle(account.idToken, navController)
                                     }
+                                } catch (e: ApiException) {
+                                    Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
+                            } else {
+                                Toast.makeText(context, "Google sign-in canceled", Toast.LENGTH_LONG).show()
                             }
                         }
                     )
+
+
 
                     //callbackManager = CallbackManager.Factory.create()
                     val isUserSignedIn by authViewModel.isSignedIn.collectAsState()
@@ -123,22 +133,27 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 authViewModel = authViewModel,
                                 onGoogleSignIn = {
+                                    //val nonce = UUID.randomUUID().toString()  // Generate a unique nonce each time
+
+//                                    val googleSignInClient: GetGoogleIdOption = GetGoogleIdOption.Builder()
+//                                        .setFilterByAuthorizedAccounts(true)  // Only authorized accounts are shown
+//                                        .setServerClientId(getString(R.string.web_client_id))  // Ensure WEB_CLIENT_ID is correct
+//                                        .setAutoSelectEnabled(true)  // Auto-select account if only one is available
+//                                        .setNonce(nonce)  // Use a secure, randomly generated nonce
+//                                        .build()
+
                                     val googleSignInClient = GoogleSignIn.getClient(
-                                    context,
-                                    GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                        .requestIdToken(getString(R.string.web_client_id))
-                                        .requestEmail()
-                                        .build()
-                                )
-
+                                        this@MainActivity,
+                                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                            .requestIdToken(getString(R.string.web_client_id))  // Ensure this matches Firebase OAuth settings
+                                            .requestEmail()
+                                            .build()
+                                    )
                                     val signInIntent = googleSignInClient.signInIntent
-                                    val pendingIntent = PendingIntent.getActivity(
-                                        context, 0, signInIntent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                                    launcher.launch(
+                                        (signInIntent)
                                     )
 
-                                    launcher.launch(
-                                        IntentSenderRequest.Builder(pendingIntent.intentSender).build()
-                                    )
                                 },
                                 onFacebookSignInClick = {
                                     authViewModel.signInWithFacebook(navController)
@@ -183,6 +198,18 @@ class MainActivity : ComponentActivity() {
                                     Toast.makeText(context, "Google sign-in failed: ID token is null.", Toast.LENGTH_LONG).show()
                                 }
                             )
+
+                            LaunchedEffect(key1 = currentSignInState.value) {
+                                if (currentSignInState.value is AuthState.Success) {
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        (currentSignInState.value as AuthState.Success).message,
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                    saveUserSignInState()
+                                    navController.navigate(Route.Home.HOME)
+                                }
+                            }
                         }
 
 
@@ -270,21 +297,35 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private fun isUserSignedIn(): Boolean {
-        return sharedPreferences.getBoolean("isSignedIn", false)
+//    private fun isUserSignedIn(): Boolean {
+//        return sharedPreferences.getBoolean("isSignedIn", false)
+//    }
+
+    private fun initEncryptedSharedPreferences(): SharedPreferences {
+        val masterKey = MasterKey.Builder(this)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        return EncryptedSharedPreferences.create(
+            this,
+            "user_prefs",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
     }
 
     private fun saveUserSignInState() {
         sharedPreferences.edit().putBoolean("isSignedIn", true).apply()
     }
 
-    fun saveUserDetails(email: String?, displayName: String?) {
-        sharedPreferences.edit().apply {
-            putString("userEmail", email)
-            putString("userDisplayName", displayName)
-            apply()
-        }
-    }
+//    fun saveUserDetails(email: String?, displayName: String?) {
+//        sharedPreferences.edit().apply {
+//            putString("userEmail", email)
+//            putString("userDisplayName", displayName)
+//            apply()
+//        }
+//    }
 
 
     private fun clearUserSignInState() {
@@ -295,4 +336,5 @@ class MainActivity : ComponentActivity() {
             apply()
         }
     }
+
 }

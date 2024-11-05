@@ -2,13 +2,14 @@ package dev.korryr.bongesha.viewmodels
 
 import android.content.Context
 import android.location.Location
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.android.tools.build.jetifier.core.utils.Log
+//import com.android.tools.build.jetifier.core.utils.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
