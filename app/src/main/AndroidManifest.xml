@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="dev.korryr.bongesha"> <!-- Replace with your actual package name -->
+    package="dev.korryr.bongesha">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
 
 
     <application
@@ -21,6 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Bongesha"
         tools:targetApi="31">
+
+        <!-- google maps metadata -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDQ7ZxsA21JywS0UorNAW16ZS0Nfrz-eRo" />
+
 
         <!-- Facebook SDK metadata -->
         <meta-data

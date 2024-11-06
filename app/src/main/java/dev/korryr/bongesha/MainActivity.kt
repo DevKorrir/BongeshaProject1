@@ -34,6 +34,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -75,6 +76,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         auth = Firebase.auth
+
+        // Initialize the Places API with your API key
+        if (!Places.isInitialized()) {
+            Places.initialize(this, "AIzaSyDQ7ZxsA21JywS0UorNAW16ZS0Nfrz-eRo")
+        }
 
         AppEventsLogger.activateApp(application)
         sharedPreferences = initEncryptedSharedPreferences()

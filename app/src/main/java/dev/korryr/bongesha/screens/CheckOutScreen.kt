@@ -12,56 +12,83 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.android.gms.maps.model.LatLng
 import dev.korryr.bongesha.commons.BongaButton
-import dev.korryr.bongesha.commons.BongaCheckbox
 import dev.korryr.bongesha.commons.Bongatextfield
+import dev.korryr.bongesha.commons.LocationPickerBottomSheet
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange100
-import dev.korryr.bongesha.ui.theme.orange12
 import dev.korryr.bongesha.ui.theme.orange28
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckOut(
     navController: NavController
 ){
+    var deliverName by remember { mutableStateOf("") }
+    var phoneNo by remember { mutableStateOf("") }
+    var landMark by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    var selectedPaymentMethod by remember { mutableStateOf("Mpesa") }
+    var isSelectedPaymentMethod by remember { mutableStateOf(false) }
+    var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
+    var isLocationSheetOpen by remember { mutableStateOf(false) }
+    var locationText by remember { mutableStateOf("") }
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
+    val scope = rememberCoroutineScope()
+
+
     Scaffold (
         modifier = Modifier
             .padding(10.dp)
@@ -91,16 +118,9 @@ fun CheckOut(
         }
     ){ innerPadding ->
 
-        var deliverName by remember { mutableStateOf("") }
-        var phoneNo by remember { mutableStateOf("") }
-        var landMark by remember { mutableStateOf("") }
-        val context = LocalContext.current
-
-        var selectedPaymentMethod by remember { mutableStateOf("Mpesa") }
-        var isSelectedPaymentMethod by remember { mutableStateOf(false) }
-
         Column (
             modifier = Modifier
+                .verticalScroll(rememberScrollState())
                 .padding(innerPadding)
                 .fillMaxSize()
                 .background(
@@ -202,6 +222,37 @@ fun CheckOut(
                         imeAction = ImeAction.Done
                     )
                 )
+                Spacer(Modifier.height(12.dp))
+
+                Row (
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ){
+                    Button(
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = orange28
+                        ),
+                        onClick = {
+                            isLocationSheetOpen = true
+                        }
+                    ) {
+                        Text("Pick Location")
+                    }
+
+                    Spacer(Modifier.width(8.dp))
+
+                    Bongatextfield(
+
+                        input = locationText,
+                        label = "",
+                        hint = "Selected Location",
+                        fieldDescription = "",
+                        onChange = { locationText = it }
+                    )
+                }
 
                 Spacer(Modifier.height(8.dp))
 
@@ -334,6 +385,65 @@ fun CheckOut(
                     }
                 }
 
+            }
+        }
+    }
+
+    if (isLocationSheetOpen) {
+        ModalBottomSheet(
+            dragHandle = {
+                //Icon(Icons.Default.toString(), contentDescription = null)
+            },
+            containerColor = gray01,
+            onDismissRequest = {
+                isLocationSheetOpen = false
+            },
+            sheetState = sheetState,
+        ){
+            Column (
+                modifier = Modifier
+                    .heightIn(max = 650.dp)
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+
+            ){
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ){
+                    ElevatedButton(
+                        modifier = Modifier,
+                        onClick = {
+                            isLocationSheetOpen = false
+                        },
+                        colors = ButtonColors(
+                            containerColor = gray01,
+                            contentColor = Color.Gray,
+                            disabledContainerColor = gray01,
+                            disabledContentColor = Color.Gray
+                        )
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.Red,
+                            imageVector = Icons.Default.Close,
+                            contentDescription = ""
+                        )
+                    }
+
+                }
+
+                LocationPickerBottomSheet(
+                    onConfirmLocation = { location ->
+                        selectedLocation = location
+                        locationText = "Lat: ${location.latitude}, Lng: ${location.longitude}"
+                        isLocationSheetOpen = false // Close BottomSheet
+                    },
+                    onClose = { isLocationSheetOpen = false }
+                )
             }
         }
     }

@@ -48,7 +48,7 @@ import dev.korryr.bongesha.ui.theme.orange28
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Bongatextfield(
-    label: String,
+    label: String? = null,
     isPassword: Boolean = false,
     showPassword: Boolean = false,
     boldLabel: Boolean = true,
@@ -92,11 +92,13 @@ fun Bongatextfield(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = label,
-            color = Color.DarkGray,
-            fontWeight = if (boldLabel) FontWeight.Bold else FontWeight.Normal,
-        )
+        if (label != null) {
+            Text(
+                text = label,
+                color = Color.DarkGray,
+                fontWeight = if (boldLabel) FontWeight.Bold else FontWeight.Normal,
+            )
+        }
         if (fieldDescription.isNotEmpty()) {
             Text(
                 text = fieldDescription,
