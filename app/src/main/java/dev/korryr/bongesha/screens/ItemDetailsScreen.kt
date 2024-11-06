@@ -85,24 +85,6 @@ fun ItemDetailsScreen(
     Scaffold (
         containerColor = gray01,
         topBar = {
-//            TopAppBar(
-//                title = {
-//                    Text(
-//                        text = "Item Details",
-//                        fontWeight = FontWeight.Bold,
-//                        fontSize = 26.sp
-//                        )
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onClick) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.minus),
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                }
-//            )
-            //header row
             Row (
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,

@@ -73,7 +73,7 @@ fun Bongatextfield(
         errorContainerColor = Color.White,
         unfocusedTextColor = Color.Black,
         disabledTextColor = Color.Black,
-        errorTextColor = Color.Black,
+        errorTextColor = Color.Red,
         errorIndicatorColor = Color.Red,
         unfocusedIndicatorColor = Color.Transparent,
         focusedIndicatorColor = orange28,
@@ -122,7 +122,6 @@ fun Bongatextfield(
                 modifier = Modifier
                     .weight(1f)
                     .height(50.dp)
-                    //.height(if (isLongText) 50.dp else TextFieldDefaults.MinHeight)
                     .fillMaxWidth()
                     .testTag(label + "1"),
                 colors = colors,

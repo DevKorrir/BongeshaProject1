@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -123,7 +124,7 @@ fun CartScreen(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.Default.KeyboardArrowLeft,
                         contentDescription = "Back",
                         tint = Color.Gray
                     )
@@ -258,7 +259,9 @@ fun CartScreen(
                 modifier = Modifier.fillMaxWidth(),
                 label = "Checkout",
                 color = Color.White,
-                onClick = {},
+                onClick = {
+                    navController.navigate(Route.Home.CHECKOUT)
+                },
                 buttonColor = orange28
             )
         } else {

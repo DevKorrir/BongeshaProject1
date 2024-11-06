@@ -52,7 +52,7 @@ fun BongaWelcome(
         Box(
             modifier = Modifier
                 .clickable {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
                 .border(
                     1.dp,

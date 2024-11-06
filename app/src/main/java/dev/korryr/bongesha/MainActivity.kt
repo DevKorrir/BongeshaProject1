@@ -49,6 +49,7 @@ import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
 import dev.korryr.bongesha.screens.CartScreen
 import dev.korryr.bongesha.screens.ChatScreen
+import dev.korryr.bongesha.screens.CheckOut
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
@@ -285,6 +286,12 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.WISHLIST) {
                             WishlistScreen(
                                 product = Product(),
+                            )
+                        }
+
+                        composable(Route.Home.CHECKOUT) {
+                            CheckOut(
+                                navController
                             )
                         }
 

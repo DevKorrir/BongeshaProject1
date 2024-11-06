@@ -26,6 +26,7 @@ class Route {
         const val ORDER = "/ORDER/"
         const val WISHLIST = "/WISHLIST/"
         const val VERIFICATION = "/VERIFICATION/"
+        const val CHECKOUT = "/CHECKOUT/"
 
 
     }
