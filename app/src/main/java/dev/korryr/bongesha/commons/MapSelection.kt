@@ -23,8 +23,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.sp
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.libraries.places.api.Places
 import com.google.android.libraries.places.api.model.AutocompletePrediction
@@ -32,6 +36,7 @@ import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
+import dev.korryr.bongesha.ui.theme.orange28
 
 @Composable
 fun DeliveryLocationPicker(
@@ -129,28 +134,34 @@ fun LocationPickerBottomSheet(
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     var searchResults by remember { mutableStateOf<List<AutocompletePrediction>>(emptyList()) }
 
-    //val initialPosition = LatLng(-0.3689, 35.2836) // Kericho, Kenya
+    val initialPosition = LatLng(-0.6, 35.1936) // Kericho, Kenya
 
     // State to hold selected location
     var selectedLocation by remember { mutableStateOf<LatLng?>(null) }
     val mapUiSettings = MapUiSettings(zoomControlsEnabled = true)
     val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(-1.286389, 36.817223), 12f) // Centered around Nairobi)
+        position = CameraPosition.fromLatLngZoom(initialPosition, 10f)
     }
     val mapProperties = MapProperties(
         isMyLocationEnabled = true,
-        minZoomPreference = 10f, // Minimum zoom level for detailed view
-        maxZoomPreference = 100f  // Maximum zoom level to prevent zooming out too far
+        minZoomPreference = 6f, // Minimum zoom level for detailed view
+        maxZoomPreference = 15f  // Maximum zoom level to prevent zooming out too far
     )
 
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
             .fillMaxWidth()
-            .padding(vertical = 10.dp),
+            .padding(vertical = 1.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Select Delivery Location", modifier = Modifier.padding(8.dp))
+        Text(
+            text = "Select Delivery Location: Drag with two fingers for easy navigation",
+            modifier = Modifier.padding(8.dp),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Bold
+
+        )
 
         // Search TextField
         OutlinedTextField(
@@ -164,7 +175,9 @@ fun LocationPickerBottomSheet(
                 }
             },
             label = { Text("Search Location") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .height(56.dp)
+                .fillMaxWidth(),
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = androidx.compose.ui.text.input.ImeAction.Search,
             ),
@@ -222,7 +235,16 @@ fun LocationPickerBottomSheet(
 
             // Display selected location coordinates
             selectedLocation?.let {
-                Text(text = "Selected Location: ${it.latitude}, ${it.longitude}", modifier = Modifier.padding(8.dp))
+                Row (
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ){
+                    Text(
+                        text = "Delivery Location:Lat: ${it.latitude},\nLng: ${it.longitude}",
+                        modifier = Modifier.padding(8.dp))
+                }
             }
 
             // Confirm Button
@@ -233,9 +255,17 @@ fun LocationPickerBottomSheet(
                         Toast.makeText(context, "Location Confirmed", Toast.LENGTH_SHORT).show()
                     }
                 },
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = orange28,
+                    contentColor = Color.White
+                )
             ) {
-                Text("Confirm Location")
+                Text(
+                    text ="Confirm Location",
+                    fontWeight = FontWeight.W700,
+                    color = Color.White
+                )
             }
         }
     }

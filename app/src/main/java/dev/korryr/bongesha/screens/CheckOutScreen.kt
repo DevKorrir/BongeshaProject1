@@ -180,6 +180,9 @@ fun CheckOut(
 
             Column (
                 modifier = Modifier
+                    .background(
+                        color = gray01,
+                    )
             ){
                 Text(
                     text = "Delivery Address",
@@ -222,10 +225,10 @@ fun CheckOut(
                         imeAction = ImeAction.Done
                     )
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(8.dp))
 
                 Row (
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Start,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -239,19 +242,32 @@ fun CheckOut(
                             isLocationSheetOpen = true
                         }
                     ) {
-                        Text("Pick Location")
+                        Text(
+                            "PickUp Location",
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     Spacer(Modifier.width(8.dp))
 
-                    Bongatextfield(
-
-                        input = locationText,
-                        label = "",
-                        hint = "Selected Location",
-                        fieldDescription = "",
-                        onChange = { locationText = it }
-                    )
+                    Row (
+                        modifier = Modifier
+                            .background(
+                                color = Color.White,
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .padding(start = 12.dp, end = 5.dp)
+                            //.height(0.dp)
+                            .width(200.dp)
+                    ){
+                        Text(
+                            text = "Lat: ${selectedLocation?.latitude}\nLng: ${selectedLocation?.longitude}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(8.dp))
@@ -384,6 +400,27 @@ fun CheckOut(
                         }
                     }
                 }
+
+                Spacer(Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = Color.White,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        )k
+                ){
+                    Text(
+                        text = "ttttt"
+                    )
+                }
+
+
 
             }
         }
