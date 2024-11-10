@@ -1,6 +1,8 @@
 package dev.korryr.bongesha.screens
 
+import android.location.Location
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,8 +32,10 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -51,8 +55,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontVariation.width
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -60,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.google.android.gms.maps.model.LatLng
+import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.commons.Bongatextfield
 import dev.korryr.bongesha.commons.LocationPickerBottomSheet
@@ -67,11 +78,13 @@ import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange100
 import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.viewmodels.CartViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckOut(
-    navController: NavController
+    navController: NavController,
+    cartViewModel: CartViewModel
 ){
     var deliverName by remember { mutableStateOf("") }
     var phoneNo by remember { mutableStateOf("") }
@@ -87,6 +100,10 @@ fun CheckOut(
         skipPartiallyExpanded = true,
     )
     val scope = rememberCoroutineScope()
+
+    val totalPrice = cartViewModel.calculateTotalPrice()
+    var userLocation by remember { mutableStateOf<Location?>(null) }
+    val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
 
 
     Scaffold (
@@ -105,7 +122,7 @@ fun CheckOut(
                 ){
                     BongaButton(
                         modifier = Modifier.fillMaxWidth(),
-                        label = "Confirm Order",
+                        label = "Place Order",
                         color = Color.White,
                         onClick = {
                             //navController.navigate(Route.Home.CHECKOUT)
@@ -280,8 +297,15 @@ fun CheckOut(
 
                 Spacer(Modifier.height(8.dp))
 
+                //payment method
                 Box(
                     modifier = Modifier
+                        .padding(8.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            clip = true
+                        )
                         .background(
                             color = Color.White,
                             shape = RoundedCornerShape(12.dp)
@@ -329,6 +353,16 @@ fun CheckOut(
                                     .fillMaxWidth()
                                     .padding(12.dp)
                             ){
+                                Image(
+                                    painter = painterResource(id = R.drawable.cash_method),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    colorFilter = ColorFilter.tint(if (selectedPaymentMethod == "Cash")
+                                        orange28 else Color.LightGray )
+                                )
+
+                                Spacer(Modifier.width(8.dp))
+
                                 Text(
                                     text = "Cash",
                                     modifier = Modifier.weight(1f),
@@ -380,6 +414,16 @@ fun CheckOut(
                                     .fillMaxWidth()
                                     .padding(12.dp)
                             ){
+                                Image(
+                                    painter = painterResource(id = R.drawable.e_payment),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    colorFilter = ColorFilter.tint(if (selectedPaymentMethod == "Mpesa")
+                                        orange28 else Color.LightGray )
+                                )
+
+                                Spacer(Modifier.width(8.dp))
+
                                 Text(
                                     text = "M-pesa",
                                     modifier = Modifier.weight(1f),
@@ -401,10 +445,17 @@ fun CheckOut(
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
 
+                //invoice summary
                 Box(
                     modifier = Modifier
+                        .padding(8.dp)
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = RoundedCornerShape(12.dp),
+                            clip = true
+                        )
                         .background(
                             color = Color.White,
                             shape = RoundedCornerShape(12.dp)
@@ -413,11 +464,95 @@ fun CheckOut(
                             width = 1.dp,
                             color = Color.Transparent,
                             shape = RoundedCornerShape(12.dp)
-                        )k
+                        )
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
                 ){
-                    Text(
-                        text = "ttttt"
-                    )
+                    Column (
+                        modifier = Modifier
+                            .padding(8.dp)
+                    ){
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Total Value",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.W700,
+                                color = Color.Black,
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Text(
+                                text = "$totalPrice KES",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black,
+                            )
+                        }
+
+                        Spacer(Modifier.height(4.dp))
+
+                        HorizontalDivider(
+                            color = Color.LightGray,
+                            thickness = 1.dp
+                        )
+
+                        Spacer(Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Delivery Fee",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.DarkGray,
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Text(
+                                text = "$deliveryFee KES",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.DarkGray,
+                            )
+                        }
+
+                        Spacer(Modifier.height(4.dp))
+
+                        HorizontalDivider(
+                            color = Color.LightGray,
+                            thickness = 1.dp
+                        )
+
+                        Spacer(Modifier.height(4.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Amount Payable",
+                                color = orange28,
+                                fontWeight = FontWeight.W700
+                            )
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Text(
+                                text = "${totalPrice + deliveryFee} KES",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = orange28,
+                            )
+                        }
+                    }
+
                 }
 
 

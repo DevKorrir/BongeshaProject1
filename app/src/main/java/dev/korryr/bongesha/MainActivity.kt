@@ -297,7 +297,8 @@ class MainActivity : ComponentActivity() {
 
                         composable(Route.Home.CHECKOUT) {
                             CheckOut(
-                                navController
+                                navController,
+                                cartViewModel = CartViewModel()
                             )
                         }
 
