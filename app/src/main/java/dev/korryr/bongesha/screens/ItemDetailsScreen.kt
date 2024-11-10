@@ -54,6 +54,7 @@ import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.orange28
+import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.Product
 import dev.korryr.bongesha.viewmodels.WishlistItems
@@ -63,6 +64,7 @@ import dev.korryr.bongesha.viewmodels.WishlistViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemDetailsScreen(
+    cartItem: CartItem,
     product: Product,
     onClick: () -> Unit,
     cartViewModel: CartViewModel = viewModel(),
@@ -338,7 +340,6 @@ fun ItemDetailsScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    var showDeleteIcon by remember { mutableStateOf(false) }
                     IconButton(
                         modifier = Modifier
                             .background(
@@ -349,8 +350,6 @@ fun ItemDetailsScreen(
                         onClick = {
                             if (quantity > 0){
                                 quantity--
-                            } else {
-                                showDeleteIcon = quantity == 0
                             }
                         }
                     ) {
@@ -359,22 +358,6 @@ fun ItemDetailsScreen(
                             painter = painterResource(id = R.drawable.minus),
                             contentDescription = "Decrease"
                         )
-                    }
-                    if (showDeleteIcon) {
-                        IconButton(
-                            onClick = {
-                                // Handle delete action here (e.g., remove item from cart)
-                                cartViewModel.removeFromCart(product)
-                                Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
-                                showDeleteIcon = false  // Hide delete icon after deleting
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Remove item",
-                                tint = Color.Gray
-                            )
-                        }
                     }
 
                     Spacer(modifier = Modifier.padding(8.dp))

@@ -48,6 +48,7 @@ import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
+import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.Product
 import kotlinx.coroutines.launch
 
@@ -203,7 +204,8 @@ fun ItemRow(
                             }
                         }
                     },
-                    product = product
+                    product = product,
+                    cartItem = CartItem()
                 )
             }
         }

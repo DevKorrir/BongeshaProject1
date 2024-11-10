@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.HorizontalDivider
@@ -36,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -83,7 +81,7 @@ fun CartScreen(
     val cartItems by cartViewModel.cartItems.collectAsState()
     //val cartViewModel: CartViewModel = viewModel()
     //val cartItems = cartViewModel.cart
-    val totalPrice = cartViewModel.calculateTotalPrice()
+    //val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
 
@@ -146,12 +144,12 @@ fun CartScreen(
             LazyColumn(modifier = Modifier.weight(1f)) {
                 items(cartItems) { cartItem ->
                     CartItemRow(
-                        cartItem = CartItem(),
-                        //onQuantityChange = { newQuantity ->
-                          //  cartViewModel.updateQuantity(cartItem, newQuantity)
-                        //},
+                        cartItem = cartItem,
+//                        onQuantityChange = { newQuantity ->
+//                            cartViewModel.updateQuantity(cartItem, newQuantity)
+//                        },
                         onRemoveItem = {
-                            //cartViewModel.removeFromCart(cartItem)
+                            cartViewModel.removeFromCart(cartItem)
                             Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
                         },
                         cartViewModel = cartViewModel,
@@ -192,7 +190,7 @@ fun CartScreen(
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh $totalPrice",
+                            text = "Ksh..",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -244,7 +242,7 @@ fun CartScreen(
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh. ${totalPrice + deliveryFee}",
+                            text = "Ksh.//",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = orange28,
@@ -276,7 +274,7 @@ fun CartItemRow(
     cartViewModel: CartViewModel,
     onRemoveItem: () -> Unit
 ) {
-    var quantity by remember { mutableIntStateOf(cartItem.quantity) }
+    var cartQuantity = cartItem.addedQuantity
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -306,7 +304,8 @@ fun CartItemRow(
                 .size(100.dp)
                 .clip(RoundedCornerShape(12.dp)),
         ) {
-            val imagePainter = rememberImagePainter(data = cartItem.images.firstOrNull())
+            val imagePainter = rememberImagePainter(
+                data = cartItem.images.firstOrNull() ?: "wait...",)
             Image(
                 painter = imagePainter,
                 contentDescription = cartItem.name,
@@ -331,7 +330,7 @@ fun CartItemRow(
             )
 
             Text(
-                text = "Total: ${cartItem.price * quantity}",
+                text = "Total: ${cartItem.price * cartQuantity}",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Black
             )
@@ -390,10 +389,11 @@ fun CartItemRow(
                 var showDeleteIcon by remember { mutableStateOf(false) }
                 IconButton(
                     onClick = {
-                        if (quantity > 0){
-                            quantity--
+                        if (cartQuantity > 1){
+                            cartQuantity--
+                            cartViewModel.updateQuantity(cartItem,cartQuantity)
                         } else {
-                            showDeleteIcon = quantity == 0
+                            showDeleteIcon = cartQuantity == 0
                         }
                     }
                 ) {
@@ -409,7 +409,7 @@ fun CartItemRow(
                     IconButton(
                         onClick = {
                             // Handle delete action here (e.g., remove item from cart)
-                            //cartViewModel.removeFromCart(cartItem)
+                            cartViewModel.removeFromCart(cartItem)
                             Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
                             showDeleteIcon = false  // Hide delete icon after deleting
                         }
@@ -424,14 +424,15 @@ fun CartItemRow(
 
 
                 Text(
-                    text = "x${quantity}",
+                    text = "x${cartQuantity}",
                     modifier = Modifier
                 )
 
                 IconButton(
                     onClick = {
-                        if (quantity < cartItem.quantityCount ){
-                            quantity++
+                        if (cartQuantity < cartItem.quantityCount ){
+                            cartQuantity++
+                            cartViewModel.updateQuantity(cartItem, cartQuantity)
                         } else {
                             Toast.makeText(context, "Only ${cartItem.quantityCount} items available", Toast.LENGTH_SHORT).show()
                         }

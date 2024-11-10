@@ -21,7 +21,7 @@ data class CartItem(
     val id: String = "",
     val name: String = "",
     val price: Float = 0f,
-    val quantity: Int = 0,
+    val addedQuantity: Int = 0,
     val quantityCount: Int = 0,
     val totalPrice: Float = 0f,
     val images: List<String> = emptyList()
@@ -111,8 +111,8 @@ class CartViewModel : ViewModel() {
         updateProductCount()
     }
 
-    fun removeFromCart(product: Product) {
-        val existingItem = _cart.find { it.id == product.id }
+    fun removeFromCart(cartItem: CartItem) {
+        val existingItem = _cart.find { it.id == cartItem.id }
         if (existingItem != null) {
             _cart.remove(existingItem)
         }
@@ -143,10 +143,10 @@ class CartViewModel : ViewModel() {
         quantityCount = _cart.sumOf { it.quantity }
     }
 
-    fun updateQuantity(product: Product, newQuantity: Int) {
-        val cartItem = _cart.find { it.id == product.id }
+    fun updateQuantity(cartItem: CartItem, newQuantity: Int) {
+        val cartItem = _cart.find { it.id == cartItem.id }
         cartItem?.let {
-            if (newQuantity <= product.quantityCount) {
+            if (newQuantity <= cartItem.quantityCount) {
                 it.quantity = newQuantity
             }
             if (it.quantity <= 0) {
@@ -161,7 +161,7 @@ class CartViewModel : ViewModel() {
         return carTotal + deliveryFee
     }
 
-    fun saveProductToUserAccount(context: Context, product: Product, quantity: Int) {
+    fun saveProductToUserAccount(context: Context, product: Product, addedQuantity: Int) {
         val user = auth.currentUser
         user?.let {
             val userName = it.displayName ?: "unknown_user"
@@ -170,9 +170,9 @@ class CartViewModel : ViewModel() {
                 "id" to product.id,
                 "name" to product.name,
                 "price" to product.price,
-                "quantity" to quantity,
+                "addedQuantity" to addedQuantity,
                 "quantityCount" to product.quantityCount,
-                "totalPrice" to product.price * quantity,
+                "totalPrice" to product.price * addedQuantity,
                 "timestamp" to System.currentTimeMillis(),
                 "images" to product.images
             )
@@ -211,7 +211,7 @@ class CartViewModel : ViewModel() {
                             id = document.getString("id") ?: "",
                             name = document.getString("name") ?: "",
                             price = document.getDouble("price")?.toFloat() ?: 0f,
-                            quantity = document.getLong("quantity")?.toInt() ?: 0,
+                            addedQuantity = document.getLong("addedQuantity")?.toInt() ?: 0,
                             quantityCount = document.getLong("quantityCount")?.toInt() ?: 0,
                             totalPrice = document.getDouble("totalPrice")?.toFloat() ?: 0f,
                             images = (document.get("images") as? List<String>) ?: emptyList()

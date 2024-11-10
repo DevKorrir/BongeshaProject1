@@ -60,6 +60,7 @@ import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthState
 import dev.korryr.bongesha.viewmodels.AuthViewModel
+import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
@@ -250,7 +251,8 @@ class MainActivity : ComponentActivity() {
                         composable(Route.Home.ITEM_DETAILS) {
                             ItemDetailsScreen(
                                 onClick = {},
-                                product = Product()
+                                product = Product(),
+                                cartItem = CartItem()
                             )
                         }
 
