@@ -49,6 +49,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val context = getApplication<Application>().applicationContext
     private val _isSignedIn = MutableStateFlow(false)
     val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
+    companion object {
+        private const val PREFS_KEY_SIGNED_IN = "isSignedIn"
+    }
 
     init {
         sharedPreferences = initEncryptedSharedPreferences()
@@ -161,8 +164,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                     val user = Firebase.auth.currentUser
                     user?.let {
                         saveUserToFirestore(it)
+                        saveSignInState(true)
                         _authState.value = AuthState.Success("Google sign-in successful")
-                        navController.navigate(Route.Home.HOME)
+                        //navController.navigate(Route.Home.HOME)
                     }
                 } else {
                     _authState.value = AuthState.Error("Google sign-in failed: ${task.exception?.message}")
@@ -181,6 +185,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 auth.signInWithCredential(credential).addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         saveUserToFirestore(auth.currentUser)
+                        saveSignInState(true)
                         _authState.value = AuthState.Success("Facebook sign-in successful")
                         navController.navigate(Route.Home.HOME)
                     } else {
@@ -220,6 +225,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 }
         }
     }
+
+    private fun saveSignInState(isSignedIn: Boolean) {
+        sharedPreferences.edit().putBoolean(PREFS_KEY_SIGNED_IN, isSignedIn).apply()
+    }
+
 
     fun signOut() {
         Firebase.auth.signOut()

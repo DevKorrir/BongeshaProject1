@@ -3,10 +3,12 @@ package dev.korryr.bongesha
 
 import WishlistScreen
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -108,23 +110,27 @@ class MainActivity : ComponentActivity() {
                     color = gray01
                 ) {
                     val launcher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.StartActivityForResult(),
-                        onResult = { result ->
-                            if (result.resultCode == RESULT_OK) {
-                                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                        contract = ActivityResultContracts.StartActivityForResult()
+                    ) { result ->
+                        if (result.resultCode == Activity.RESULT_OK) {
+                            result.data?.let { data ->
+                                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                                 try {
                                     val account = task.getResult(ApiException::class.java)
-                                    if (account != null) {
-                                        authViewModel.signInWithGoogle(account.idToken, navController)
+                                    account?.let {
+                                        authViewModel.signInWithGoogle(account.idToken ?: "", navController)
                                     }
                                 } catch (e: ApiException) {
                                     Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
                                 }
-                            } else {
-                                Toast.makeText(context, "Google sign-in canceled", Toast.LENGTH_LONG).show()
                             }
+                        } else {
+                            // Log the result code and show an error to understand why it was canceled
+                            Log.d("GoogleSignIn", "Sign-in canceled with resultCode: ${result.resultCode}")
+                            Toast.makeText(context, "Google sign-in canceled", Toast.LENGTH_LONG).show()
                         }
-                    )
+                    }
+
 
 
 
@@ -141,19 +147,11 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 authViewModel = authViewModel,
                                 onGoogleSignIn = {
-                                    //val nonce = UUID.randomUUID().toString()  // Generate a unique nonce each time
-
-//                                    val googleSignInClient: GetGoogleIdOption = GetGoogleIdOption.Builder()
-//                                        .setFilterByAuthorizedAccounts(true)  // Only authorized accounts are shown
-//                                        .setServerClientId(getString(R.string.web_client_id))  // Ensure WEB_CLIENT_ID is correct
-//                                        .setAutoSelectEnabled(true)  // Auto-select account if only one is available
-//                                        .setNonce(nonce)  // Use a secure, randomly generated nonce
-//                                        .build()
-
                                     val googleSignInClient = GoogleSignIn.getClient(
                                         this@MainActivity,
                                         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                            .requestIdToken(getString(R.string.web_client_id))  // Ensure this matches Firebase OAuth settings
+                                            .requestIdToken(getString(R.string.web_client_id)) // Ensure this matches Firebase OAuth settings
+                                            .requestProfile()
                                             .requestEmail()
                                             .build()
                                     )

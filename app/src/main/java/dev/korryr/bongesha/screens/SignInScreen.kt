@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.drawable.Icon
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -97,6 +99,18 @@ fun BongaSignIn(
 
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val isSignedIn = prefs.getBoolean(PREFS_KEY_SIGNED_IN, false)
+
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            // Navigate to HOME screen
+            navController.navigate(Route.Home.HOME) {
+                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
+            }
+        } else if (authState is AuthState.Error) {
+            // Show error as a toast message
+            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     if (isSignedIn) {
         // Navigate to the home screen if the user is already signed in
@@ -251,6 +265,15 @@ fun BongaSignIn(
 
         Spacer(modifier = Modifier.height(10.dp))
 
+        if (authState is AuthState.Loading) {
+            CircularProgressIndicator(
+                color = orange28,
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(16.dp)
+            )
+        }
+
         // Email/Password sign-in button
         BongaButton(
             modifier = Modifier.fillMaxWidth(),
@@ -341,6 +364,11 @@ fun BongaSignIn(
 
             BongaBox(
                 modifier = Modifier.clickable {
+                    LoginManager.getInstance().logInWithReadPermissions(
+                        context as Activity,
+                        listOf("email", "public_profile")
+                    )
+
                     LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
                         override fun onSuccess(result: LoginResult) {
                             // Handle successful Facebook login
@@ -353,6 +381,7 @@ fun BongaSignIn(
                                         navController.navigate(Route.Home.HOME)
                                     } else {
                                         Toast.makeText(context, "Facebook sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                        Log.e("FacebookSignIn", "Error: ${task.exception?.message}", task.exception)
                                     }
                                 }
                         }
@@ -365,6 +394,7 @@ fun BongaSignIn(
                         override fun onError(error: FacebookException) {
                             // Handle Facebook login errors
                             Toast.makeText(context, "Facebook sign-in failed: ${error.message}", Toast.LENGTH_LONG).show()
+                            Log.e("FacebookSignIn", "Facebook sign-in error", error)
                         }
                     })
 

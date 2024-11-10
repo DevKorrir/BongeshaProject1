@@ -1,5 +1,10 @@
 package dev.korryr.bongesha.screens
 
+import android.app.Activity
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -11,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontStyle
@@ -22,6 +28,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
+import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FacebookAuthProvider
+import com.google.firebase.auth.FirebaseAuth
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaBox
 import dev.korryr.bongesha.commons.BongaButton
@@ -53,6 +69,19 @@ fun BongaSignUp(
     var confirmPasswordError by remember { mutableStateOf("") }
 
     val authState by authViewModel.authState.collectAsState()
+    val context = LocalContext.current
+    val callbackManager = remember { CallbackManager.Factory.create() }
+
+    // Observe authState and navigate to HOME on successful Google sign-in
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Success) {
+            navController.navigate(Route.Home.HOME) {
+                popUpTo(Route.Home.SIGN_UP) { inclusive = true }
+            }
+        } else if (authState is AuthState.Error) {
+            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -192,6 +221,15 @@ fun BongaSignUp(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        if (authState is AuthState.Loading) {
+            CircularProgressIndicator(
+                color = orange28,
+                modifier = Modifier
+                    .size(50.dp)
+                    .padding(16.dp)
+            )
+        }
+
         BongaButton(
             label = "Create an account",
             color = Color.White,
@@ -271,6 +309,25 @@ fun BongaSignUp(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Google Sign-In Button Setup
+        val launcher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.let { data ->
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                    try {
+                        val account = task.getResult(ApiException::class.java)
+                        account?.let {
+                            authViewModel.signInWithGoogle(account.idToken ?: "", navController)
+                        }
+                    } catch (e: ApiException) {
+                        Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -279,43 +336,69 @@ fun BongaSignUp(
         ) {
             //google button
             BongaBox(
-                modifier = Modifier
-                    .clickable { onGoogleSignIn() },
+                modifier = Modifier.clickable {
+                    val googleSignInClient = GoogleSignIn.getClient(
+                        context,
+                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestIdToken(context.getString(R.string.web_client_id))
+                            .requestProfile()
+                            .requestEmail()
+                            .build()
+                    )
+                    val signInIntent = googleSignInClient.signInIntent
+                    launcher.launch(signInIntent)
+                },
                 painter = painterResource(id = R.drawable.google_icons)
             )
 
             //facebook button
             BongaBox(
-                modifier = Modifier
-                    .clickable { onFacebookSignInClick?.invoke() },
+                modifier = Modifier.clickable {
+                    LoginManager.getInstance().logInWithReadPermissions(
+                        context as Activity,
+                        listOf("email", "public_profile")
+                    )
+
+                    LoginManager.getInstance().registerCallback(callbackManager, object :
+                        FacebookCallback<LoginResult> {
+                        override fun onSuccess(result: LoginResult) {
+                            // Handle successful Facebook login
+                            val credential = FacebookAuthProvider.getCredential(
+                                result.accessToken.token
+                            )
+                            FirebaseAuth.getInstance().signInWithCredential(credential)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        navController.navigate(Route.Home.HOME)
+                                    } else {
+                                        Toast.makeText(context, "Facebook sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                        Log.e("FacebookSignIn", "Error: ${task.exception?.message}", task.exception)
+                                    }
+                                }
+                        }
+
+                        override fun onCancel() {
+                            // Handle Facebook login cancellation
+                            Toast.makeText(context, "Facebook sign-in canceled", Toast.LENGTH_LONG).show()
+                        }
+
+                        override fun onError(error: FacebookException) {
+                            // Handle Facebook login errors
+                            Toast.makeText(context, "Facebook sign-in failed: ${error.message}", Toast.LENGTH_LONG).show()
+                            Log.e("FacebookSignIn", "Facebook sign-in error", error)
+                        }
+                    })
+
+                },
                 painter = painterResource(id = R.drawable.facebook_icon)
             )
         }
 
-
-        if (authState is AuthState.Loading) {
-            CircularProgressIndicator(
-                color = orange28,
-                modifier = Modifier
-                    .size(50.dp)
-                    .padding(16.dp)
-            )
-        }
-
-//        if (authState is AuthState.Error) {
-//            Text(
-//                text = (authState as AuthState.Error).message,
-//                color = Color.Red,
-//                style = MaterialTheme.typography.bodyMedium,
-//                modifier = Modifier.padding(vertical = 8.dp)
-//            )
+//        if (authState is AuthState.Success) {
+//            LaunchedEffect(Unit) {
+//                navController.navigate(Route.Home.SIGN_IN)
+//            }
 //        }
-
-        if (authState is AuthState.Success) {
-            LaunchedEffect(Unit) {
-                navController.navigate(Route.Home.SIGN_IN)
-            }
-        }
 
         Spacer(modifier = Modifier.weight(1f))
 
