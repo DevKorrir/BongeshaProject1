@@ -12,13 +12,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -72,27 +70,23 @@ fun BongaSignUp(
     val context = LocalContext.current
     val callbackManager = remember { CallbackManager.Factory.create() }
 
-    // Observe authState and navigate to HOME on successful Google sign-in
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.SignUpSuccess -> {
-                // Navigate to SIGN_IN screen after successful sign-up
+                Toast.makeText(context, "Please verify your email before signing in.", Toast.LENGTH_LONG).show()
                 navController.navigate(Route.Home.SIGN_IN) {
                     popUpTo(Route.Home.SIGN_UP) { inclusive = true }
                 }
-                Toast.makeText(context, "Please verify your email before signing in.", Toast.LENGTH_LONG).show()
             }
             is AuthState.Error -> {
-                // Show error as a toast message
                 Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
             }
-            // Handle other states as needed (Idle, Loading, Success for sign-in, etc.)
             else -> {
                 // No action needed for other states
             }
-
         }
     }
+
 
 
     Column(
@@ -148,7 +142,7 @@ fun BongaSignUp(
             fieldDescription = "",
             input = email,
             trailing = null,
-            leading = painterResource(id = R.drawable.image_sec_icon),
+            leading = painterResource(id = R.drawable.outlined_mail_icon),
             hint = "bongesha@gmail.com",
             onChange = {
                 email = it
@@ -159,7 +153,6 @@ fun BongaSignUp(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
-            //isValid = email.isNotEmpty(),
         )
         if (email.isNotEmpty()){
             Text(
@@ -311,25 +304,6 @@ fun BongaSignUp(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Google Sign-In Button Setup
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                result.data?.let { data ->
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    try {
-                        val account = task.getResult(ApiException::class.java)
-                        account?.let {
-                            authViewModel.signInWithGoogle(account.idToken ?: "", navController)
-                        }
-                    } catch (e: ApiException) {
-                        Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -339,16 +313,7 @@ fun BongaSignUp(
             //google button
             BongaBox(
                 modifier = Modifier.clickable {
-                    val googleSignInClient = GoogleSignIn.getClient(
-                        context,
-                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken(context.getString(R.string.web_client_id))
-                            .requestProfile()
-                            .requestEmail()
-                            .build()
-                    )
-                    val signInIntent = googleSignInClient.signInIntent
-                    launcher.launch(signInIntent)
+                    onGoogleSignIn()
                 },
                 painter = painterResource(id = R.drawable.google_icons)
             )

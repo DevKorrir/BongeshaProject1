@@ -1,7 +1,5 @@
 package dev.korryr.bongesha.screens
 
-import android.content.Context
-import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -230,6 +228,9 @@ fun UserProfile(
                 text = "Settings",
                 imageVectorleading = painterResource(id = R.drawable.setting),
                 modifier = Modifier
+                    .clickable {
+                        navController.navigate(Route.Home.SETTINGS)
+                    }
                     .padding(16.dp)
                     .fillMaxWidth()
                     .background(
@@ -237,7 +238,6 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {}
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -255,7 +255,7 @@ fun UserProfile(
                     modifier = Modifier
                         .padding(12.dp),
                     onClick = {
-                        authViewModel.signOut()
+                        authViewModel.signOut(navController)
                     }
                 ) {
                     Text(

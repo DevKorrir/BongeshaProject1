@@ -65,9 +65,9 @@ class CategoryViewModel : ViewModel() {
 
     private var isLastPage = false
 
-    init {
-        fetchCategories()
-    }
+//    init {
+//        fetchCategories()
+//    }
 
 //    fun fetchProducts(paginate: Boolean = false) {
 //        if (isLoading || isLastPage) return  // Prevent duplicate calls or loading beyond last
@@ -77,35 +77,35 @@ class CategoryViewModel : ViewModel() {
         _uiState.value = newState
     }
 
-    private fun fetchCategories() {
-        val categoryImages = mapOf(
-            "Audio & Sound Systems" to R.drawable.setting,
-            "Phones & Accessories" to R.drawable.headphones,
-            "Computers & Accessories" to R.drawable.bongesha_sec_icon,
-            // Map other categories to drawable resources as needed
-        )
-
-        firestore.collection("categories")
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    Log.e("CategoryViewModel", "Error fetching categories", error)
-                    updateUiState(CategoryUiState.Error("Error loading categories"))
-                    return@addSnapshotListener
-                }
-
-                if (snapshot != null && !snapshot.isEmpty) {
-                    val categoriesWithItems = mutableListOf<Category>()
-                    snapshot.documents.forEach { document ->
-                        val categoryName = document.getString("name") ?: return@forEach
-                        val imageResId = categoryImages[categoryName] ?: R.drawable.apple_icon
-                        categoriesWithItems.add(Category(name = categoryName, imageResId = imageResId))
-                    }
-                    updateUiState(CategoryUiState.Success(categoriesWithItems))
-                } else {
-                    updateUiState(CategoryUiState.Error("No categories found"))
-                }
-            }
-    }
+//    private fun fetchCategories() {
+//        val categoryImages = mapOf(
+//            "Audio & Sound Systems" to R.drawable.setting,
+//            "Phones & Accessories" to R.drawable.headphones,
+//            "Computers & Accessories" to R.drawable.bongesha_sec_icon,
+//            // Map other categories to drawable resources as needed
+//        )
+//
+//        firestore.collection("categories")
+//            .addSnapshotListener { snapshot, error ->
+//                if (error != null) {
+//                    Log.e("CategoryViewModel", "Error fetching categories", error)
+//                    updateUiState(CategoryUiState.Error("Error loading categories"))
+//                    return@addSnapshotListener
+//                }
+//
+//                if (snapshot != null && !snapshot.isEmpty) {
+//                    val categoriesWithItems = mutableListOf<Category>()
+//                    snapshot.documents.forEach { document ->
+//                        val categoryName = document.getString("name") ?: return@forEach
+//                        val imageResId = categoryImages[categoryName] ?: R.drawable.bongesha_sec_icon
+//                        categoriesWithItems.add(Category(name = categoryName, imageResId = imageResId))
+//                    }
+//                    updateUiState(CategoryUiState.Success(categoriesWithItems))
+//                } else {
+//                    updateUiState(CategoryUiState.Error("No categories found"))
+//                }
+//            }
+//    }
 
     fun fetchProductsForCategory(category: String) {
         listenerRegistration?.remove()

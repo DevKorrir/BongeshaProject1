@@ -2,13 +2,12 @@ package dev.korryr.bongesha.viewmodels
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
-import android.provider.Settings.Global.putString
 import android.util.Log
-import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -18,8 +17,7 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.facebook.login.widget.LoginButton
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.firebase.auth.EmailAuthProvider
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -33,9 +31,11 @@ import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.isValidEmail
 import dev.korryr.bongesha.screens.isValidPassword
+import dev.korryr.bongesha.viewmodels.googleSignIn.GoogleAuthUiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -49,8 +49,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val firestore = FirebaseFirestore.getInstance()
     private val callbackManager = CallbackManager.Factory.create()
     private val context = getApplication<Application>().applicationContext
-//    private val _isSignedIn = MutableStateFlow(false)
-//    val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
     companion object {
         private const val PREFS_KEY_SIGNED_IN = "isUserSignedIn"
     }
@@ -58,6 +56,33 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     init {
         sharedPreferences = initEncryptedSharedPreferences()
         checkSignInStatus()
+    }
+
+    private val googleAuthUiClient: GoogleAuthUiClient = GoogleAuthUiClient(
+        context = getApplication(),
+        oneTapClient = Identity.getSignInClient(getApplication()),
+        authViewModel = this
+    )
+
+    fun startGoogleSignIn(launcher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            val intentSender = googleAuthUiClient.signIn()
+            intentSender?.let {
+                val request = IntentSenderRequest.Builder(it).build()
+                launcher.launch(request)
+            }
+        }
+    }
+
+    fun handleGoogleSignInResult(data: Intent) {
+        viewModelScope.launch {
+            val result = googleAuthUiClient.signInWithIntent(data)
+            _authState.value = if (result.data != null) {
+                AuthState.Success("Google Sign-In successful")
+            } else {
+                AuthState.Error(result.errorMessage ?: "Google Sign-In failed")
+            }
+        }
     }
 
     private fun initEncryptedSharedPreferences(): SharedPreferences {
@@ -78,54 +103,106 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _isUserSignedIn.value = FirebaseAuth.getInstance().currentUser != null
     }
 
-    fun signUp(
-        email: String,
-        password: String,
-        displayName: String
-    ) {
+    fun signUp(email: String, password: String, displayName: String) {
         if (!isValidEmail(email) || !isValidPassword(password)) {
             _authState.value = AuthState.Error("Invalid email or password format")
             return
         }
+
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
+
+            // Check if email already has an account
+            Firebase.auth.fetchSignInMethodsForEmail(email).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(displayName)
-                        .build()
+                    val signInMethods = task.result?.signInMethods ?: emptyList()
 
-                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
-                        if (profileUpdateTask.isSuccessful) {
+                    if (signInMethods.isNotEmpty()) {
+                        _authState.value = AuthState.Error("An account with this email already exists. Please sign in.")
+                        return@addOnCompleteListener
+                    }
 
-                            // Send the email verification
-                            user.sendEmailVerification().addOnCompleteListener { verificationTask ->
-                                if (verificationTask.isSuccessful) {
-                                    _authState.value = AuthState.SignUpSuccess//("Verification email sent to your email address.")
+                    Firebase.auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val user = Firebase.auth.currentUser
+                            val profileUpdates = UserProfileChangeRequest.Builder()
+                                .setDisplayName(displayName)
+                                .build()
+
+                            user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
+                                if (profileUpdateTask.isSuccessful) {
+                                    // Send the email verification
+                                    user.sendEmailVerification().addOnCompleteListener { verificationTask ->
+                                        if (verificationTask.isSuccessful) {
+                                            _authState.value = AuthState.SignUpSuccess
+                                            //Firebase.auth.signOut() // Force sign-out until email is verified
+                                        } else {
+                                            _authState.value = AuthState.Error(
+                                                verificationTask.exception?.message ?: "Failed to send verification email"
+                                            )
+                                        }
+                                    }
                                 } else {
-                                    _authState.value = AuthState.Error(
-                                        verificationTask.exception?.message ?: "Failed to send verification email"
-                                    )
+                                    _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
                                 }
                             }
                         } else {
-                            _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
+                            _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
                         }
                     }
                 } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
+                    _authState.value = AuthState.Error("Error checking email: ${task.exception?.message}")
                 }
             }
         }
     }
 
-    fun signIn(
-        email: String,
-        password: String,
-        navController: NavController
-    ) {
+
+
+//    fun signUp(
+//        email: String,
+//        password: String,
+//        displayName: String
+//    ) {
+//        if (!isValidEmail(email) || !isValidPassword(password)) {
+//            _authState.value = AuthState.Error("Invalid email or password format")
+//            return
+//        }
+//        viewModelScope.launch {
+//            _authState.value = AuthState.Loading
+//            auth.createUserWithEmailAndPassword(email, password)
+//                .addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    val user = auth.currentUser
+//                    val profileUpdates = UserProfileChangeRequest.Builder()
+//                        .setDisplayName(displayName)
+//                        .build()
+//
+//                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
+//                        if (profileUpdateTask.isSuccessful) {
+//
+//                            // Send the email verification
+//                            user.sendEmailVerification().addOnCompleteListener { verificationTask ->
+//                                if (verificationTask.isSuccessful) {
+//                                    _authState.value = AuthState.SignUpSuccess//("Verification email sent to your email address.")
+//                                } else {
+//                                    _authState.value = AuthState.Error(
+//                                        verificationTask.exception?.message ?: "Failed to send verification email"
+//                                    )
+//                                }
+//                            }
+//                        } else {
+//                            _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
+//                        }
+//                    }
+//                } else {
+//                    _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
+//                }
+//            }
+//        }
+//    }
+
+    fun signIn(email: String, password: String, navController: NavController) {
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password cannot be empty")
             return
@@ -139,8 +216,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             if (task.isSuccessful) {
                 val signInMethods = task.result?.signInMethods ?: emptyList()
                 if (signInMethods.contains(GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD)) {
-                    _authState.value =
-                        AuthState.Error("This email is already registered with Google. Please use Google to sign in.")
+                    _authState.value = AuthState.Error("This email is registered with Google. Use Google to sign in.")
                     return@addOnCompleteListener
                 }
 
@@ -160,8 +236,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                             val errorMessage = when (task.exception) {
                                 is FirebaseAuthInvalidCredentialsException -> "Incorrect email or password."
                                 is FirebaseAuthInvalidUserException -> "User not found. Please sign up first."
-                                else -> task.exception?.message
-                                    ?: "Sign in failed. Please try again."
+                                else -> task.exception?.message ?: "Sign in failed. Please try again."
                             }
                             _authState.value = AuthState.Error(errorMessage)
                         }
@@ -171,8 +246,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
     @SuppressLint("SuspiciousIndentation")
-    fun signInWithGoogle(
+    fun signInWithGooglee(
         idToken: String?,
         navController: NavController
     ) {
@@ -235,10 +311,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    private fun saveUserToFirestore(user: FirebaseUser?) {
+    fun saveUserToFirestore(user: FirebaseUser?) {
         user?.let {
             val userName = it.displayName ?: "Anonymous-user"
-            //val userDocument = firestore.collection(userName).document("details")
 
             val userData = mapOf(
                 "uid" to it.uid,
@@ -256,23 +331,88 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun saveSignInState(isSignedIn: Boolean) {
-        sharedPreferences.edit().putBoolean(PREFS_KEY_SIGNED_IN, isSignedIn).apply()
+    private fun saveSignInState(isUserSignedIn: Boolean) {
+        sharedPreferences.edit().putBoolean(PREFS_KEY_SIGNED_IN, isUserSignedIn).apply()
     }
 
 
-    fun signOut() {
-        Firebase.auth.signOut()
-        _isUserSignedIn.value = false
+    fun signOut(navController: NavController) {
+        Firebase.auth.signOut() // Sign out from Firebase
+        _authState.value = AuthState.Idle // Reset the auth state or set it to Idle
+
+        // Optionally, clear shared preferences or other user-related data
         clearUserSignInState()
+
+        // Redirect to the sign-in screen
+        navController.navigate(Route.Home.SIGN_IN) {
+            popUpTo(Route.Home.HOME) { inclusive = true } // Clear the back stack
+        }
     }
 
     private fun clearUserSignInState() {
         sharedPreferences.edit().apply {
-            putBoolean("isSignedIn", false)
+            putBoolean("isUserSignedIn", false)
             remove("userEmail")
             remove("userDisplayName")
             apply()
+        }
+    }
+
+
+    fun deleteUserAccount(onResult: (Boolean) -> Unit) {
+        val user = auth.currentUser
+        if (user != null) {
+            viewModelScope.launch {
+                val isDeleted = deleteUserDataAndAccount(user)
+                onResult(isDeleted)
+            }
+        } else {
+            onResult(false)
+        }
+    }
+
+    private suspend fun deleteUserDataAndAccount(user: FirebaseUser): Boolean {
+        return try {
+            deleteUserDataInFirestore(user.displayName ?: "Anonymous-user")
+            user.delete().await()
+            true
+        } catch (e: Exception) {
+            println("Error deleting user account: ${e.message}")
+            false
+        }
+    }
+
+    private suspend fun deleteUserDataInFirestore(userName: String) {
+        val userDocRef = firestore.collection("users").document(userName)
+        // Step 1: Delete any nested subcollections if they exist
+        deleteAllSubcollections(userDocRef.path)
+
+        // Step 2: Delete the user document itself
+        userDocRef.delete().await()
+        Log.d("AuthViewModel", "User data successfully deleted from Firestore.")
+    }
+
+    private suspend fun deleteAllSubcollections(
+        documentPath: String
+    ) {
+        val documentRef = firestore.document(documentPath)
+
+        // List of subcollections to delete specific
+        val subcollections = listOf(
+            "cart",
+            "savedItems",
+            "orders"
+        ) // Add all subcollections here
+
+        // Delete each subcollection
+        for (subcollection in subcollections) {
+            val collectionRef = documentRef.collection(subcollection)
+            val documents = collectionRef.get().await()
+
+            for (doc in documents) {
+                deleteAllSubcollections(doc.reference.path) // Recursively delete subcollections
+                doc.reference.delete().await() // Delete document itself
+            }
         }
     }
 

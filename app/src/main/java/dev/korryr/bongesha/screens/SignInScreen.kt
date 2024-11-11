@@ -1,14 +1,10 @@
 package  dev.korryr.bongesha.screens
 
 import android.app.Activity
-import android.app.PendingIntent
 import android.content.Context
-import android.content.SharedPreferences
-import android.graphics.drawable.Icon
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,10 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +49,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.edit
 import androidx.navigation.NavController
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -64,7 +56,6 @@ import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -100,6 +91,7 @@ fun BongaSignIn(
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val isSignedIn = prefs.getBoolean(PREFS_KEY_SIGNED_IN, false)
 
+
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
@@ -116,14 +108,6 @@ fun BongaSignIn(
         }
     }
 
-//    if (isSignedIn) {
-//        // Navigate to the home screen if the user is already signed in
-//        LaunchedEffect(Unit) {
-//            navController.navigate(Route.Home.HOME) {
-//                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
-//            }
-//        }
-//    }
 
     Column(
         modifier = Modifier
@@ -188,7 +172,7 @@ fun BongaSignIn(
             label = "E-mail address",
             fieldDescription = "",
             input = email,
-            leading = painterResource(id = R.drawable.image_sec_icon),
+            leading = painterResource(id = R.drawable.outlined_mail_icon),
             hint = "Yourname@gmail.com",
             onChange = { email = it },
             keyboardOptions = KeyboardOptions(
@@ -321,37 +305,50 @@ fun BongaSignIn(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
 
-            val launcher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.StartActivityForResult()
+//            val launcher = rememberLauncherForActivityResult(
+//                contract = ActivityResultContracts.StartActivityForResult()
+//            ) { result ->
+//                // Handle the result from the Google Sign-In intent
+//                if (result.resultCode == Activity.RESULT_OK) {
+//                    result.data?.let { data ->
+//                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+//                        try {
+//                            val account = task.getResult(ApiException::class.java)
+//                            account?.let {
+//                                // Now handle the Google sign-in, e.g., pass the account to your ViewModel
+//                                authViewModel.signInWithGoogle(it.idToken ?: "", navController)
+//                            }
+//                        } catch (e: ApiException) {
+//                            Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+//                        }
+//                    }
+//                }
+//            }
+
+            // Register the result launcher for Google sign-in
+            val googleSignInLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartIntentSenderForResult()
             ) { result ->
-                // Handle the result from the Google Sign-In intent
                 if (result.resultCode == Activity.RESULT_OK) {
                     result.data?.let { data ->
-                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                        try {
-                            val account = task.getResult(ApiException::class.java)
-                            account?.let {
-                                // Now handle the Google sign-in, e.g., pass the account to your ViewModel
-                                authViewModel.signInWithGoogle(it.idToken ?: "", navController)
-                            }
-                        } catch (e: ApiException) {
-                            Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
-                        }
+                        authViewModel.handleGoogleSignInResult(data) // Handle Google Sign-In result
                     }
                 }
             }
 
             BongaBox(
                 modifier = Modifier.clickable {
-                    val googleSignInClient = GoogleSignIn.getClient(
-                        context,
-                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken(context.getString(R.string.web_client_id))
-                            .requestEmail()
-                            .build()
-                    )
-                    val signInIntent = googleSignInClient.signInIntent
-                    launcher.launch(signInIntent)
+                    // Start Google Sign-In
+                    authViewModel.startGoogleSignIn(googleSignInLauncher)
+//                    val googleSignInClient = GoogleSignIn.getClient(
+//                        context,
+//                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                            .requestIdToken(context.getString(R.string.web_client_id))
+//                            .requestEmail()
+//                            .build()
+//                    )
+//                    val signInIntent = googleSignInClient.signInIntent
+//                    launcher.launch(signInIntent)
                 },
                 painter = painterResource(id = R.drawable.google_icons)
             )

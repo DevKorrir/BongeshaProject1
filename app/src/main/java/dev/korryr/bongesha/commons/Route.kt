@@ -1,5 +1,7 @@
 package dev.korryr.bongesha.commons
 
+import androidx.compose.ui.text.font.FontVariation
+
 class Route {
 
     object Home {
@@ -27,6 +29,7 @@ class Route {
         const val WISHLIST = "/WISHLIST/"
         const val VERIFICATION = "/VERIFICATION/"
         const val CHECKOUT = "/CHECKOUT/"
+        const val SETTINGS = "/SETTINGS/"
 
 
     }
