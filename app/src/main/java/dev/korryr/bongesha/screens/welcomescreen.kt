@@ -52,7 +52,7 @@ fun BongaWelcome(
         Box(
             modifier = Modifier
                 .clickable {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
                 .border(
                     1.dp,
@@ -162,16 +162,16 @@ fun BongaWelcome(
 
 
                             BongaButton(
-
                                 showArrow = false,
                                 label = "Skip",
                                 color = Color.White,
                                 buttonColor = Color.Gray,
                                 modifier = Modifier
-                                    .width(176.dp)
-                            ) {
-                                navController.navigate(Route.Home.SignIn)
-                            }
+                                    .width(176.dp),
+                                onClick = {
+                                    navController.navigate(Route.Home.SIGN_IN)
+                                }
+                            )
 
                             Spacer(modifier = Modifier.width(8.dp))
 
@@ -182,9 +182,10 @@ fun BongaWelcome(
                                 buttonColor = Color.LightGray,
                                 modifier = Modifier
                                     .width(176.dp),
-                            ) {
-                                currentSlideIndex = (currentSlideIndex + 1) % slides.size
-                            }
+                                onClick = {
+                                    currentSlideIndex = (currentSlideIndex + 1) % slides.size
+                                }
+                            )
                         }
                     }
                 }

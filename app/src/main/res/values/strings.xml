@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Bongesha</string>
-    <string name="web_client_id">863305767590-9rpce1744sd196ttvf5q8j1j9apiutbj.apps.googleusercontent.com</string>
+    <string name="web_client_id">863305767590-r0f2cs2ikm8abra59nb7gbu8vgv2b1ei.apps.googleusercontent.com</string>
+    <string name="facebook_app_id">448113881621806</string>
+    <string name="facebook_client_token">815f7e5b46ed6dfb1413ead2c1f4cf96</string>
+
 </resources>

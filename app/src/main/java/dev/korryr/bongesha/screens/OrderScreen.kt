@@ -29,9 +29,7 @@ fun OrdersScreeny(
 
 @Composable
 fun OrdersScreen(
-    categoryViewModel: CategoryViewModel = viewModel()
 ) {
-    val categories by categoryViewModel.categories.collectAsState(emptyList())
 
     Column {
         Row {

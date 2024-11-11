@@ -99,12 +99,6 @@ fun ChatScreen(chatViewModel: ChatViewModel = viewModel()) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             OutlinedTextField(
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color.Black,
-//                    containerColor = Color.White mç¾
-                ),
                 value = currentMessage,
                 onValueChange = { currentMessage = it },
                 modifier = Modifier

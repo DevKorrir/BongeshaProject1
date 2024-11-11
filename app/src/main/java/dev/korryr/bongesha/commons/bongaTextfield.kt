@@ -15,8 +15,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,7 +48,7 @@ import dev.korryr.bongesha.ui.theme.orange28
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Bongatextfield(
-    label: String,
+    label: String? = null,
     isPassword: Boolean = false,
     showPassword: Boolean = false,
     boldLabel: Boolean = true,
@@ -62,7 +65,23 @@ fun Bongatextfield(
     readOnly: Boolean = false,
     onDone: () -> Unit = {},
     keyboardOptions: KeyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-    keyboardActions: KeyboardActions? = null
+    keyboardActions: KeyboardActions? = null,
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.White,
+        unfocusedContainerColor = Color.White,
+        disabledContainerColor = Color.White,
+        errorContainerColor = Color.White,
+        unfocusedTextColor = Color.Black,
+        disabledTextColor = Color.Black,
+        errorTextColor = Color.Red,
+        errorIndicatorColor = Color.Red,
+        unfocusedIndicatorColor = Color.Transparent,
+        focusedIndicatorColor = orange28,
+        focusedLeadingIconColor = orange28,
+        unfocusedLeadingIconColor = Color.Black,
+        cursorColor = orange28,
+        focusedLabelColor = orange28
+    )
 ) {
     val current = LocalFocusManager.current
     val softwareKeyboard = LocalSoftwareKeyboardController.current
@@ -73,11 +92,13 @@ fun Bongatextfield(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = label,
-            color = Color.DarkGray,
-            fontWeight = if (boldLabel) FontWeight.Bold else FontWeight.Normal,
-        )
+        if (label != null) {
+            Text(
+                text = label,
+                color = Color.DarkGray,
+                fontWeight = if (boldLabel) FontWeight.Bold else FontWeight.Normal,
+            )
+        }
         if (fieldDescription.isNotEmpty()) {
             Text(
                 text = fieldDescription,
@@ -85,7 +106,7 @@ fun Bongatextfield(
             )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(1.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -102,49 +123,10 @@ fun Bongatextfield(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .height(if (isLongText) 150.dp else TextFieldDefaults.MinHeight)
+                    .height(50.dp)
                     .fillMaxWidth()
                     .testTag(label + "1"),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    disabledPlaceholderColor = Color.Red,
-                    focusedBorderColor = orange28,
-                    unfocusedBorderColor = Color.Transparent,
-                    containerColor = Color.White,
-                    unfocusedLabelColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Blue,
-                    disabledTextColor = Color.Red,
-                    errorTextColor = Color.Red,
-                    errorContainerColor = Color.Red,
-                    cursorColor = Color.Black,
-                    errorCursorColor = Color.Red,
-                    disabledBorderColor = Color.Red,
-                    errorBorderColor = Color.Red,
-                    focusedLeadingIconColor = Color.Gray,
-                    unfocusedLeadingIconColor = Color.LightGray,
-                    disabledLeadingIconColor = Color.Red,
-                    errorLeadingIconColor = Color.Red,
-                    focusedTrailingIconColor = orange28,
-                    unfocusedTrailingIconColor = orange28,
-                    focusedLabelColor = Color.Red,
-                    disabledLabelColor = Color.Red,
-                    errorLabelColor = Color.Red,
-                    focusedPlaceholderColor = Color.Gray,
-                    unfocusedPlaceholderColor = Color.DarkGray,
-                    errorPlaceholderColor = Color.Red,
-                    focusedSupportingTextColor = Color.Red,
-                    unfocusedSupportingTextColor = Color.Red,
-                    disabledSupportingTextColor = Color.Red,
-                    errorSupportingTextColor = Color.Red,
-                    focusedPrefixColor = Color.Red,
-                    unfocusedPrefixColor = Color.Red,
-                    disabledPrefixColor = Color.Red,
-                    errorPrefixColor = Color.Red,
-                    focusedSuffixColor = Color.Red,
-                    unfocusedSuffixColor = Color.Red,
-                    disabledSuffixColor = Color.Red,
-                    errorSuffixColor = Color.Red
-                ),
+                colors = colors,
                 shape = RoundedCornerShape(12.dp),
                 keyboardOptions = if (isPassword && passwordVisible) {
                     keyboardOptions.copy(keyboardType = KeyboardType.Text)
@@ -177,6 +159,11 @@ fun Bongatextfield(
                 trailingIcon = if (isPassword) {
                     {
                         IconButton(
+                            colors = IconButtonDefaults.iconButtonColors(
+                                contentColor = orange28,
+                                ),
+                            modifier = Modifier
+                                .size(24.dp),
                             onClick = {
                                 passwordVisible = !passwordVisible
                             }

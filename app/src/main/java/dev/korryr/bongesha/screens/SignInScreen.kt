@@ -1,8 +1,11 @@
-package dev.korryr.bongesha.screens
+package  dev.korryr.bongesha.screens
 
 import android.app.Activity
+import android.app.PendingIntent
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.drawable.Icon
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -10,13 +13,36 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,96 +59,123 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.navigation.NavController
 import com.facebook.CallbackManager
+import com.facebook.FacebookCallback
+import com.facebook.FacebookException
 import com.facebook.login.LoginManager
+import com.facebook.login.LoginResult
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import dev.korryr.bongesha.R
-import dev.korryr.bongesha.commons.*
+import dev.korryr.bongesha.commons.BongaBox
+import dev.korryr.bongesha.commons.BongaButton
+import dev.korryr.bongesha.commons.BongaCheckbox
+import dev.korryr.bongesha.commons.Bongatextfield
+import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.orange28
-import androidx.lifecycle.lifecycleScope
-import dev.korryr.bongesha.viewmodels.generateVerificationCode
-import dev.korryr.bongesha.viewmodels.sendVerificationEmail
-import dev.korryr.bongesha.viewmodels.storeVerificationCode
+import dev.korryr.bongesha.viewmodels.AuthState
+import dev.korryr.bongesha.viewmodels.AuthViewModel
 
 private const val PREFS_NAME = "BongaPrefs"
 private const val PREFS_KEY_SIGNED_IN = "isSignedIn"
 
 @Composable
 fun BongaSignIn(
+    onGoogleSignIn: (String) -> Unit,
     navController: NavController,
-    onClick: () -> Unit,
     onForgotPassword: (String) -> Unit,
     onSignIn: (String, String) -> Unit,
+    authViewModel: AuthViewModel
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var verificationCode by remember { mutableStateOf("") }
-    var isVerificationRequired by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val auth = FirebaseAuth.getInstance()
+    val callbackManager = remember { CallbackManager.Factory.create() }
+    val authState by authViewModel.authState.collectAsState()
 
 
-    // Check if the user is already signed in
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val isSignedIn = prefs.getBoolean(PREFS_KEY_SIGNED_IN, false)
 
-    if (isSignedIn) {
-        // Navigate to the home screen if the user is already signed in
-        LaunchedEffect(Unit) {
-            navController.navigate(Route.Home.Category) {
-                popUpTo(Route.Home.SignIn) { inclusive = true }
-            }
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .padding(8.dp)
-            .fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(24.dp))
-                .clickable {
-                    navController.navigateUp()
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Success -> {
+                // Navigate to HOME screen on successful sign-in
+                navController.navigate(Route.Home.HOME) {
+                    popUpTo(Route.Home.SIGN_IN) { inclusive = true }
                 }
-                .border(
-                    1.dp,
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color.Transparent
-                )
-                .background(
-                    Color.Transparent,
-                    shape = RoundedCornerShape(24.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                tint = Color.Gray,
-                contentDescription = ""
-            )
+            }
+            is AuthState.Error -> {
+                // Show error as a toast message
+                Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+            }
+            else -> { /* Do nothing for Idle or Loading */ }
         }
     }
 
+//    if (isSignedIn) {
+//        // Navigate to the home screen if the user is already signed in
+//        LaunchedEffect(Unit) {
+//            navController.navigate(Route.Home.HOME) {
+//                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
+//            }
+//        }
+//    }
+
     Column(
         modifier = Modifier
-            .padding(24.dp)
-            .fillMaxWidth(),
+            .padding(10.dp)
+            .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ){
+            Box(
+                modifier = Modifier
+                    .size(35.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .clickable {
+                        navController.navigate(Route.Home.SIGN_UP)
+                    }
+                    .border(
+                        1.dp,
+                        shape = RoundedCornerShape(24.dp),
+                        color = Color.LightGray
+                    )
+                    .background(
+                        Color.Transparent,
+                        shape = RoundedCornerShape(24.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    tint = Color.Gray,
+                    modifier = Modifier
+                        .size(30.dp),
+                    contentDescription = ""
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(50.dp))
 
         Text(
-            text = "Welcome back!",
+            text = "Welcome back",
             color = Color.Black,
             fontSize = 36.sp,
             fontWeight = FontWeight.ExtraBold
         )
 
+        Spacer(modifier = Modifier.height(10.dp))
+
         Text(
-            text = "Sign in to continue",
+            text = "Login in to your account",
             color = Color.Gray,
             fontSize = 24.sp,
             fontWeight = FontWeight.Normal
@@ -130,6 +183,7 @@ fun BongaSignIn(
 
         Spacer(modifier = Modifier.height(30.dp))
 
+        // Email input field
         Bongatextfield(
             label = "E-mail address",
             fieldDescription = "",
@@ -145,6 +199,7 @@ fun BongaSignIn(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Password input field
         Bongatextfield(
             label = "Password",
             isPassword = true,
@@ -160,12 +215,21 @@ fun BongaSignIn(
             )
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // Handle error and display an error message if there is one
+        if (authState is AuthState.Error) {
+            Text(
+                text = (authState as AuthState.Error).message,
+                color = Color.Red,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
 
+        // Forgot password link
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.End
         ) {
             var isChecked by remember { mutableStateOf(false) }
 
@@ -189,26 +253,41 @@ fun BongaSignIn(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Text(
-                text = "Forgot password?",
-                fontSize = 16.sp,
-                color = Color.Black,
-                style = TextStyle(textDecoration = TextDecoration.Underline),
-                modifier = Modifier
-                    .clickable {
-//                        if (email.isNotEmpty()) {
-//                            onForgotPassword(email)
-//                        } else {
-//                            Toast
-//                                .makeText(context, "Please enter your email", Toast.LENGTH_SHORT)
-//                                .show()
-//                        }
-                    navController.navigate(Route.Home.ForgotPassword)
+            TextButton(
+                onClick = {
+                    navController.navigate(Route.Home.FORGOT_PASSWORD)
                 }
-            )
+            ) {
+                Text(
+                    text = "Forgot password?",
+                    fontSize = 16.sp,
+                    color = orange28,
+                    style = TextStyle(textDecoration = TextDecoration.Underline),
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+
+        // Email/Password sign-in button
+        BongaButton(
+            modifier = Modifier.fillMaxWidth(),
+            label = "Sign In",
+            color = Color.White,
+            buttonColor = orange28,
+            onClick = {
+                // Validate that both fields are not empty
+                if (email.isBlank()) {
+                    Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                } else if (password.isBlank()) {
+                    Toast.makeText(context, "Please enter your password", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Proceed with sign-in
+                    onSignIn(email, password)
+                }
+            }
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         Row(
             modifier = Modifier
@@ -236,223 +315,115 @@ fun BongaSignIn(
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // Google and Facebook Sign-In options
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
 
-            val callbackManager = remember { CallbackManager.Factory.create() }
-
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.StartActivityForResult()
             ) { result ->
-                callbackManager.onActivityResult(result.resultCode, result.resultCode, result.data)
+                // Handle the result from the Google Sign-In intent
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.let { data ->
+                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                        try {
+                            val account = task.getResult(ApiException::class.java)
+                            account?.let {
+                                // Now handle the Google sign-in, e.g., pass the account to your ViewModel
+                                authViewModel.signInWithGoogle(it.idToken ?: "", navController)
+                            }
+                        } catch (e: ApiException) {
+                            Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
             }
 
             BongaBox(
-                modifier = Modifier.clickable { onClick() },
+                modifier = Modifier.clickable {
+                    val googleSignInClient = GoogleSignIn.getClient(
+                        context,
+                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                            .requestIdToken(context.getString(R.string.web_client_id))
+                            .requestEmail()
+                            .build()
+                    )
+                    val signInIntent = googleSignInClient.signInIntent
+                    launcher.launch(signInIntent)
+                },
                 painter = painterResource(id = R.drawable.google_icons)
             )
 
             BongaBox(
-                modifier = Modifier
-                    .clickable {
-                        onClick ()
-//                            {
-//                            lifecycleScope.launch {
-//                                val signInIntent =
-//                                    LoginManager.getInstance().logInWithReadPermissions(
-//                                        context as Activity,
-//                                        listOf("email", "public_profile")
-//                                    )
-//                                launcher.launch(
-//                                    IntentSenderRequest.Builder(
-//                                        signInIntent ?: return@launch
-//                                    ).build()
-//                                )
-//                            }
-//                        }
-                    },
+                modifier = Modifier.clickable {
+                    LoginManager.getInstance().logInWithReadPermissions(
+                        context as Activity,
+                        listOf("email", "public_profile")
+                    )
+
+                    LoginManager.getInstance().registerCallback(callbackManager, object : FacebookCallback<LoginResult> {
+                        override fun onSuccess(result: LoginResult) {
+                            // Handle successful Facebook login
+                            val credential = FacebookAuthProvider.getCredential(
+                                result.accessToken.token
+                            )
+                            FirebaseAuth.getInstance().signInWithCredential(credential)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        navController.navigate(Route.Home.HOME)
+                                    } else {
+                                        Toast.makeText(context, "Facebook sign-in failed: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                        Log.e("FacebookSignIn", "Error: ${task.exception?.message}", task.exception)
+                                    }
+                                }
+                        }
+
+                        override fun onCancel() {
+                            // Handle Facebook login cancellation
+                            Toast.makeText(context, "Facebook sign-in canceled", Toast.LENGTH_LONG).show()
+                        }
+
+                        override fun onError(error: FacebookException) {
+                            // Handle Facebook login errors
+                            Toast.makeText(context, "Facebook sign-in failed: ${error.message}", Toast.LENGTH_LONG).show()
+                            Log.e("FacebookSignIn", "Facebook sign-in error", error)
+                        }
+                    })
+
+                },
                 painter = painterResource(id = R.drawable.facebook_icon)
             )
 
-            BongaBox(
-                modifier = Modifier,
-                painter = painterResource(id = R.drawable.apple_icon)
-            )
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-//        if (isVerificationRequired) {
-//            Bongatextfield(
-//                label = "Verification Code",
-//                fieldDescription = "",
-//                input = verificationCode,
-//                //leading = painterResource(id = R.drawable.image_sec_icon),
-//                hint = "Enter your verification code",
-//                onChange = { verificationCode = it },
-//                keyboardOptions = KeyboardOptions(
-//                    keyboardType = KeyboardType.Number,
-//                    imeAction = ImeAction.Done
-//                )
-//            )
-//            Spacer(modifier = Modifier.height(24.dp))
-//
-//            BongaButton(
-//                modifier = Modifier.fillMaxWidth(),
-//                label = "Verify",
-//                color = Color.White,
-//                buttonColor = orange28,
-//                onClick = {
-//                    verifyCode(auth.currentUser?.uid ?: "", verificationCode, {
-//                        // Handle successful verification
-//                        navController.navigate(Route.Home.Category)
-//                    }, { error ->
-//                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-//                    })
-//                }
-//            )
-//        } else {}
-
-
-        BongaButton(
-            modifier = Modifier.fillMaxWidth(),
-            label = "Login",
-            color = Color.White,
-            buttonColor = orange28,
-            onClick = {
-                onSignIn(email, password)
-
-                // Check if email verification is needed
-//                val code = generateVerificationCode()
-//                storeVerificationCode(auth.currentUser?.uid ?: "", email, code)
-//                sendVerificationEmail(email, code)
-//
-//                isVerificationRequired = true
-
-                //if (email.isNotBlank() && password.isNotBlank()) {
-                    //signInWithEmailAndPassword(email, password, context, navController)
-                //} else {
-                    //Toast.makeText(context, "Please enter valid credentials", Toast.LENGTH_SHORT).show()
-                //}
-            }
-        ) /*{
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            with (prefs.edit()) {
-                                putBoolean(PREFS_KEY_SIGNED_IN, true)
-                                apply()
-                            }
-                            navController.navigate(Route.Home.Category) {
-                                popUpTo(Route.Home.SignIn) { inclusive = true }
-                            }
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Sign in failed. Please check your credentials.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-            }
-        }*/
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
+        // Link to Sign Up
         Row(
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
                 text = "Don't have an account? ",
-                style = MaterialTheme.typography.bodyMedium
+                fontSize = 16.sp,
             )
-            Text(
-                text = "Sign up",
-                style = MaterialTheme.typography.bodyMedium.copy(color = orange28),
-                modifier = Modifier.clickable {
-                    navController.navigate(Route.Home.SignUp)
+            TextButton(
+                onClick = {
+                    navController.navigate(Route.Home.SIGN_UP)
                 }
-            )
-        }
-    }
-}
-
-private fun signInWithEmailAndPassword(email: String, password: String, context: Context, navController: NavController) {
-    val auth = FirebaseAuth.getInstance()
-    auth.signInWithEmailAndPassword(email, password)
-        .addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                Toast.makeText(context, "Sign in successful", Toast.LENGTH_SHORT).show()
-                // Navigate to your desired screen upon successful sign-in
-                navController.navigate(Route.Home.Category)
-                // Save the login state for one-time sign-in using SharedPreferences
-                saveSignInState(context)
-            } else {
-                Toast.makeText(context, "Authentication failed please check your credentialst", Toast.LENGTH_SHORT).show()
+            ) {
+                Text(
+                    text = "Sign Up",
+                    fontSize = 15.sp,
+                    color = orange28,
+                )
             }
         }
-}
-
-
-
-private fun saveSignInState(context: Context) {
-    val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    prefs.edit {
-        putBoolean(PREFS_KEY_SIGNED_IN, true)
     }
 }
 
-@Composable
-fun CheckSignInState(navController: NavController) {
-    val context = LocalContext.current
-    val prefs: SharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val isSignedIn = prefs.getBoolean(PREFS_KEY_SIGNED_IN, false)
 
-    if (isSignedIn) {
-        navController.navigate(Route.Home.Category)
-    }
-}
-
-private fun verifyCode(uid: String, code: String, onSuccess: () -> Unit, onFailure: (String) -> Unit) {
-    val firestore = FirebaseFirestore.getInstance()
-
-    firestore.collection("verificationCodes")
-        .document(uid)
-        .get()
-        .addOnSuccessListener { document ->
-            if (document != null && document.exists()) {
-                val storedCode = document.getString("code")
-                val expiry = document.getLong("expiry") ?: 0
-                val verified = document.getBoolean("verified") ?: false
-
-                if (verified) {
-                    onFailure("Email already verified.")
-                } else if (System.currentTimeMillis() > expiry) {
-                    onFailure("Code expired.")
-                } else if (code == storedCode) {
-                    firestore.collection("verificationCodes")
-                        .document(uid)
-                        .update("verified", true)
-                        .addOnSuccessListener {
-                            onSuccess()
-                        }
-                        .addOnFailureListener { e ->
-                            onFailure("Failed to update verification status: ${e.message}")
-                        }
-                } else {
-                    onFailure("Invalid code.")
-                }
-            } else {
-                onFailure("Invalid code.")
-            }
-        }
-        .addOnFailureListener { e ->
-            onFailure("Verification failed: ${e.message}")
-        }
-}
 

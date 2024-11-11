@@ -1,6 +1,7 @@
 package dev.korryr.bongesha.screens
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,24 +29,37 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.auth.FirebaseAuth
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaRow
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.ui.theme.blue88
 import dev.korryr.bongesha.ui.theme.orange100
+import dev.korryr.bongesha.viewmodels.AuthViewModel
+import java.util.Calendar
 
 @Composable
 fun UserProfile(
     navController: NavController,
-    onSignOut: () -> Unit
+    authViewModel: AuthViewModel,
 ) {
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-    val email = sharedPreferences.getString("userEmail", "No email")
-    val userName = sharedPreferences.getString("userName", "User")
+    val auth = FirebaseAuth.getInstance()
+    val user = auth.currentUser
+    val displayName = user?.displayName ?: "User"
+    val email = user?.email ?: "No email"
+
+    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    val greeting = when (currentHour) {
+        in 2..11 -> "Good morning"
+        in 12..15 -> "Good afternoon"
+        in 16..20 -> "Good evening"
+        else -> "Good night😴"
+    }
 
     Column(
         modifier = Modifier
@@ -76,8 +90,11 @@ fun UserProfile(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    text = "Welcome $userName!",
-                    color = orange100
+                    text = "$greeting, $displayName!",
+                    fontWeight = FontWeight.W700,
+                    fontSize = 16.sp,
+                    color = orange100,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -136,7 +153,7 @@ fun UserProfile(
                 modifier = Modifier
                     .clickable(
                         onClick = {
-                            navController.navigate(Route.Home.Inbox)
+                            navController.navigate(Route.Home.INBOX)
                         }
                     )
                     .padding(16.dp)
@@ -192,7 +209,7 @@ fun UserProfile(
                     )
                     .clickable(
                         onClick = {
-                            navController.navigate(Route.Home.HelpSupport)
+                            navController.navigate(Route.Home.HELP_SUPPORT)
                         }
                     )
                     .padding(16.dp)
@@ -237,7 +254,9 @@ fun UserProfile(
                     ),
                     modifier = Modifier
                         .padding(12.dp),
-                    onClick = onSignOut
+                    onClick = {
+                        authViewModel.signOut()
+                    }
                 ) {
                     Text(
                         text = "logout".uppercase(),

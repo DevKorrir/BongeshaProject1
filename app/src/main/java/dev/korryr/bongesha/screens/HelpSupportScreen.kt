@@ -107,7 +107,7 @@ fun BongaHelp(
             modifier = Modifier
                 .clickable(
                     onClick = {
-                        navController.navigate(Route.Home.AccountSettings)
+                        navController.navigate(Route.Home.ACCOUNT_SETTINGS)
                     }
                 )
                 .padding(24.dp)
