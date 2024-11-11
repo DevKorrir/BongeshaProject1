@@ -2,13 +2,12 @@ package dev.korryr.bongesha.viewmodels
 
 import android.annotation.SuppressLint
 import android.app.Application
-import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
-import android.provider.Settings.Global.putString
 import android.util.Log
-import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.security.crypto.EncryptedSharedPreferences
@@ -18,8 +17,7 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.facebook.login.widget.LoginButton
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.firebase.auth.EmailAuthProvider
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -33,6 +31,7 @@ import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
 import dev.korryr.bongesha.screens.isValidEmail
 import dev.korryr.bongesha.screens.isValidPassword
+import dev.korryr.bongesha.viewmodels.googleSignIn.GoogleAuthUiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -49,8 +48,6 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val firestore = FirebaseFirestore.getInstance()
     private val callbackManager = CallbackManager.Factory.create()
     private val context = getApplication<Application>().applicationContext
-//    private val _isSignedIn = MutableStateFlow(false)
-//    val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
     companion object {
         private const val PREFS_KEY_SIGNED_IN = "isUserSignedIn"
     }
@@ -58,6 +55,32 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     init {
         sharedPreferences = initEncryptedSharedPreferences()
         checkSignInStatus()
+    }
+
+    private val googleAuthUiClient: GoogleAuthUiClient = GoogleAuthUiClient(
+        context = getApplication(),
+        oneTapClient = Identity.getSignInClient(getApplication())
+    )
+
+    fun startGoogleSignIn(launcher: ActivityResultLauncher<IntentSenderRequest>) {
+        viewModelScope.launch {
+            val intentSender = googleAuthUiClient.signIn()
+            intentSender?.let {
+                val request = IntentSenderRequest.Builder(it).build()
+                launcher.launch(request)
+            }
+        }
+    }
+
+    fun handleGoogleSignInResult(data: Intent) {
+        viewModelScope.launch {
+            val result = googleAuthUiClient.signInWithIntent(data)
+            _authState.value = if (result.data != null) {
+                AuthState.Success("Google Sign-In successful")
+            } else {
+                AuthState.Error(result.errorMessage ?: "Google Sign-In failed")
+            }
+        }
     }
 
     private fun initEncryptedSharedPreferences(): SharedPreferences {
@@ -256,20 +279,27 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private fun saveSignInState(isSignedIn: Boolean) {
-        sharedPreferences.edit().putBoolean(PREFS_KEY_SIGNED_IN, isSignedIn).apply()
+    private fun saveSignInState(isUserSignedIn: Boolean) {
+        sharedPreferences.edit().putBoolean(PREFS_KEY_SIGNED_IN, isUserSignedIn).apply()
     }
 
 
-    fun signOut() {
-        Firebase.auth.signOut()
-        _isUserSignedIn.value = false
+    fun signOut(navController: NavController) {
+        Firebase.auth.signOut() // Sign out from Firebase
+        _authState.value = AuthState.Idle // Reset the auth state or set it to Idle
+
+        // Optionally, clear shared preferences or other user-related data
         clearUserSignInState()
+
+        // Redirect to the sign-in screen
+        navController.navigate(Route.Home.SIGN_IN) {
+            popUpTo(Route.Home.HOME) { inclusive = true } // Clear the back stack
+        }
     }
 
     private fun clearUserSignInState() {
         sharedPreferences.edit().apply {
-            putBoolean("isSignedIn", false)
+            putBoolean("isUserSignedIn", false)
             remove("userEmail")
             remove("userDisplayName")
             apply()

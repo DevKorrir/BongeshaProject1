@@ -157,7 +157,6 @@ fun BongaSignUp(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
             ),
-            //isValid = email.isNotEmpty(),
         )
         if (email.isNotEmpty()){
             Text(
@@ -309,25 +308,6 @@ fun BongaSignUp(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Google Sign-In Button Setup
-        val launcher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                result.data?.let { data ->
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    try {
-                        val account = task.getResult(ApiException::class.java)
-                        account?.let {
-                            authViewModel.signInWithGoogle(account.idToken ?: "", navController)
-                        }
-                    } catch (e: ApiException) {
-                        Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -337,16 +317,7 @@ fun BongaSignUp(
             //google button
             BongaBox(
                 modifier = Modifier.clickable {
-                    val googleSignInClient = GoogleSignIn.getClient(
-                        context,
-                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken(context.getString(R.string.web_client_id))
-                            .requestProfile()
-                            .requestEmail()
-                            .build()
-                    )
-                    val signInIntent = googleSignInClient.signInIntent
-                    launcher.launch(signInIntent)
+                    onGoogleSignIn()
                 },
                 painter = painterResource(id = R.drawable.google_icons)
             )

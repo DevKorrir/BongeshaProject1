@@ -56,7 +56,6 @@ import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
@@ -92,6 +91,7 @@ fun BongaSignIn(
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     val isSignedIn = prefs.getBoolean(PREFS_KEY_SIGNED_IN, false)
 
+
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.Success -> {
@@ -108,14 +108,6 @@ fun BongaSignIn(
         }
     }
 
-//    if (isSignedIn) {
-//        // Navigate to the home screen if the user is already signed in
-//        LaunchedEffect(Unit) {
-//            navController.navigate(Route.Home.HOME) {
-//                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
-//            }
-//        }
-//    }
 
     Column(
         modifier = Modifier
@@ -333,17 +325,30 @@ fun BongaSignIn(
                 }
             }
 
+            // Register the result launcher for Google sign-in
+            val googleSignInLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartIntentSenderForResult()
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.let { data ->
+                        authViewModel.handleGoogleSignInResult(data) // Handle Google Sign-In result
+                    }
+                }
+            }
+
             BongaBox(
                 modifier = Modifier.clickable {
-                    val googleSignInClient = GoogleSignIn.getClient(
-                        context,
-                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                            .requestIdToken(context.getString(R.string.web_client_id))
-                            .requestEmail()
-                            .build()
-                    )
-                    val signInIntent = googleSignInClient.signInIntent
-                    launcher.launch(signInIntent)
+                    // Start Google Sign-In
+                    authViewModel.startGoogleSignIn(googleSignInLauncher)
+//                    val googleSignInClient = GoogleSignIn.getClient(
+//                        context,
+//                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                            .requestIdToken(context.getString(R.string.web_client_id))
+//                            .requestEmail()
+//                            .build()
+//                    )
+//                    val signInIntent = googleSignInClient.signInIntent
+//                    launcher.launch(signInIntent)
                 },
                 painter = painterResource(id = R.drawable.google_icons)
             )

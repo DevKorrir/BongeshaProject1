@@ -1,19 +1,14 @@
 package dev.korryr.bongesha
 
-
 import WishlistScreen
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.app.PendingIntent
-import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
@@ -23,30 +18,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.facebook.CallbackManager
 import com.facebook.appevents.AppEventsLogger
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
 import dev.korryr.bongesha.commons.Route
-import dev.korryr.bongesha.repositories.ProductRepository
 import dev.korryr.bongesha.screens.AllProductsScreen
 import dev.korryr.bongesha.screens.BongaAccSettings
-import dev.korryr.bongesha.screens.BongaHome
 import dev.korryr.bongesha.screens.BongaForgotPassword
 import dev.korryr.bongesha.screens.BongaHelp
+import dev.korryr.bongesha.screens.BongaHome
 import dev.korryr.bongesha.screens.BongaSignIn
 import dev.korryr.bongesha.screens.BongaSignUp
 import dev.korryr.bongesha.screens.BongaWelcome
@@ -65,17 +54,23 @@ import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
-import kotlinx.coroutines.launch
-import java.util.UUID
+import dev.korryr.bongesha.viewmodels.googleSignIn.GoogleAuthUiClient
 
 class MainActivity : ComponentActivity() {
+    private lateinit var googleAuthUiClient: GoogleAuthUiClient
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var callbackManager: CallbackManager
+    private lateinit var authViewModel: AuthViewModel
     private lateinit var auth: FirebaseAuth
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize GoogleAuthUiClient
+        googleAuthUiClient = GoogleAuthUiClient(
+            context = this,
+            oneTapClient = Identity.getSignInClient(this)
+        )
 
         auth = Firebase.auth
 
@@ -83,10 +78,8 @@ class MainActivity : ComponentActivity() {
         if (!Places.isInitialized()) {
             Places.initialize(this, "AIzaSyDQ7ZxsA21JywS0UorNAW16ZS0Nfrz-eRo")
         }
-
         AppEventsLogger.activateApp(application)
         sharedPreferences = initEncryptedSharedPreferences()
-        //sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
 
         setContent {
             val navController = rememberNavController()
@@ -95,44 +88,46 @@ class MainActivity : ComponentActivity() {
             val currentSignInState = rememberUpdatedState(authViewModel.authState.value)
             val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
 
-//            LaunchedEffect(isUserSignedIn) {
-//                if (!isUserSignedIn) {
-//                    navController.navigate(Route.Home.SIGN_IN) {
-//                        popUpTo(0) { inclusive = true }  // Clear back stack
-//                    }
-//                }
-//            }
+            // Result launcher for Google Sign-In
+            val googleSignInLauncher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.StartIntentSenderForResult()
+            ) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    result.data?.let { data ->
+                        authViewModel.handleGoogleSignInResult(data)
+                    }
+                } else {
+                    Toast.makeText(context, "Google sign-in canceled", Toast.LENGTH_LONG).show()
+                }
+            }
+
+            // Observe auth state
+            val authState by authViewModel.authState.collectAsState()
+            LaunchedEffect(authState) {
+                when (authState) {
+                    is AuthState.Idle -> {
+                        navController.navigate(Route.Home.SIGN_IN){
+                            popUpTo(Route.Home.HOME) { inclusive = true }
+                        }
+                    }
+                    is AuthState.Success -> {
+                        navController.navigate(Route.Home.HOME) {
+                            popUpTo(Route.Home.SIGN_IN) { inclusive = true }
+                        }
+                    }
+                    is AuthState.Error -> {
+                        Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+                    }
+                    else -> {}
+                }
+            }
+
 
             BongeshaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = gray01
                 ) {
-                    val launcher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.StartActivityForResult()
-                    ) { result ->
-                        if (result.resultCode == Activity.RESULT_OK) {
-                            result.data?.let { data ->
-                                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                                try {
-                                    val account = task.getResult(ApiException::class.java)
-                                    account?.let {
-                                        authViewModel.signInWithGoogle(account.idToken ?: "", navController)
-                                    }
-                                } catch (e: ApiException) {
-                                    Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
-                                }
-                            }
-                        } else {
-                            // Log the result code and show an error to understand why it was canceled
-                            Log.d("GoogleSignIn", "Sign-in canceled with resultCode: ${result.resultCode}")
-                            Toast.makeText(context, "Google sign-in canceled", Toast.LENGTH_LONG).show()
-                        }
-                    }
-
-
-
-
                     //callbackManager = CallbackManager.Factory.create()
                     val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
                     val startDestination = if (isUserSignedIn) Route.Home.HOME else Route.Home.SIGN_UP
@@ -146,19 +141,8 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 authViewModel = authViewModel,
                                 onGoogleSignIn = {
-                                    val googleSignInClient = GoogleSignIn.getClient(
-                                        this@MainActivity,
-                                        GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                            .requestIdToken(getString(R.string.web_client_id)) // Ensure this matches Firebase OAuth settings
-                                            .requestProfile()
-                                            .requestEmail()
-                                            .build()
-                                    )
-                                    val signInIntent = googleSignInClient.signInIntent
-                                    launcher.launch(
-                                        (signInIntent)
-                                    )
-
+                                    // Trigger Google Sign-In through AuthViewModel
+                                    authViewModel.startGoogleSignIn(googleSignInLauncher)
                                 },
                                 onFacebookSignInClick = {
                                     authViewModel.signInWithFacebook(navController)
@@ -167,18 +151,6 @@ class MainActivity : ComponentActivity() {
                                     authViewModel.signIn(email, password, navController)
                                 }
                             )
-
-                            LaunchedEffect(key1 = currentSignInState.value) {
-                                if (currentSignInState.value is AuthState.Success) {
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        (currentSignInState.value as AuthState.Success).message,
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                    saveUserSignInState()
-                                    navController.navigate(Route.Home.HOME)
-                                }
-                            }
                         }
 
                         composable(Route.Home.SIGN_IN) {
@@ -198,23 +170,10 @@ class MainActivity : ComponentActivity() {
                                     authViewModel.signIn(email, password, navController)  // Handle email/password sign-in
                                 },
                                 authViewModel = authViewModel,
-                                onGoogleSignIn = { idToken ->
-                                    authViewModel.signInWithGoogle(idToken, navController) // Handle Google sign-in
-                                    Toast.makeText(context, "Google sign-in failed: ID token is null.", Toast.LENGTH_LONG).show()
+                                onGoogleSignIn = {
+                                    authViewModel.startGoogleSignIn(googleSignInLauncher)
                                 }
                             )
-
-                            LaunchedEffect(key1 = currentSignInState.value) {
-                                if (currentSignInState.value is AuthState.Success) {
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        (currentSignInState.value as AuthState.Success).message,
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                    saveUserSignInState()
-                                    navController.navigate(Route.Home.HOME)
-                                }
-                            }
                         }
 
 
@@ -265,7 +224,6 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.PROFILE) {
-                            //val authViewModel: AuthViewModel = viewModel()
                             UserProfile(
                                 navController = navController,
                                 authViewModel = authViewModel
@@ -306,11 +264,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
-//    private fun isUserSignedIn(): Boolean {
-//        return sharedPreferences.getBoolean("isSignedIn", false)
-//    }
-
     private fun initEncryptedSharedPreferences(): SharedPreferences {
         val masterKey = MasterKey.Builder(this)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -325,26 +278,7 @@ class MainActivity : ComponentActivity() {
         )
     }
 
-    private fun saveUserSignInState() {
-        sharedPreferences.edit().putBoolean("isSignedIn", true).apply()
-    }
-
-//    fun saveUserDetails(email: String?, displayName: String?) {
-//        sharedPreferences.edit().apply {
-//            putString("userEmail", email)
-//            putString("userDisplayName", displayName)
-//            apply()
-//        }
-//    }
 
 
-    private fun clearUserSignInState() {
-        sharedPreferences.edit().apply {
-            putBoolean("isSignedIn", false)
-            remove("userEmail")
-            remove("userDisplayName")
-            apply()
-        }
-    }
 
 }
