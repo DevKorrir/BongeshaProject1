@@ -80,7 +80,7 @@ fun BongaWelcome(
 
     ) {
         Image(painter = painterResource(
-            id = R.drawable.working_sticker),
+            id = R.drawable.problem_solved),
             contentDescription = "")
 
         Spacer(modifier = Modifier.height(24.dp))

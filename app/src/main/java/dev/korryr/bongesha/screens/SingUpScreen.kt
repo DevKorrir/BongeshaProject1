@@ -12,13 +12,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -148,7 +146,7 @@ fun BongaSignUp(
             fieldDescription = "",
             input = email,
             trailing = null,
-            leading = painterResource(id = R.drawable.image_sec_icon),
+            leading = painterResource(id = R.drawable.outlined_mail_icon),
             hint = "bongesha@gmail.com",
             onChange = {
                 email = it

@@ -1,14 +1,10 @@
 package  dev.korryr.bongesha.screens
 
 import android.app.Activity
-import android.app.PendingIntent
 import android.content.Context
-import android.content.SharedPreferences
-import android.graphics.drawable.Icon
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,10 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +49,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.edit
 import androidx.navigation.NavController
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
@@ -188,7 +180,7 @@ fun BongaSignIn(
             label = "E-mail address",
             fieldDescription = "",
             input = email,
-            leading = painterResource(id = R.drawable.image_sec_icon),
+            leading = painterResource(id = R.drawable.outlined_mail_icon),
             hint = "Yourname@gmail.com",
             onChange = { email = it },
             keyboardOptions = KeyboardOptions(

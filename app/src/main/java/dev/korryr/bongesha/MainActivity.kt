@@ -57,7 +57,6 @@ import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.UserProfile
-import dev.korryr.bongesha.screens.category.screens.Beverages
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthState
@@ -234,9 +233,6 @@ class MainActivity : ComponentActivity() {
                             BongaWelcome(navController = navController)
                         }
 
-                        composable(Route.Home.BEVERAGE) {
-                            Beverages()
-                        }
 
                         composable(Route.Home.CART) {
                             CartScreen(

@@ -107,7 +107,7 @@ fun BongaForgotPassword(
             label = "E-mail address",
             fieldDescription = "Enter your email address to reset your password",
             input = email,
-            leading = painterResource(id = R.drawable.image_sec_icon),
+            leading = painterResource(id = R.drawable.outlined_mail_icon),
             hint = "Yourname@gmail.com",
             onChange = { email = it },
             keyboardOptions = KeyboardOptions.Default.copy(
