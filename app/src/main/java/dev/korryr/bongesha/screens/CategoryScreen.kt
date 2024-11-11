@@ -75,19 +75,19 @@ fun CategoryTab(
     )
     // Map categories to their drawable resources
     val categoryImages = mapOf(
-        "Audio & Sound Systems" to R.drawable.home_care,
-        "Phones & Accessories" to R.drawable.categories,
-        "Computers & Accessories" to R.drawable.beverages,
-        "Home Appliances" to R.drawable.home_kitchen,
-        "Lighting & Electrical" to R.drawable.oil,
-        "Televisions & Accessories" to R.drawable.choco_biscuit,
-        "Portable Electronics" to R.drawable.personal_care,
-        "Mobile Network Accessories" to R.drawable.stoney_class,
-        "Cables & Connectors" to R.drawable.snacks,
-        "Office & Stationery Electronics" to R.drawable.milk_eggs,
-        "Smart Home & Security" to R.drawable.stell_wired,
-        "Gaming & Entertainment" to R.drawable.geisha_pink,
-        "Energy & Power Solutions" to R.drawable.heart_icon
+        "Audio & Sound Systems" to R.drawable.sounds_icon,
+        "Phones & Accessories" to R.drawable.phone_accesories_icon,
+        "Computers & Accessories" to R.drawable.computer_icon,
+        "Home Appliances" to R.drawable.home_appliance_icon,
+        "Lighting & Electrical" to R.drawable.lighting_icon,
+        "Televisions & Accessories" to R.drawable.tv_icon,
+        "Portable Electronics" to R.drawable.portable_icon,
+        "Mobile Network Accessories" to R.drawable.mobilenetwork_icon,
+        "Cables & Connectors" to R.drawable.cables_icon,
+        "Office & Stationery Electronics" to R.drawable.office_stationary_icon,
+        "Smart Home & Security" to R.drawable.smart_icon,
+        "Gaming & Entertainment" to R.drawable.games_icon,
+        "Energy & Power Solutions" to R.drawable.energy_icon
     )
     var selectedCategory by remember { mutableStateOf(categories[0]) }
     val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = isLoading)

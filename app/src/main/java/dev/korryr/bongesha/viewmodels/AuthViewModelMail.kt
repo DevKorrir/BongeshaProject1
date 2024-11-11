@@ -1,5 +1,6 @@
 package dev.korryr.bongesha.viewmodels
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
@@ -18,6 +19,7 @@ import com.facebook.FacebookException
 import com.facebook.login.LoginResult
 import com.facebook.login.widget.LoginButton
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -47,10 +49,10 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     private val firestore = FirebaseFirestore.getInstance()
     private val callbackManager = CallbackManager.Factory.create()
     private val context = getApplication<Application>().applicationContext
-    private val _isSignedIn = MutableStateFlow(false)
-    val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
+//    private val _isSignedIn = MutableStateFlow(false)
+//    val isSignedIn: StateFlow<Boolean> get() = _isSignedIn
     companion object {
-        private const val PREFS_KEY_SIGNED_IN = "isSignedIn"
+        private const val PREFS_KEY_SIGNED_IN = "isUserSignedIn"
     }
 
     init {
@@ -73,17 +75,22 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun checkSignInStatus() {
-        _isSignedIn.value = FirebaseAuth.getInstance().currentUser != null
+        _isUserSignedIn.value = FirebaseAuth.getInstance().currentUser != null
     }
 
-    fun signUp(email: String, password: String, displayName: String) {
+    fun signUp(
+        email: String,
+        password: String,
+        displayName: String
+    ) {
         if (!isValidEmail(email) || !isValidPassword(password)) {
             _authState.value = AuthState.Error("Invalid email or password format")
             return
         }
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     val profileUpdates = UserProfileChangeRequest.Builder()
@@ -96,7 +103,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                             // Send the email verification
                             user.sendEmailVerification().addOnCompleteListener { verificationTask ->
                                 if (verificationTask.isSuccessful) {
-                                    _authState.value = AuthState.Success("Verification email sent to your email address.")
+                                    _authState.value = AuthState.SignUpSuccess//("Verification email sent to your email address.")
                                 } else {
                                     _authState.value = AuthState.Error(
                                         verificationTask.exception?.message ?: "Failed to send verification email"
@@ -114,8 +121,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun signIn(email: String, password: String, navController: NavController) {
-
+    fun signIn(
+        email: String,
+        password: String,
+        navController: NavController
+    ) {
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password cannot be empty")
             return
@@ -125,54 +135,74 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        viewModelScope.launch {
-            _authState.value = AuthState.Loading
-            auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    if (user?.isEmailVerified == true) {
-                        saveUserToFirestore(user)
-                        _authState.value = AuthState.Success("Sign in successful")
-                        navController.navigate(Route.Home.HOME)
-                    } else {
-                        _authState.value = AuthState.Error("Please verify your email first")
-                        auth.signOut()
+        auth.fetchSignInMethodsForEmail(email).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val signInMethods = task.result?.signInMethods ?: emptyList()
+                if (signInMethods.contains(GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD)) {
+                    _authState.value =
+                        AuthState.Error("This email is already registered with Google. Please use Google to sign in.")
+                    return@addOnCompleteListener
+                }
+
+                viewModelScope.launch {
+                    _authState.value = AuthState.Loading
+                    auth.signInWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val user = auth.currentUser
+                            if (user?.isEmailVerified == true) {
+                                saveUserToFirestore(user)
+                                _authState.value = AuthState.Success("Sign in successful")
+                            } else {
+                                _authState.value = AuthState.Error("Please verify your email first")
+                                auth.signOut()
+                            }
+                        } else {
+                            val errorMessage = when (task.exception) {
+                                is FirebaseAuthInvalidCredentialsException -> "Incorrect email or password."
+                                is FirebaseAuthInvalidUserException -> "User not found. Please sign up first."
+                                else -> task.exception?.message
+                                    ?: "Sign in failed. Please try again."
+                            }
+                            _authState.value = AuthState.Error(errorMessage)
+                        }
                     }
-                } else {
-                    val errorMessage = when (task.exception) {
-                        is FirebaseAuthInvalidCredentialsException -> "Incorrect email or password."
-                        is FirebaseAuthInvalidUserException -> "User not found. Please sign up first."
-                        else -> task.exception?.message ?: "Sign in failed. Please try again."
-                    }
-                    _authState.value = AuthState.Error(errorMessage)
                 }
             }
         }
     }
 
-
-    fun signInWithGoogle(idToken: String?, navController: NavController) {
+    @SuppressLint("SuspiciousIndentation")
+    fun signInWithGoogle(
+        idToken: String?,
+        navController: NavController
+    ) {
         if (idToken == null) {
             _authState.value = AuthState.Error("Google sign-in failed: Missing token")
             return
         }
 
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        Firebase.auth.signInWithCredential(credential)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val user = Firebase.auth.currentUser
-                    user?.let {
-                        saveUserToFirestore(it)
-                        saveSignInState(true)
-                        _authState.value = AuthState.Success("Google sign-in successful")
-                        //navController.navigate(Route.Home.HOME)
-                    }
-                } else {
-                    _authState.value = AuthState.Error("Google sign-in failed: ${task.exception?.message}")
-                }
-            }
+
+                    Firebase.auth.signInWithCredential(credential)
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val user = Firebase.auth.currentUser
+                                user?.let {
+                                    saveUserToFirestore(it)
+                                    saveSignInState(true)
+                                    _authState.value =
+                                        AuthState.Success("Google sign-in successful")
+                                    navController.navigate(Route.Home.HOME)
+                                }
+                            } else {
+                                _authState.value =
+                                    AuthState.Error("Google sign-in failed: ${task.exception?.message}")
+                            }
+                        }
+
+
     }
+
 
 
 
@@ -256,7 +286,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
+    object SignUpSuccess : AuthState() // New state for successful sign-up
     data class Success(val message: String) : AuthState()
     data class Error(val message: String) : AuthState()
 }
+
 

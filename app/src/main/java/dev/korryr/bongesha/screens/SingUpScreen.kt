@@ -74,14 +74,26 @@ fun BongaSignUp(
 
     // Observe authState and navigate to HOME on successful Google sign-in
     LaunchedEffect(authState) {
-        if (authState is AuthState.Success) {
-            navController.navigate(Route.Home.HOME) {
-                popUpTo(Route.Home.SIGN_UP) { inclusive = true }
+        when (authState) {
+            is AuthState.SignUpSuccess -> {
+                // Navigate to SIGN_IN screen after successful sign-up
+                navController.navigate(Route.Home.SIGN_IN) {
+                    popUpTo(Route.Home.SIGN_UP) { inclusive = true }
+                }
+                Toast.makeText(context, "Please verify your email before signing in.", Toast.LENGTH_LONG).show()
             }
-        } else if (authState is AuthState.Error) {
-            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+            is AuthState.Error -> {
+                // Show error as a toast message
+                Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+            }
+            // Handle other states as needed (Idle, Loading, Success for sign-in, etc.)
+            else -> {
+                // No action needed for other states
+            }
+
         }
     }
+
 
     Column(
         modifier = Modifier
@@ -224,11 +236,11 @@ fun BongaSignUp(
         if (authState is AuthState.Loading) {
             CircularProgressIndicator(
                 color = orange28,
-                modifier = Modifier
-                    .size(50.dp)
-                    .padding(16.dp)
+                modifier = Modifier.padding(16.dp)
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         BongaButton(
             label = "Create an account",
@@ -268,16 +280,6 @@ fun BongaSignUp(
                         navController.navigate(Route.Home.SIGN_IN)
                     }
                 }
-//                if (!isValidPassword(password)) {
-//                    showPasswordError = true
-//                    errorMessage = "Password must be at least 8 characters long, contain a number, a symbol, and both uppercase & lowercase letters."
-//                } else if (password != confirmPassword) {
-//                    showPasswordError = true
-//                    errorMessage = "Password does not match."
-//                } else {
-//                    authViewModel.signUp(email, password, displayName)
-//                    navController.navigate(Route.Home.Verification)
-//                }
             }
         )
 
@@ -393,12 +395,6 @@ fun BongaSignUp(
                 painter = painterResource(id = R.drawable.facebook_icon)
             )
         }
-
-//        if (authState is AuthState.Success) {
-//            LaunchedEffect(Unit) {
-//                navController.navigate(Route.Home.SIGN_IN)
-//            }
-//        }
 
         Spacer(modifier = Modifier.weight(1f))
 

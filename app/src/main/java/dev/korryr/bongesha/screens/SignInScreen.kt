@@ -101,25 +101,29 @@ fun BongaSignIn(
     val isSignedIn = prefs.getBoolean(PREFS_KEY_SIGNED_IN, false)
 
     LaunchedEffect(authState) {
-        if (authState is AuthState.Success) {
-            // Navigate to HOME screen
-            navController.navigate(Route.Home.HOME) {
-                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
+        when (authState) {
+            is AuthState.Success -> {
+                // Navigate to HOME screen on successful sign-in
+                navController.navigate(Route.Home.HOME) {
+                    popUpTo(Route.Home.SIGN_IN) { inclusive = true }
+                }
             }
-        } else if (authState is AuthState.Error) {
-            // Show error as a toast message
-            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+            is AuthState.Error -> {
+                // Show error as a toast message
+                Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+            }
+            else -> { /* Do nothing for Idle or Loading */ }
         }
     }
 
-    if (isSignedIn) {
-        // Navigate to the home screen if the user is already signed in
-        LaunchedEffect(Unit) {
-            navController.navigate(Route.Home.HOME) {
-                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
-            }
-        }
-    }
+//    if (isSignedIn) {
+//        // Navigate to the home screen if the user is already signed in
+//        LaunchedEffect(Unit) {
+//            navController.navigate(Route.Home.HOME) {
+//                popUpTo(Route.Home.SIGN_IN) { inclusive = true }
+//            }
+//        }
+//    }
 
     Column(
         modifier = Modifier
@@ -263,16 +267,6 @@ fun BongaSignIn(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        if (authState is AuthState.Loading) {
-            CircularProgressIndicator(
-                color = orange28,
-                modifier = Modifier
-                    .size(50.dp)
-                    .padding(16.dp)
-            )
-        }
 
         // Email/Password sign-in button
         BongaButton(

@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
 
 
                     //callbackManager = CallbackManager.Factory.create()
-                    val isUserSignedIn by authViewModel.isSignedIn.collectAsState()
+                    val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
                     val startDestination = if (isUserSignedIn) Route.Home.HOME else Route.Home.SIGN_UP
 
                     NavHost(
