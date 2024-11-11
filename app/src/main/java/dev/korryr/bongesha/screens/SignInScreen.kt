@@ -305,25 +305,25 @@ fun BongaSignIn(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
 
-            val launcher = rememberLauncherForActivityResult(
-                contract = ActivityResultContracts.StartActivityForResult()
-            ) { result ->
-                // Handle the result from the Google Sign-In intent
-                if (result.resultCode == Activity.RESULT_OK) {
-                    result.data?.let { data ->
-                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                        try {
-                            val account = task.getResult(ApiException::class.java)
-                            account?.let {
-                                // Now handle the Google sign-in, e.g., pass the account to your ViewModel
-                                authViewModel.signInWithGoogle(it.idToken ?: "", navController)
-                            }
-                        } catch (e: ApiException) {
-                            Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            }
+//            val launcher = rememberLauncherForActivityResult(
+//                contract = ActivityResultContracts.StartActivityForResult()
+//            ) { result ->
+//                // Handle the result from the Google Sign-In intent
+//                if (result.resultCode == Activity.RESULT_OK) {
+//                    result.data?.let { data ->
+//                        val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+//                        try {
+//                            val account = task.getResult(ApiException::class.java)
+//                            account?.let {
+//                                // Now handle the Google sign-in, e.g., pass the account to your ViewModel
+//                                authViewModel.signInWithGoogle(it.idToken ?: "", navController)
+//                            }
+//                        } catch (e: ApiException) {
+//                            Toast.makeText(context, "Google sign-in failed: ${e.message}", Toast.LENGTH_LONG).show()
+//                        }
+//                    }
+//                }
+//            }
 
             // Register the result launcher for Google sign-in
             val googleSignInLauncher = rememberLauncherForActivityResult(

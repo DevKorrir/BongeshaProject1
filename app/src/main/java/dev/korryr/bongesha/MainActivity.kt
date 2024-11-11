@@ -105,11 +105,7 @@ class MainActivity : ComponentActivity() {
             val authState by authViewModel.authState.collectAsState()
             LaunchedEffect(authState) {
                 when (authState) {
-                    is AuthState.Idle -> {
-                        navController.navigate(Route.Home.SIGN_IN){
-                            popUpTo(Route.Home.HOME) { inclusive = true }
-                        }
-                    }
+
                     is AuthState.Success -> {
                         navController.navigate(Route.Home.HOME) {
                             popUpTo(Route.Home.SIGN_IN) { inclusive = true }

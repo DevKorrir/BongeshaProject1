@@ -70,27 +70,23 @@ fun BongaSignUp(
     val context = LocalContext.current
     val callbackManager = remember { CallbackManager.Factory.create() }
 
-    // Observe authState and navigate to HOME on successful Google sign-in
     LaunchedEffect(authState) {
         when (authState) {
             is AuthState.SignUpSuccess -> {
-                // Navigate to SIGN_IN screen after successful sign-up
+                Toast.makeText(context, "Please verify your email before signing in.", Toast.LENGTH_LONG).show()
                 navController.navigate(Route.Home.SIGN_IN) {
                     popUpTo(Route.Home.SIGN_UP) { inclusive = true }
                 }
-                Toast.makeText(context, "Please verify your email before signing in.", Toast.LENGTH_LONG).show()
             }
             is AuthState.Error -> {
-                // Show error as a toast message
                 Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
             }
-            // Handle other states as needed (Idle, Loading, Success for sign-in, etc.)
             else -> {
                 // No action needed for other states
             }
-
         }
     }
+
 
 
     Column(

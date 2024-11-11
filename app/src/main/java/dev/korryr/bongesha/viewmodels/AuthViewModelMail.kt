@@ -101,54 +101,106 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         _isUserSignedIn.value = FirebaseAuth.getInstance().currentUser != null
     }
 
-    fun signUp(
-        email: String,
-        password: String,
-        displayName: String
-    ) {
+    fun signUp(email: String, password: String, displayName: String) {
         if (!isValidEmail(email) || !isValidPassword(password)) {
             _authState.value = AuthState.Error("Invalid email or password format")
             return
         }
+
         viewModelScope.launch {
             _authState.value = AuthState.Loading
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
+
+            // Check if email already has an account
+            Firebase.auth.fetchSignInMethodsForEmail(email).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    val profileUpdates = UserProfileChangeRequest.Builder()
-                        .setDisplayName(displayName)
-                        .build()
+                    val signInMethods = task.result?.signInMethods ?: emptyList()
 
-                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
-                        if (profileUpdateTask.isSuccessful) {
+                    if (signInMethods.isNotEmpty()) {
+                        _authState.value = AuthState.Error("An account with this email already exists. Please sign in.")
+                        return@addOnCompleteListener
+                    }
 
-                            // Send the email verification
-                            user.sendEmailVerification().addOnCompleteListener { verificationTask ->
-                                if (verificationTask.isSuccessful) {
-                                    _authState.value = AuthState.SignUpSuccess//("Verification email sent to your email address.")
+                    Firebase.auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val user = Firebase.auth.currentUser
+                            val profileUpdates = UserProfileChangeRequest.Builder()
+                                .setDisplayName(displayName)
+                                .build()
+
+                            user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
+                                if (profileUpdateTask.isSuccessful) {
+                                    // Send the email verification
+                                    user.sendEmailVerification().addOnCompleteListener { verificationTask ->
+                                        if (verificationTask.isSuccessful) {
+                                            _authState.value = AuthState.SignUpSuccess
+                                            //Firebase.auth.signOut() // Force sign-out until email is verified
+                                        } else {
+                                            _authState.value = AuthState.Error(
+                                                verificationTask.exception?.message ?: "Failed to send verification email"
+                                            )
+                                        }
+                                    }
                                 } else {
-                                    _authState.value = AuthState.Error(
-                                        verificationTask.exception?.message ?: "Failed to send verification email"
-                                    )
+                                    _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
                                 }
                             }
                         } else {
-                            _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
+                            _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
                         }
                     }
                 } else {
-                    _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
+                    _authState.value = AuthState.Error("Error checking email: ${task.exception?.message}")
                 }
             }
         }
     }
 
-    fun signIn(
-        email: String,
-        password: String,
-        navController: NavController
-    ) {
+
+
+//    fun signUp(
+//        email: String,
+//        password: String,
+//        displayName: String
+//    ) {
+//        if (!isValidEmail(email) || !isValidPassword(password)) {
+//            _authState.value = AuthState.Error("Invalid email or password format")
+//            return
+//        }
+//        viewModelScope.launch {
+//            _authState.value = AuthState.Loading
+//            auth.createUserWithEmailAndPassword(email, password)
+//                .addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    val user = auth.currentUser
+//                    val profileUpdates = UserProfileChangeRequest.Builder()
+//                        .setDisplayName(displayName)
+//                        .build()
+//
+//                    user?.updateProfile(profileUpdates)?.addOnCompleteListener { profileUpdateTask ->
+//                        if (profileUpdateTask.isSuccessful) {
+//
+//                            // Send the email verification
+//                            user.sendEmailVerification().addOnCompleteListener { verificationTask ->
+//                                if (verificationTask.isSuccessful) {
+//                                    _authState.value = AuthState.SignUpSuccess//("Verification email sent to your email address.")
+//                                } else {
+//                                    _authState.value = AuthState.Error(
+//                                        verificationTask.exception?.message ?: "Failed to send verification email"
+//                                    )
+//                                }
+//                            }
+//                        } else {
+//                            _authState.value = AuthState.Error(profileUpdateTask.exception?.message ?: "Profile update failed")
+//                        }
+//                    }
+//                } else {
+//                    _authState.value = AuthState.Error(task.exception?.message ?: "Sign-up failed")
+//                }
+//            }
+//        }
+//    }
+
+    fun signIn(email: String, password: String, navController: NavController) {
         if (email.isEmpty() || password.isEmpty()) {
             _authState.value = AuthState.Error("Email or password cannot be empty")
             return
@@ -162,8 +214,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             if (task.isSuccessful) {
                 val signInMethods = task.result?.signInMethods ?: emptyList()
                 if (signInMethods.contains(GoogleAuthProvider.GOOGLE_SIGN_IN_METHOD)) {
-                    _authState.value =
-                        AuthState.Error("This email is already registered with Google. Please use Google to sign in.")
+                    _authState.value = AuthState.Error("This email is registered with Google. Use Google to sign in.")
                     return@addOnCompleteListener
                 }
 
@@ -183,8 +234,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                             val errorMessage = when (task.exception) {
                                 is FirebaseAuthInvalidCredentialsException -> "Incorrect email or password."
                                 is FirebaseAuthInvalidUserException -> "User not found. Please sign up first."
-                                else -> task.exception?.message
-                                    ?: "Sign in failed. Please try again."
+                                else -> task.exception?.message ?: "Sign in failed. Please try again."
                             }
                             _authState.value = AuthState.Error(errorMessage)
                         }
@@ -194,8 +244,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+
     @SuppressLint("SuspiciousIndentation")
-    fun signInWithGoogle(
+    fun signInWithGooglee(
         idToken: String?,
         navController: NavController
     ) {
@@ -258,10 +309,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    private fun saveUserToFirestore(user: FirebaseUser?) {
+    fun saveUserToFirestore(user: FirebaseUser?) {
         user?.let {
             val userName = it.displayName ?: "Anonymous-user"
-            //val userDocument = firestore.collection(userName).document("details")
 
             val userData = mapOf(
                 "uid" to it.uid,
