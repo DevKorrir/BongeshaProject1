@@ -25,7 +25,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.facebook.appevents.AppEventsLogger
-import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.libraries.places.api.Places
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -46,6 +45,7 @@ import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.UserProfile
+import dev.korryr.bongesha.screens.UserSettingsScreen
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthState
@@ -54,23 +54,14 @@ import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
-import dev.korryr.bongesha.viewmodels.googleSignIn.GoogleAuthUiClient
 
 class MainActivity : ComponentActivity() {
-    private lateinit var googleAuthUiClient: GoogleAuthUiClient
     private lateinit var sharedPreferences: SharedPreferences
-    private lateinit var authViewModel: AuthViewModel
     private lateinit var auth: FirebaseAuth
 
     @SuppressLint("StateFlowValueCalledInComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Initialize GoogleAuthUiClient
-        googleAuthUiClient = GoogleAuthUiClient(
-            context = this,
-            oneTapClient = Identity.getSignInClient(this)
-        )
 
         auth = Firebase.auth
 
@@ -249,6 +240,13 @@ class MainActivity : ComponentActivity() {
                             CheckOut(
                                 navController,
                                 cartViewModel = CartViewModel()
+                            )
+                        }
+
+                        composable(Route.Home.SETTINGS) {
+                            UserSettingsScreen(
+                                authViewModel,
+                                navController
                             )
                         }
 

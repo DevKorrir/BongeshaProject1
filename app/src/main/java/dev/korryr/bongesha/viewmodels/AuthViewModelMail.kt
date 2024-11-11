@@ -35,6 +35,7 @@ import dev.korryr.bongesha.viewmodels.googleSignIn.GoogleAuthUiClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 
 class AuthViewModel(application: Application) : AndroidViewModel(application) {
@@ -59,7 +60,8 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
 
     private val googleAuthUiClient: GoogleAuthUiClient = GoogleAuthUiClient(
         context = getApplication(),
-        oneTapClient = Identity.getSignInClient(getApplication())
+        oneTapClient = Identity.getSignInClient(getApplication()),
+        authViewModel = this
     )
 
     fun startGoogleSignIn(launcher: ActivityResultLauncher<IntentSenderRequest>) {
@@ -353,6 +355,64 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             remove("userEmail")
             remove("userDisplayName")
             apply()
+        }
+    }
+
+
+    fun deleteUserAccount(onResult: (Boolean) -> Unit) {
+        val user = auth.currentUser
+        if (user != null) {
+            viewModelScope.launch {
+                val isDeleted = deleteUserDataAndAccount(user)
+                onResult(isDeleted)
+            }
+        } else {
+            onResult(false)
+        }
+    }
+
+    private suspend fun deleteUserDataAndAccount(user: FirebaseUser): Boolean {
+        return try {
+            deleteUserDataInFirestore(user.displayName ?: "Anonymous-user")
+            user.delete().await()
+            true
+        } catch (e: Exception) {
+            println("Error deleting user account: ${e.message}")
+            false
+        }
+    }
+
+    private suspend fun deleteUserDataInFirestore(userName: String) {
+        val userDocRef = firestore.collection("users").document(userName)
+        // Step 1: Delete any nested subcollections if they exist
+        deleteAllSubcollections(userDocRef.path)
+
+        // Step 2: Delete the user document itself
+        userDocRef.delete().await()
+        Log.d("AuthViewModel", "User data successfully deleted from Firestore.")
+    }
+
+    private suspend fun deleteAllSubcollections(
+        documentPath: String
+    ) {
+        val documentRef = firestore.document(documentPath)
+
+        // List of subcollections to delete specific
+        val subcollections = listOf(
+            "cart",
+            "savedItems",
+            "orders"
+        ) // Add all subcollections here
+
+        // Delete each subcollection
+        for (subcollection in subcollections) {
+            val collectionRef = documentRef.collection(subcollection)
+            val documents = collectionRef.get().await()
+
+            for (doc in documents) {
+                deleteAllSubcollections(doc.reference.path) // Recursively delete subcollections
+                doc.reference.delete().await() // Delete document itself
+            }
         }
     }
 

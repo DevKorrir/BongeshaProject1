@@ -228,6 +228,9 @@ fun UserProfile(
                 text = "Settings",
                 imageVectorleading = painterResource(id = R.drawable.setting),
                 modifier = Modifier
+                    .clickable {
+                        navController.navigate(Route.Home.SETTINGS)
+                    }
                     .padding(16.dp)
                     .fillMaxWidth()
                     .background(
@@ -235,7 +238,6 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {}
             )
 
             Spacer(modifier = Modifier.height(24.dp))
