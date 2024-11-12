@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,6 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
@@ -61,6 +64,8 @@ import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.fetchUserLocation
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun CartScreen(
@@ -74,14 +79,8 @@ fun CartScreen(
         }
     }
 
-    //val productStates by categoryViewModel.products.collectAsState()
-    //val products = productStates.map { it.value }
-
     val context = LocalContext.current
     val cartItems by cartViewModel.cartItems.collectAsState()
-    //val cartViewModel: CartViewModel = viewModel()
-    //val cartItems = cartViewModel.cart
-    //val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
 
@@ -274,7 +273,8 @@ fun CartItemRow(
     cartViewModel: CartViewModel,
     onRemoveItem: () -> Unit
 ) {
-    var cartQuantity = cartItem.addedQuantity
+    var cartQuantity by remember { mutableIntStateOf(cartItem.addedQuantity) }
+    //var cartQuantity = cartItem.addedQuantity
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -294,6 +294,7 @@ fun CartItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .padding(4.dp)
                 .border(
@@ -304,8 +305,8 @@ fun CartItemRow(
                 .size(100.dp)
                 .clip(RoundedCornerShape(12.dp)),
         ) {
-            val imagePainter = rememberImagePainter(
-                data = cartItem.images.firstOrNull() ?: "wait...",)
+            val imagePainter = rememberAsyncImagePainter(model = cartItem.images.firstOrNull() ?: "")
+
             Image(
                 painter = imagePainter,
                 contentDescription = cartItem.name,
@@ -314,11 +315,20 @@ fun CartItemRow(
                     .size(100.dp),
                 contentScale = ContentScale.FillBounds
             )
+
+            // Show loading indicator if the image is in loading state
+            if (imagePainter.state is AsyncImagePainter.State.Loading) {
+                CircularProgressIndicator(
+                    color = Color.LightGray,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
         }
 
         Spacer(Modifier.width(6.dp))
 
         Column {
+
             Text(
                 text = cartItem.name,
                 fontWeight = FontWeight.Bold
@@ -390,7 +400,7 @@ fun CartItemRow(
                 IconButton(
                     onClick = {
                         if (cartQuantity > 1){
-                            cartQuantity--
+                            cartQuantity -= 1
                             cartViewModel.updateQuantity(cartItem,cartQuantity)
                         } else {
                             showDeleteIcon = cartQuantity == 0
@@ -431,7 +441,7 @@ fun CartItemRow(
                 IconButton(
                     onClick = {
                         if (cartQuantity < cartItem.quantityCount ){
-                            cartQuantity++
+                            cartQuantity += 1
                             cartViewModel.updateQuantity(cartItem, cartQuantity)
                         } else {
                             Toast.makeText(context, "Only ${cartItem.quantityCount} items available", Toast.LENGTH_SHORT).show()
