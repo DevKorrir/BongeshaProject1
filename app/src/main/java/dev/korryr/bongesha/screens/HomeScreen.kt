@@ -10,11 +10,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -24,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.ui.theme.green99
@@ -130,17 +134,31 @@ fun ProductItem(
             )
             .padding(8.dp)
     ) {
-        val imagePainter = rememberImagePainter(data = product.images.firstOrNull())
-        Image(
-            painter =  imagePainter,
-            contentDescription = product.name,
-            modifier = Modifier
-                .clip(RoundedCornerShape(8.dp))
-                .fillMaxWidth()
-                .height(150.dp),
-            contentScale = ContentScale.Crop
-        )
+        Box(
+            contentAlignment = Alignment.Center
+        ){
+            val imagePainter = rememberAsyncImagePainter(model = product.images.firstOrNull() ?: "")
+            Image(
+                painter =  imagePainter,
+                contentDescription = product.name,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .fillMaxWidth()
+                    .height(150.dp),
+                contentScale = ContentScale.Crop
+            )
+
+            // Show loading indicator if the image is in loading state
+            if (imagePainter.state is AsyncImagePainter.State.Loading) {
+                CircularProgressIndicator(
+                    color = Color.LightGray,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             text = product.name,
             fontWeight = FontWeight.Bold,

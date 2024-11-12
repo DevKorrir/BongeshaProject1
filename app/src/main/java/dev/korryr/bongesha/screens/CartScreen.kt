@@ -323,6 +323,7 @@ fun CartItemRow(
                     modifier = Modifier.size(24.dp)
                 )
             }
+
         }
 
         Spacer(Modifier.width(6.dp))
