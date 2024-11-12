@@ -41,11 +41,12 @@ import dev.korryr.bongesha.screens.BongaWelcome
 import dev.korryr.bongesha.screens.CartScreen
 import dev.korryr.bongesha.screens.ChatScreen
 import dev.korryr.bongesha.screens.CheckOut
+import dev.korryr.bongesha.screens.DeleteAccountRequestScreen
+import dev.korryr.bongesha.screens.GeneralSettingsScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.UserProfile
-import dev.korryr.bongesha.screens.UserSettingsScreen
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
 import dev.korryr.bongesha.viewmodels.AuthState
@@ -244,7 +245,14 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable(Route.Home.SETTINGS) {
-                            UserSettingsScreen(
+                            GeneralSettingsScreen(
+                                authViewModel,
+                                navController
+                            )
+                        }
+
+                        composable(Route.Home.DELETE_ACCOUNT){
+                            DeleteAccountRequestScreen(
                                 authViewModel,
                                 navController
                             )
