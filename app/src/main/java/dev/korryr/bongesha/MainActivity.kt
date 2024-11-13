@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
@@ -46,6 +47,7 @@ import dev.korryr.bongesha.screens.GeneralSettingsScreen
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
+import dev.korryr.bongesha.screens.SplashScreen
 import dev.korryr.bongesha.screens.UserProfile
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
@@ -55,6 +57,7 @@ import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.CategoryViewModel
 import dev.korryr.bongesha.viewmodels.Product
+import dev.korryr.bongesha.viewmodels.SplashViewModel
 
 class MainActivity : ComponentActivity() {
     private lateinit var sharedPreferences: SharedPreferences
@@ -77,6 +80,10 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val authViewModel: AuthViewModel = viewModel()
             val context = LocalContext.current
+
+            val splashViewModel: SplashViewModel = viewModel()
+            val isLoading by splashViewModel.isLoading.collectAsState()
+
             val currentSignInState = rememberUpdatedState(authViewModel.authState.value)
             val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
 
@@ -110,156 +117,172 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-
             BongeshaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = gray01
                 ) {
-                    //callbackManager = CallbackManager.Factory.create()
-                    val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
-                    val startDestination = if (isUserSignedIn) Route.Home.HOME else Route.Home.SIGN_UP
+                    if (isLoading) {
+                        SplashScreen() // Show splash screen while loading
+                    } else {
+                        //callbackManager = CallbackManager.Factory.create()
+                        val isUserSignedIn by authViewModel.isUserSignedIn.collectAsState()
+                        val startDestination =
+                            if (isUserSignedIn) Route.Home.HOME else Route.Home.SIGN_UP
 
-                    NavHost(
-                        navController = navController,
-                        startDestination = startDestination
-                    ) {
-                        composable(Route.Home.SIGN_UP) {
-                            BongaSignUp(
-                                navController = navController,
-                                authViewModel = authViewModel,
-                                onGoogleSignIn = {
-                                    // Trigger Google Sign-In through AuthViewModel
-                                    authViewModel.startGoogleSignIn(googleSignInLauncher)
-                                },
-                                onFacebookSignInClick = {
-                                    authViewModel.signInWithFacebook(navController)
-                                },
-                                onSignIn = { email, password ->
-                                    authViewModel.signIn(email, password, navController)
-                                }
-                            )
-                        }
+                        NavHost(
+                            navController = navController,
+                            startDestination = startDestination
+                        ) {
+                            composable(Route.Home.SIGN_UP) {
+                                BongaSignUp(
+                                    navController = navController,
+                                    authViewModel = authViewModel,
+                                    onGoogleSignIn = {
+                                        // Trigger Google Sign-In through AuthViewModel
+                                        authViewModel.startGoogleSignIn(googleSignInLauncher)
+                                    },
+                                    onFacebookSignInClick = {
+                                        authViewModel.signInWithFacebook(navController)
+                                    },
+                                    onSignIn = { email, password ->
+                                        authViewModel.signIn(email, password, navController)
+                                    }
+                                )
+                            }
 
-                        composable(Route.Home.SIGN_IN) {
-                            BongaSignIn(
-                                navController = navController,
-                                onForgotPassword = { email ->
-                                    Firebase.auth.sendPasswordResetEmail(email)
-                                        .addOnCompleteListener { task ->
-                                            if (task.isSuccessful) {
-                                                Toast.makeText(context, "Password reset email sent.", Toast.LENGTH_LONG).show()
-                                            } else {
-                                                Toast.makeText(context, task.exception?.localizedMessage ?:"Error sending reset email.", Toast.LENGTH_LONG).show()
+                            composable(Route.Home.SIGN_IN) {
+                                BongaSignIn(
+                                    navController = navController,
+                                    onForgotPassword = { email ->
+                                        Firebase.auth.sendPasswordResetEmail(email)
+                                            .addOnCompleteListener { task ->
+                                                if (task.isSuccessful) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Password reset email sent.",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        task.exception?.localizedMessage
+                                                            ?: "Error sending reset email.",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                }
                                             }
-                                        }
-                                },
-                                onSignIn = { email, password ->
-                                    authViewModel.signIn(email, password, navController)  // Handle email/password sign-in
-                                },
-                                authViewModel = authViewModel,
-                                onGoogleSignIn = {
-                                    authViewModel.startGoogleSignIn(googleSignInLauncher)
-                                }
-                            )
+                                    },
+                                    onSignIn = { email, password ->
+                                        authViewModel.signIn(
+                                            email,
+                                            password,
+                                            navController
+                                        )  // Handle email/password sign-in
+                                    },
+                                    authViewModel = authViewModel,
+                                    onGoogleSignIn = {
+                                        authViewModel.startGoogleSignIn(googleSignInLauncher)
+                                    }
+                                )
+                            }
+
+
+                            composable(Route.Home.HOME) {
+                                BongaHome(
+                                    categoryViewModel = CategoryViewModel(),
+                                    navController = navController
+                                )
+                            }
+
+                            composable(Route.Home.FORGOT_PASSWORD) {
+                                BongaForgotPassword(navController)
+                            }
+
+                            composable(Route.Home.WELCOME) {
+                                BongaWelcome(navController = navController)
+                            }
+
+
+                            composable(Route.Home.CART) {
+                                CartScreen(
+                                    navController = navController,
+                                    authViewModel = authViewModel,
+                                    cartViewModel = CartViewModel(),
+                                )
+                            }
+
+                            composable(Route.Home.ITEM_DETAILS) {
+                                ItemDetailsScreen(
+                                    onClick = {},
+                                    product = Product(),
+                                    cartItem = CartItem()
+                                )
+                            }
+
+                            composable(Route.Home.INBOX) {
+                                ChatScreen()
+                            }
+
+                            composable(Route.Home.NOTIFICATION) {
+                                NotificationScreen()
+                            }
+
+                            composable(Route.Home.CATEGORY) {
+                                AllProductsScreen(
+                                    navController
+                                )
+                            }
+
+                            composable(Route.Home.PROFILE) {
+                                UserProfile(
+                                    navController = navController,
+                                    authViewModel = authViewModel
+
+                                )
+                            }
+
+                            composable(Route.Home.HELP_SUPPORT) {
+                                BongaHelp(navController = navController)
+                            }
+
+                            composable(Route.Home.ACCOUNT_SETTINGS) {
+                                BongaAccSettings(navController = navController)
+                            }
+
+                            composable(Route.Home.ORDER) {
+                                OrdersScreen()
+                            }
+
+                            composable(Route.Home.WISHLIST) {
+                                WishlistScreen(
+                                    product = Product(),
+                                )
+                            }
+
+                            composable(Route.Home.CHECKOUT) {
+                                CheckOut(
+                                    navController,
+                                    cartViewModel = CartViewModel()
+                                )
+                            }
+
+                            composable(Route.Home.SETTINGS) {
+                                GeneralSettingsScreen(
+                                    authViewModel,
+                                    navController
+                                )
+                            }
+
+                            composable(Route.Home.DELETE_ACCOUNT) {
+                                DeleteAccountRequestScreen(
+                                    authViewModel,
+                                    navController
+                                )
+                            }
+
+
                         }
-
-
-                        composable(Route.Home.HOME) {
-                            BongaHome(
-                                categoryViewModel = CategoryViewModel(),
-                                navController = navController
-                            )
-                        }
-
-                        composable(Route.Home.FORGOT_PASSWORD) {
-                            BongaForgotPassword(navController)
-                        }
-
-                        composable(Route.Home.WELCOME) {
-                            BongaWelcome(navController = navController)
-                        }
-
-
-                        composable(Route.Home.CART) {
-                            CartScreen(
-                                navController = navController,
-                                authViewModel = authViewModel,
-                                cartViewModel = CartViewModel(),
-                            )
-                        }
-
-                        composable(Route.Home.ITEM_DETAILS) {
-                            ItemDetailsScreen(
-                                onClick = {},
-                                product = Product(),
-                                cartItem = CartItem()
-                            )
-                        }
-
-                        composable(Route.Home.INBOX) {
-                            ChatScreen()
-                        }
-
-                        composable(Route.Home.NOTIFICATION) {
-                            NotificationScreen()
-                        }
-
-                        composable(Route.Home.CATEGORY) {
-                            AllProductsScreen(
-                                navController
-                            )
-                        }
-
-                        composable(Route.Home.PROFILE) {
-                            UserProfile(
-                                navController = navController,
-                                authViewModel = authViewModel
-
-                            )
-                        }
-
-                        composable(Route.Home.HELP_SUPPORT) {
-                            BongaHelp(navController = navController)
-                        }
-
-                        composable(Route.Home.ACCOUNT_SETTINGS) {
-                            BongaAccSettings(navController = navController)
-                        }
-
-                        composable(Route.Home.ORDER) {
-                            OrdersScreen()
-                        }
-
-                        composable(Route.Home.WISHLIST) {
-                            WishlistScreen(
-                                product = Product(),
-                            )
-                        }
-
-                        composable(Route.Home.CHECKOUT) {
-                            CheckOut(
-                                navController,
-                                cartViewModel = CartViewModel()
-                            )
-                        }
-
-                        composable(Route.Home.SETTINGS) {
-                            GeneralSettingsScreen(
-                                authViewModel,
-                                navController
-                            )
-                        }
-
-                        composable(Route.Home.DELETE_ACCOUNT){
-                            DeleteAccountRequestScreen(
-                                authViewModel,
-                                navController
-                            )
-                        }
-
-
-
                     }
                 }
             }
