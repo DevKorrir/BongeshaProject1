@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -273,8 +274,8 @@ fun CartItemRow(
     cartViewModel: CartViewModel,
     onRemoveItem: () -> Unit
 ) {
-    var cartQuantity by remember { mutableIntStateOf(cartItem.addedQuantity) }
-    //var cartQuantity = cartItem.addedQuantity
+    val cartItems by cartViewModel.cartItems.collectAsState()
+    var cartQuantity by remember { mutableIntStateOf(cartItem.quantity) }
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -358,16 +359,30 @@ fun CartItemRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .shadow(
+                            elevation = 24.dp,
+                            shape = CircleShape,
+                            spotColor = orange28,
+                            ambientColor = orange28,
+                            clip = true,
+                        )
+                        .background(
+                            color = orange28,
+                            shape = CircleShape
+                        )
                         .border(
                             width = 1.dp,
-                            color = Color.LightGray,
+                            color = orange28,
                             shape = CircleShape
                         )
                         .size(36.dp),
                 ) {
                     Text(
                         text = "${cartItem.quantityCount}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -375,7 +390,10 @@ fun CartItemRow(
                 Spacer(Modifier.width(8.dp))
 
                 IconButton(
-                    onClick = onRemoveItem
+                    onClick = {
+                        cartViewModel.removeFromCart(cartItem)
+                        Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -398,19 +416,19 @@ fun CartItemRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 var showDeleteIcon by remember { mutableStateOf(false) }
+                val currentQuantity = cartItems.find { it.id == cartItem.id }?.quantity ?: 1
                 IconButton(
                     onClick = {
-                        if (cartQuantity > 1){
-                            cartQuantity -= 1
-                            cartViewModel.updateQuantity(cartItem,cartQuantity)
+                        if (currentQuantity > 1){
+                            cartViewModel.updateCartQuantity(cartItem,currentQuantity - 1)
                         } else {
-                            showDeleteIcon = cartQuantity == 0
+                            showDeleteIcon = currentQuantity == 0
                         }
                     }
                 ) {
                     Box {
                         Image(
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(12.dp),
                             painter = painterResource(id = R.drawable.minus),
                             contentDescription = "Decrease quantity"
                         )
@@ -435,15 +453,14 @@ fun CartItemRow(
 
 
                 Text(
-                    text = "x${cartQuantity}",
+                    text = "x${currentQuantity}",
                     modifier = Modifier
                 )
 
                 IconButton(
                     onClick = {
-                        if (cartQuantity < cartItem.quantityCount ){
-                            cartQuantity += 1
-                            cartViewModel.updateQuantity(cartItem, cartQuantity)
+                        if (currentQuantity < cartItem.quantityCount) {
+                            cartViewModel.updateCartQuantity(cartItem, currentQuantity + 1)
                         } else {
                             Toast.makeText(context, "Only ${cartItem.quantityCount} items available", Toast.LENGTH_SHORT).show()
                         }

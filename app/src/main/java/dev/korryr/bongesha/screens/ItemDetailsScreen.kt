@@ -78,7 +78,8 @@ fun ItemDetailsScreen(
     val isInWishlist = wishlistItems.any { it.id == product.id }
 
     //var quantity by remember { mutableIntStateOf(1) }
-    var quantity by remember { mutableIntStateOf(cartViewModel.getCartItemQuantity(product).takeIf { it > 0 } ?: 1) }
+    val initialQuantity = cartViewModel.cartItems.value.find { it.id == product.id }?.quantity ?: 1
+    var quantity by remember { mutableIntStateOf(initialQuantity) }
     var isFavorite by remember { mutableStateOf(false) }
     val context = LocalContext.current
     var isInCart by remember { mutableStateOf(cartViewModel.isItemInCart(product)) }  // New state to track if item is in the cart
