@@ -101,7 +101,7 @@ fun CheckOut(
     )
     val scope = rememberCoroutineScope()
 
-    val totalPrice = cartViewModel.calculateTotalPrice()
+    //val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
     val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
 
@@ -486,7 +486,7 @@ fun CheckOut(
                             Spacer(modifier = Modifier.weight(1f))
 
                             Text(
-                                text = "$totalPrice KES",
+                                text = " KES",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.Black,
@@ -545,7 +545,7 @@ fun CheckOut(
                             Spacer(modifier = Modifier.weight(1f))
 
                             Text(
-                                text = "${totalPrice + deliveryFee} KES",
+                                text = "$deliveryFee KES",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = orange28,

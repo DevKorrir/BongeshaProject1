@@ -20,10 +20,12 @@ data class CartItem(
     val price: Float = 0f,
     val quantity: Int = 0,//current number of items in cart
     val quantityCount: Int = 0,//stock available
-    val images: List<String> = emptyList()
+    val images: List<String> = emptyList(),
+    val offer: Float = 0f, // Discount or offer on the item
+    val tax: Float = 0f // Applicable tax for the item
 ){
     val totalPrice: Float
-        get() = price * quantity
+        get() = price * quantity - offer * quantity + tax * quantity
 }
 
 class CartViewModel : ViewModel() {
@@ -35,7 +37,8 @@ class CartViewModel : ViewModel() {
 
     var quantityCount by mutableIntStateOf(0)
     private set
-    private var deliveryFee: Int by mutableIntStateOf(0)
+    //private var deliveryFee: Int by mutableIntStateOf(0)
+    var deliveryFee: Float = 0f
 
 
 
@@ -43,9 +46,9 @@ class CartViewModel : ViewModel() {
         fetchCartItems()
     }
 
-    fun updateDeliveryFee(fee: Int) {
-        deliveryFee = fee
-    }
+//    fun updateDeliveryFee(fee: Int) {
+//        deliveryFee = fee
+//    }
 
     fun calculateDeliveryFee(location: Location?): Int {
         // Define a base location, such as the warehouse/store location
@@ -68,7 +71,7 @@ class CartViewModel : ViewModel() {
             }
         } else {
             // Default fee if location is unavailable
-            100
+            1000
         }
     }
 
@@ -190,9 +193,9 @@ class CartViewModel : ViewModel() {
     }
 
     // Calculate total price including delivery fee
-    fun calculateTotalPrice(): Float {
-        return _cartItems.value.sumOf { it.totalPrice.toDouble() }.toFloat() + deliveryFee
-    }
+//    fun calculateTotalPricet(): Float {
+//        return _cartItems.value.sumOf { it.totalPrice.toDouble() }.toFloat() + deliveryFee
+//    }
 
 
     fun saveProductToUserAccount(context: Context, product: Product, quantity: Int) {
@@ -269,6 +272,50 @@ class CartViewModel : ViewModel() {
                 _cartItems.value = updatedCartItems
             }
     }
+
+    // Calculate subtotal
+    fun calculateSubtotal(): Float {
+        var subtotal = 0f
+        for (item in _cartItems.value) {
+            subtotal += item.price * item.quantity
+        }
+        return subtotal
+    }
+
+    // Calculate total offers (assuming each CartItem has an `offer` field)
+    fun calculateTotalOffer(): Float {
+        var totalOffer = 0f
+        for (item in _cartItems.value) {
+            totalOffer += item.offer * item.quantity
+        }
+        return totalOffer
+    }
+
+    // Calculate total tax (assuming each CartItem has a `tax` field)
+    fun calculateTotalTax(): Float {
+        var totalTax = 0f
+        for (item in _cartItems.value) {
+            totalTax += item.tax * item.quantity
+        }
+        return totalTax
+    }
+
+    // Update amount payable: subtotal + delivery fee - total offer - tax
+    fun calculateAmountPayable(): Float {
+        val subtotal = calculateSubtotal()
+        val totalOffer = calculateTotalOffer()
+        val totalTax = calculateTotalTax()
+        return subtotal + deliveryFee - totalOffer - totalTax
+    }
+
+    // Existing delivery fee calculation logic...
+    fun updateDeliveryFee(fee: Float) {
+        deliveryFee = fee
+    }
+
+
+
+
 }
 
 

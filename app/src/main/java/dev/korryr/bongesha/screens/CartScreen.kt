@@ -83,13 +83,14 @@ fun CartScreen(
     val context = LocalContext.current
     val cartItems by cartViewModel.cartItems.collectAsState()
     var userLocation by remember { mutableStateOf<Location?>(null) }
-    val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
+    val feet = cartViewModel.calculateDeliveryFee(userLocation)
 
 
     // Update the delivery fee in ViewModel
     LaunchedEffect(Unit) {
         userLocation = fetchUserLocation(context)
-        cartViewModel.updateDeliveryFee(deliveryFee)
+        val fee = cartViewModel.calculateDeliveryFee(userLocation).toFloat()
+        cartViewModel.updateDeliveryFee(fee)
     }
 
     Column(
@@ -161,16 +162,24 @@ fun CartScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = orange28,
+                        ambientColor = orange28,
+                        clip = true,
+                    )
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
                     .background(
-                        color = Color.Transparent,
+                        color = gray01,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .border(
                         width = 1.dp,
-                        color = Color.LightGray,
+                        color = Color.Transparent,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .padding(8.dp),
@@ -181,16 +190,60 @@ fun CartScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Total",
+                            text = "Subtotal:",
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.W700,
+                            //fontWeight = FontWeight.W700,
                             color = Color.Black,
                         )
 
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh..",
+                            text = "Ksh.${cartViewModel.calculateSubtotal()}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total Offer:",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Black,
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = "Ksh.${cartViewModel.calculateTotalOffer()}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Tax:",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Black,
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = "Ksh.${cartViewModel.calculateTotalTax()}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -213,7 +266,7 @@ fun CartScreen(
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh $deliveryFee",
+                            text = "Ksh ${cartViewModel.deliveryFee}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.DarkGray,
@@ -242,7 +295,7 @@ fun CartScreen(
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh.//",
+                            text = "Ksh. ${cartViewModel.calculateAmountPayable()}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = orange28,
@@ -362,7 +415,7 @@ fun CartItemRow(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .shadow(
-                            elevation = 24.dp,
+                            elevation = 8.dp,
                             shape = CircleShape,
                             spotColor = orange28,
                             ambientColor = orange28,
