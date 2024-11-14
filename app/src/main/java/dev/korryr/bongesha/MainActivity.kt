@@ -48,6 +48,7 @@ import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.SplashScreen
+import dev.korryr.bongesha.screens.SummaryScreen
 import dev.korryr.bongesha.screens.UserProfile
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
@@ -263,7 +264,6 @@ class MainActivity : ComponentActivity() {
                             composable(Route.Home.CHECKOUT) {
                                 CheckOut(
                                     navController,
-                                    cartViewModel = CartViewModel()
                                 )
                             }
 
@@ -280,6 +280,13 @@ class MainActivity : ComponentActivity() {
                                     navController
                                 )
                             }
+
+                            composable(Route.Home.SUMMARY) {
+                                SummaryScreen(
+                                    cartViewModel = CartViewModel()
+                                )
+                            }
+
 
 
                         }
