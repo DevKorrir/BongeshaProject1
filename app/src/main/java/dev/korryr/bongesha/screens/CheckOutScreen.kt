@@ -144,9 +144,9 @@ fun CheckOut(
                         color = Color.White,
                         enabled = true,
                         onClick = {
-                            if (validateFields()) {  // Run validation on click
+                            //if (validateFields()) {  // Run validation on click
                                 navController.navigate(Route.Home.SUMMARY)  // Navigate only if fields are valid
-                            }
+                            //}
                         },
                         buttonColor = orange28
                     )

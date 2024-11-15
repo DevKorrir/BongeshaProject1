@@ -140,7 +140,9 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {}
+                onClick = {
+                    navController.navigate(Route.Home.ORDER_HISTORY)
+                },
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -161,6 +163,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
+                onClick = {},
 
             )
 
@@ -177,7 +180,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {                }
+                onClick = {                }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -193,7 +196,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {}
+                onClick = {}
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -217,6 +220,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
+                onClick = {},
 
             )
 
@@ -236,6 +240,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
+                onClick = {},
             )
 
             Spacer(modifier = Modifier.height(24.dp))

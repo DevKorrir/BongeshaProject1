@@ -313,6 +313,104 @@ class CartViewModel : ViewModel() {
         deliveryFee = fee
     }
 
+    fun getUserDeliveryAddress(): String? {
+        val user = auth.currentUser
+        return if (user != null) {
+            val userName = user.displayName ?: "Anonymous-user"
+            // Replace with actual address-fetching logic
+            // For now, we simulate an address
+            "123 Example Street, Nairobi, Kenya"
+        } else {
+            null // Return null if the user is not logged in
+        }
+    }
+
+    fun confirmOrder(
+        paymentMethod: String,
+        userLocation: Location?
+    ) {
+        val user = auth.currentUser
+        user?.let {
+            val userName = it.displayName ?: "Anonymous-user"
+            val orderId = firestore.collection("orders").document().id // Generate a unique ID
+
+            // Prepare the cart items as a list of serializable maps
+            val cartItemsList = _cartItems.value.map { cartItem ->
+                mapOf(
+                    "id" to cartItem.id,
+                    "name" to cartItem.name,
+                    "price" to cartItem.price,
+                    "quantity" to cartItem.quantity,
+                    "totalPrice" to cartItem.totalPrice
+                )
+            }
+
+            // Prepare the order details as a serializable map
+            val orderDetails = mapOf(
+                "orderId" to orderId,
+                "userName" to userName,
+                "userId" to it.uid,
+                "items" to cartItemsList,
+                "subtotal" to calculateSubtotal(),
+                "totalOffer" to calculateTotalOffer(),
+                "totalTax" to calculateTotalTax(),
+                "deliveryFee" to deliveryFee,
+                "amountPayable" to calculateAmountPayable(),
+                "paymentMethod" to paymentMethod,
+                "deliveryAddress" to (getUserDeliveryAddress() ?: "No address provided"),
+                "userLocation" to userLocation?.let { loc ->
+                    mapOf(
+                        "latitude" to loc.latitude,
+                        "longitude" to loc.longitude
+                    )
+                },
+                "timestamp" to System.currentTimeMillis()
+            )
+
+            // Save order to Firestore
+            firestore.collection("orders")
+                .document(orderId)
+                .set(orderDetails)
+                .addOnSuccessListener {
+                    Log.d("CartViewModel", "Order successfully placed: $orderId")
+                    clearCart() // Clear the cart after successful order placement
+                }
+                .addOnFailureListener { e ->
+                    Log.e("CartViewModel", "Failed to place order: ${e.message}")
+                }
+        }
+    }
+
+
+    private fun clearCart() {
+        _cartItems.value = emptyList()
+        updateProductCount()
+
+        val user = auth.currentUser
+        user?.let {
+            val userName = it.displayName ?: "Anonymous-user"
+
+            firestore.collection("users")
+                .document(userName)
+                .collection("cart")
+                .get()
+                .addOnSuccessListener { snapshot ->
+                    for (document in snapshot.documents) {
+                        document.reference.delete()
+                    }
+                    Log.d("CartViewModel", "Cart successfully cleared")
+                }
+                .addOnFailureListener { e ->
+                    Log.e("CartViewModel", "Failed to clear cart: ${e.message}")
+                }
+        }
+    }
+
+
+
+
+
+
 
 
 

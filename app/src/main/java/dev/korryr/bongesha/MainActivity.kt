@@ -49,6 +49,7 @@ import dev.korryr.bongesha.screens.NotificationScreen
 import dev.korryr.bongesha.screens.OrdersScreen
 import dev.korryr.bongesha.screens.SplashScreen
 import dev.korryr.bongesha.screens.SummaryScreen
+import dev.korryr.bongesha.screens.ThankYouScreen
 import dev.korryr.bongesha.screens.UserProfile
 import dev.korryr.bongesha.ui.theme.BongeshaTheme
 import dev.korryr.bongesha.ui.theme.gray01
@@ -251,8 +252,10 @@ class MainActivity : ComponentActivity() {
                                 BongaAccSettings(navController = navController)
                             }
 
-                            composable(Route.Home.ORDER) {
-                                OrdersScreen()
+                            composable(Route.Home.ORDER_HISTORY) {
+                                OrdersScreen(
+                                    navController
+                                )
                             }
 
                             composable(Route.Home.WISHLIST) {
@@ -283,9 +286,18 @@ class MainActivity : ComponentActivity() {
 
                             composable(Route.Home.SUMMARY) {
                                 SummaryScreen(
-                                    cartViewModel = CartViewModel()
+                                    cartViewModel = CartViewModel(),
+                                    navController
                                 )
                             }
+
+                            composable(Route.Home.THANK_YOU) {
+                                ThankYouScreen(
+                                    navController
+                                )
+                            }
+
+
 
 
 

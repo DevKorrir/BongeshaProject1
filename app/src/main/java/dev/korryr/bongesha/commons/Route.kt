@@ -32,6 +32,7 @@ class Route {
         const val SETTINGS = "/SETTINGS/"
         const val DELETE_ACCOUNT = "/DELETEACCOUNT/"
         const val SUMMARY = "/SUMMARY/"
+        const val THANK_YOU = "/THANK_YOU/"
 
 
     }
