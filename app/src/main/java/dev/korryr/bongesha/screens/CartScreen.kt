@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,12 +36,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.R
 import dev.korryr.bongesha.commons.BongaButton
@@ -61,6 +65,8 @@ import dev.korryr.bongesha.viewmodels.AuthViewModel
 import dev.korryr.bongesha.viewmodels.CartItem
 import dev.korryr.bongesha.viewmodels.CartViewModel
 import dev.korryr.bongesha.viewmodels.fetchUserLocation
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun CartScreen(
@@ -74,22 +80,17 @@ fun CartScreen(
         }
     }
 
-    //val productStates by categoryViewModel.products.collectAsState()
-    //val products = productStates.map { it.value }
-
     val context = LocalContext.current
     val cartItems by cartViewModel.cartItems.collectAsState()
-    //val cartViewModel: CartViewModel = viewModel()
-    //val cartItems = cartViewModel.cart
-    //val totalPrice = cartViewModel.calculateTotalPrice()
     var userLocation by remember { mutableStateOf<Location?>(null) }
-    val deliveryFee = cartViewModel.calculateDeliveryFee(userLocation)
+    val feet = cartViewModel.calculateDeliveryFee(userLocation)
 
 
     // Update the delivery fee in ViewModel
     LaunchedEffect(Unit) {
         userLocation = fetchUserLocation(context)
-        cartViewModel.updateDeliveryFee(deliveryFee)
+        val fee = cartViewModel.calculateDeliveryFee(userLocation).toFloat()
+        cartViewModel.updateDeliveryFee(fee)
     }
 
     Column(
@@ -161,16 +162,24 @@ fun CartScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Box(
+                contentAlignment = Alignment.Center,
                 modifier = Modifier
+                    .shadow(
+                        elevation = 8.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        spotColor = orange28,
+                        ambientColor = orange28,
+                        clip = true,
+                    )
                     .fillMaxWidth()
                     .heightIn(min = 56.dp)
                     .background(
-                        color = Color.Transparent,
+                        color = gray01,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .border(
                         width = 1.dp,
-                        color = Color.LightGray,
+                        color = Color.Transparent,
                         shape = RoundedCornerShape(12.dp)
                     )
                     .padding(8.dp),
@@ -181,16 +190,60 @@ fun CartScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Total",
+                            text = "Subtotal:",
                             style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.W700,
+                            //fontWeight = FontWeight.W700,
                             color = Color.Black,
                         )
 
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh..",
+                            text = "Ksh.${cartViewModel.calculateSubtotal()}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Total Offer:",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Black,
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = "Ksh.${cartViewModel.calculateTotalOffer()}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Black,
+                        )
+                    }
+
+                    Spacer(Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Tax:",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.Black,
+                        )
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = "Ksh.${cartViewModel.calculateTotalTax()}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.Black,
@@ -213,7 +266,7 @@ fun CartScreen(
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh $deliveryFee",
+                            text = "Ksh ${cartViewModel.deliveryFee}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = Color.DarkGray,
@@ -242,7 +295,7 @@ fun CartScreen(
                         Spacer(modifier = Modifier.weight(1f))
 
                         Text(
-                            text = "Ksh.//",
+                            text = "Ksh. ${cartViewModel.calculateAmountPayable()}",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Bold,
                             color = orange28,
@@ -274,7 +327,8 @@ fun CartItemRow(
     cartViewModel: CartViewModel,
     onRemoveItem: () -> Unit
 ) {
-    var cartQuantity = cartItem.addedQuantity
+    val cartItems by cartViewModel.cartItems.collectAsState()
+    var cartQuantity by remember { mutableIntStateOf(cartItem.quantity) }
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -294,6 +348,7 @@ fun CartItemRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .padding(4.dp)
                 .border(
@@ -304,8 +359,8 @@ fun CartItemRow(
                 .size(100.dp)
                 .clip(RoundedCornerShape(12.dp)),
         ) {
-            val imagePainter = rememberImagePainter(
-                data = cartItem.images.firstOrNull() ?: "wait...",)
+            val imagePainter = rememberAsyncImagePainter(model = cartItem.images.firstOrNull() ?: "")
+
             Image(
                 painter = imagePainter,
                 contentDescription = cartItem.name,
@@ -314,11 +369,21 @@ fun CartItemRow(
                     .size(100.dp),
                 contentScale = ContentScale.FillBounds
             )
+
+            // Show loading indicator if the image is in loading state
+            if (imagePainter.state is AsyncImagePainter.State.Loading) {
+                CircularProgressIndicator(
+                    color = Color.LightGray,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
         }
 
         Spacer(Modifier.width(6.dp))
 
         Column {
+
             Text(
                 text = cartItem.name,
                 fontWeight = FontWeight.Bold
@@ -347,16 +412,30 @@ fun CartItemRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .shadow(
+                            elevation = 8.dp,
+                            shape = CircleShape,
+                            spotColor = orange28,
+                            ambientColor = orange28,
+                            clip = true,
+                        )
+                        .background(
+                            color = orange28,
+                            shape = CircleShape
+                        )
                         .border(
                             width = 1.dp,
-                            color = Color.LightGray,
+                            color = orange28,
                             shape = CircleShape
                         )
                         .size(36.dp),
                 ) {
                     Text(
                         text = "${cartItem.quantityCount}",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -364,7 +443,10 @@ fun CartItemRow(
                 Spacer(Modifier.width(8.dp))
 
                 IconButton(
-                    onClick = onRemoveItem
+                    onClick = {
+                        cartViewModel.removeFromCart(cartItem)
+                        Toast.makeText(context, "Item removed from cart", Toast.LENGTH_SHORT).show()
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -387,19 +469,19 @@ fun CartItemRow(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 var showDeleteIcon by remember { mutableStateOf(false) }
+                val currentQuantity = cartItems.find { it.id == cartItem.id }?.quantity ?: 1
                 IconButton(
                     onClick = {
-                        if (cartQuantity > 1){
-                            cartQuantity--
-                            cartViewModel.updateQuantity(cartItem,cartQuantity)
+                        if (currentQuantity > 1){
+                            cartViewModel.updateCartQuantity(cartItem,currentQuantity - 1)
                         } else {
-                            showDeleteIcon = cartQuantity == 0
+                            showDeleteIcon = currentQuantity == 0
                         }
                     }
                 ) {
                     Box {
                         Image(
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(12.dp),
                             painter = painterResource(id = R.drawable.minus),
                             contentDescription = "Decrease quantity"
                         )
@@ -424,15 +506,14 @@ fun CartItemRow(
 
 
                 Text(
-                    text = "x${cartQuantity}",
+                    text = "x${currentQuantity}",
                     modifier = Modifier
                 )
 
                 IconButton(
                     onClick = {
-                        if (cartQuantity < cartItem.quantityCount ){
-                            cartQuantity++
-                            cartViewModel.updateQuantity(cartItem, cartQuantity)
+                        if (currentQuantity < cartItem.quantityCount) {
+                            cartViewModel.updateCartQuantity(cartItem, currentQuantity + 1)
                         } else {
                             Toast.makeText(context, "Only ${cartItem.quantityCount} items available", Toast.LENGTH_SHORT).show()
                         }

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import dev.korryr.bongesha.R
+import dev.korryr.bongesha.commons.Route
 
 
 @Composable
@@ -87,11 +88,14 @@ fun BongaAccSettings(
 
         AccountSettingScreen(
             text = "Issue with account information",
-            painter = painterResource(id = R.drawable.setting)
+            painter             = painterResource(id = R.drawable.setting)
         )
         Spacer(modifier = Modifier.height(12.dp))
 
         AccountSettingScreen(
+            onClick = {
+                navController.navigate(Route.Home.DELETE_ACCOUNT)
+            },
             text = "Delete account",
             painter = painterResource(id = R.drawable.setting)
         )
@@ -101,9 +105,15 @@ fun BongaAccSettings(
 @Composable
 fun AccountSettingScreen(
     text: String,
-    painter: Painter
+    painter: Painter,
+    onClick: () -> Unit = {}
 ) {
-    Column {
+    Column (
+        modifier = Modifier
+            .clickable(
+                onClick = onClick
+            )
+    ){
         Spacer(modifier = Modifier.height(24.dp))
 
         Row {

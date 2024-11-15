@@ -102,6 +102,7 @@ fun BongaHelp(
         Spacer(modifier = Modifier.height(12.dp))
 
         BongaRow(
+            onClick = {},
             text = "Account Settings",
             imageVectorleading = painterResource(id = R.drawable.setting),
             modifier = Modifier
@@ -132,7 +133,7 @@ fun BongaHelp(
                     shape = RoundedCornerShape(8.dp)
                 )
             ,
-            //onClick = { /*TODO*/ }
+            onClick = { /*TODO*/ }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -148,7 +149,7 @@ fun BongaHelp(
                     shape = RoundedCornerShape(8.dp)
                 )
             ,
-            //onClick = { /*TODO*/ }
+            onClick = { /*TODO*/ }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -169,7 +170,8 @@ fun BongaHelp(
                 .background(
                     Color.White,
                     shape = RoundedCornerShape(8.dp)
-                )
+                ),
+            onClick = {},
         )
 
         if (isShowBottomSheet) {

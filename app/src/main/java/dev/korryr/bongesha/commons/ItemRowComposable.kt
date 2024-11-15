@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -44,6 +45,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import dev.korryr.bongesha.screens.ItemDetailsScreen
 import dev.korryr.bongesha.ui.theme.gray01
@@ -108,7 +111,8 @@ fun ItemRow(
                     .clip(RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                val imagePainter = rememberImagePainter(data = product.images.firstOrNull())
+                val imagePainter =
+                    rememberAsyncImagePainter(model = product.images.firstOrNull() ?: "")
                 Image(
                     painter = imagePainter,
                     contentDescription = product.name,
@@ -117,6 +121,13 @@ fun ItemRow(
                         .size(64.dp),
                     contentScale = ContentScale.FillBounds
                 )
+                // Show loading indicator if the image is in loading state
+                if (imagePainter.state is AsyncImagePainter.State.Loading) {
+                    CircularProgressIndicator(
+                        color = Color.LightGray,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(8.dp))

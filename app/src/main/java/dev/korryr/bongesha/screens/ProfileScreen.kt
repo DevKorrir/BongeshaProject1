@@ -130,7 +130,7 @@ fun UserProfile(
             Spacer(modifier = Modifier.height(8.dp))
 
             BongaRow(
-                text = "Orders",
+                text = "Orders history",
                 imageVectorleading = painterResource(id = R.drawable.purchase_order_icon),
                 modifier = Modifier
                     .padding(16.dp)
@@ -140,13 +140,15 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {}
+                onClick = {
+                    navController.navigate(Route.Home.ORDER_HISTORY)
+                },
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             BongaRow(
-                text = "Chat",
+                text = "Chat With Us!",
                 imageVectorleading = painterResource(id = R.drawable.bubble_chat),
                 modifier = Modifier
                     .clickable(
@@ -161,6 +163,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
+                onClick = {},
 
             )
 
@@ -177,7 +180,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {                }
+                onClick = {                }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -193,7 +196,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {}
+                onClick = {}
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -217,15 +220,14 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
-                //onClick = {
-                    //navController.navigate(Route.Home.HelpSupport)
+                onClick = {},
 
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             BongaRow(
-                text = "Settings",
+                text = "App Settings",
                 imageVectorleading = painterResource(id = R.drawable.setting),
                 modifier = Modifier
                     .clickable {
@@ -238,6 +240,7 @@ fun UserProfile(
                         shape = RoundedCornerShape(8.dp)
                     ),
                 imageVectortrailing = Icons.Default.KeyboardArrowRight,
+                onClick = {},
             )
 
             Spacer(modifier = Modifier.height(24.dp))

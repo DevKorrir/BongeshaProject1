@@ -23,9 +23,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.sp
@@ -126,8 +131,25 @@ fun DeliveryLocationPicker(
 @Composable
 fun LocationPickerBottomSheet(
     onConfirmLocation: (LatLng) -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    colors: TextFieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = Color.White,
+        unfocusedContainerColor = Color.White,
+        disabledContainerColor = Color.White,
+        errorContainerColor = Color.Red,
+        unfocusedTextColor = Color.Black,
+        disabledTextColor = Color.Black,
+        errorTextColor = Color.Red,
+        errorIndicatorColor = Color.Red,
+        unfocusedIndicatorColor = Color.Transparent,
+        focusedIndicatorColor = orange28,
+        focusedLeadingIconColor = orange28,
+        unfocusedLeadingIconColor = Color.Black,
+        cursorColor = orange28,
+        focusedLabelColor = orange28
+    )
 ) {
+    val focusManager = LocalFocusManager.current
     val context = LocalContext.current
     val placesClient = remember { Places.createClient(context) } // Initialize Places client
 
@@ -165,6 +187,7 @@ fun LocationPickerBottomSheet(
 
         // Search TextField
         OutlinedTextField(
+            colors = colors,
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
             value = searchQuery,
@@ -178,6 +201,13 @@ fun LocationPickerBottomSheet(
             modifier = Modifier
                 .height(56.dp)
                 .fillMaxWidth(),
+            leadingIcon = {
+                Icon(
+                    imageVector = androidx.compose.material.icons.Icons.Default.Search,
+                    contentDescription = null,
+                    tint = Color.Gray
+                )
+            },
             keyboardOptions = KeyboardOptions.Default.copy(
                 imeAction = androidx.compose.ui.text.input.ImeAction.Search,
             ),
@@ -185,6 +215,7 @@ fun LocationPickerBottomSheet(
                 onSearch = {
                     fetchAutocompletePredictions(searchQuery.text, context, placesClient) { predictions ->
                         searchResults = predictions
+                        focusManager.clearFocus()
                     }
                 },)
 
@@ -213,7 +244,7 @@ fun LocationPickerBottomSheet(
         // Request location permission
         RequestLocationPermission {
             // Only show GoogleMap if permission is granted
-            Box(modifier = Modifier.height(400.dp)) {
+            Box(modifier = Modifier.height(350.dp)) {
                 GoogleMap(
                     modifier = Modifier.fillMaxSize(),
                     properties = mapProperties,
